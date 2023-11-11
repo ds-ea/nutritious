@@ -1,0 +1,8 @@
+{
+	"DEV": {
+		"API_URL": "REQUIRED"
+	},
+	"PROD": {
+		"API_URL": "EVEN MORE REQUIRED"
+	}
+}

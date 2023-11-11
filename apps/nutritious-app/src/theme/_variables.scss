@@ -1,0 +1,31 @@
+$dark-mode: false;
+
+$border-radius: 3px;
+$element-radius: 10px;
+$gutter: 1rem;
+
+
+$grid-width-minor: 450px;
+$grid-width: 650px;
+
+// please use color mixin for using these in your code to take advantage of css variables
+$colors: (
+		body: #eee,
+		primary: #FF0A0A,
+		secondary: #0AADFF,
+		info: #475657,
+		success: #039e6c,
+		danger: #AD405C,
+		warning: #ff6a00,
+		text: #333333,
+		light: #cfc9be,
+		medium: #62929e,
+		dark: #343d3d,
+);
+
+// the variables are prefixed with "chroma" instead of color, to avoid collisions and unexpected side effects (which will now more likely occur exactly because of this)
+:root{
+	@each $color, $value in $colors {
+		--color-#{$color}: #{$value};
+	}
+}

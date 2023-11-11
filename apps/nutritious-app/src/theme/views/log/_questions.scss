@@ -1,0 +1,125 @@
+@use "sass:math";
+
+log-questions {
+	max-width: $grid-width-minor !important;
+	
+	
+	@extend .log-step;
+	
+	
+	.question {
+		display: flex;
+		flex-direction: column;
+		
+		margin-bottom: $gutter*5;
+		
+	}
+	
+	.question-text {
+		font-size: 1.2rem;
+		font-weight: 500;
+		color: color(dark);
+		margin-bottom: math.div($gutter,3);
+		
+		&.valid {
+			color: color(success);
+		}
+		
+		&.invalid {
+			color: color(danger);
+		}
+		
+	}
+	
+	.control {
+		display: flex;
+		flex-direction: column;
+		
+		.mat-slider-horizontal {
+			width: 100%;
+			padding-left: 0;
+			padding-right: 0;
+		}
+	}
+}
+
+.slider-labels {
+	display: flex;
+	justify-content: space-between;
+	
+	color: color(info);
+	margin-top: -1rem;
+}
+
+.binary-control {
+	padding: $gutter;
+	display: flex;
+	
+	.mat-radio-button {
+		width: 50%;
+		
+		padding: 0 math.div($gutter,2);
+		
+		.mat-radio-label {
+			display: flex;
+			justify-content: flex-start;
+			font-size: 1rem;
+			
+		}
+		
+		&.no {
+			.mat-radio-label {
+				display: flex;
+				justify-content: flex-end;
+			}
+		}
+	}
+	
+}
+
+.choices-control {
+	display: flex;
+	flex-wrap: wrap;
+	padding-left: $gutter;
+	
+	.mat-radio-group,
+	.checkbox-group {
+		
+		display: flex;
+		flex-direction: column;
+		
+	}
+	
+	.mat-radio-button,
+	.mat-checkbox {
+		margin-top: math.div($gutter,2);
+		margin-bottom: math.div($gutter,2);
+	
+		font-size: 1rem;
+	}
+	
+	.mat-radio-label-content,
+	.mat-checkbox-label-content{
+		white-space: normal;
+		align-items: flex-start;
+	}
+	
+	@media only screen and (min-width: 600px) {
+		padding-left: 0;
+		
+		.mat-radio-group,
+		.checkbox-group{
+			flex-direction: row;
+			flex-wrap: wrap;
+			flex-grow: 1;
+		}
+		
+		.mat-radio-button,
+		.mat-checkbox {
+			width: 50%;
+			flex-shrink: 0;
+			padding: 0 math.div($gutter,2);
+		}
+	}
+	
+}

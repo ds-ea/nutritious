@@ -1,26 +1,39 @@
 {
-  "compileOnSave": false,
-  "compilerOptions": {
-    "rootDir": ".",
-    "sourceMap": true,
-    "declaration": false,
-    "moduleResolution": "node",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "strict": true,
-    "strictBindCallApply": true,
-    "strictFunctionTypes": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true,
-    "useUnknownInCatchVariables": true,
-    "importHelpers": true,
-    "target": "es2015",
-    "module": "esnext",
-    "lib": ["es2020", "dom"],
-    "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
-    "baseUrl": ".",
-    "paths": {}
-  },
-  "exclude": ["node_modules", "tmp"]
+	"compileOnSave": false,
+	"compilerOptions": {
+		"rootDir": ".",
+		"sourceMap": true,
+		"declaration": false,
+		"moduleResolution": "node",
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+
+		"importHelpers": true,
+		"target": "es2015",
+		"module": "esnext",
+		"lib": [
+			"es2020",
+			"dom"
+		],
+		"skipLibCheck": true,
+		"skipDefaultLibCheck": true,
+		"baseUrl": ".",
+		"paths": {},
+
+		"strict": true,
+		"strictFunctionTypes": true,
+		"strictNullChecks": true,
+		"strictPropertyInitialization": true,
+		"useUnknownInCatchVariables": true,
+		"useDefineForClassFields": false,
+		"forceConsistentCasingInFileNames": true,
+		"noImplicitOverride": true,
+		"noPropertyAccessFromIndexSignature": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true
+	},
+	"exclude": [
+		"node_modules",
+		"tmp"
+	]
 }

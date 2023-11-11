@@ -1,0 +1,30 @@
+app-login{
+	.mat-card-footer{
+		display: flex;
+		justify-content: center;
+		padding: $gutter;
+		
+		border-top: 1px solid color(body);
+		
+		> .mat-button-base{
+			flex-grow: 1;
+		}
+	}
+}
+
+
+app-registration{
+	
+	.mat-card{
+		max-width: $grid-width-minor;
+	}
+	
+	.explain{
+		margin: $gutter 0 $gutter*2 0 !important;
+	}
+	
+	.study-title{
+		text-align: center;
+		margin-bottom: $gutter *2;
+	}
+}

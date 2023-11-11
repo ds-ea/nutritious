@@ -1,0 +1,40 @@
+
+.nutri-main-menu{
+
+	user-select: none;
+
+	ion-content{
+		height: auto;
+		max-height: 400px;
+	}
+
+	.inner-scroll{
+	}
+
+	a{
+		color: inherit;
+		cursor: pointer;
+
+		@include hover{
+			color: color(accent) !important;
+		}
+	}
+
+	::part(scroll){
+		display: flex;
+		width: 100%;
+
+		flex-direction: column;
+		justify-content: center;
+		align-items: flex-start;
+		padding-left: $gutter*2;
+	}
+
+	&::part(container){
+		max-height: 300px;
+		margin-top: auto;
+		margin-bottom: auto;
+		border-top-left-radius: 10px;
+		border-bottom-left-radius: 10px;
+	}
+}

@@ -1,0 +1,30 @@
+@import "variables";
+@import "mixins";
+
+@import "ionic";
+@import "ng-material";
+
+@import "base/form";
+@import "base/elements";
+@import "base/layout";
+
+@import "views/login_signup";
+@import "views/log";
+@import "views/study";
+@import "components/scanner";
+
+html, body {
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+html {
+	--ion-safe-area-top: env(safe-area-inset-top);
+	--ion-safe-area-bottom: env(safe-area-inset-bottom);
+	--ion-safe-area-left: env(safe-area-inset-left);
+	--ion-safe-area-right: env(safe-area-inset-right);
+}

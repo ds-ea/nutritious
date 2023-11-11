@@ -1,0 +1,39 @@
+
+@function color($name, $raw: false) {
+	$value: map_get($colors, $name);
+	@if ($raw){
+		@return $value;
+	}
+	@return var(--color-#{$name}, $value);
+}
+
+@function contrast-color($name, $raw: false) {
+	$value: map_get($colors, $name);
+	
+	$contrast: #ffffff;
+	@if (lightness($value ) > 65%) {
+		$contrast: #000000;
+	}
+	
+	@if ($raw){
+		@return $contrast;
+	}
+	
+	@return var(--color-#{name}-contrast, $contrast);
+}
+
+
+@mixin hover( $andFocus: false, $alsoActive: false ) {
+	
+	@media (hover: hover) {
+		&:hover{ @content; }
+	}
+	
+	@if( $andFocus ){
+		&:focus{ @content; }
+	}
+	@if( $alsoActive ){
+		&:active{ @content; }
+	}
+	
+}

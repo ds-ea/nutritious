@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Nutritious</string>
+    <string name="title_activity_main">Nutritious</string>
+    <string name="package_name">net.dsea.foodstudyapp</string>
+    <string name="custom_url_scheme">net.dsea.foodstudyapp</string>
+</resources>

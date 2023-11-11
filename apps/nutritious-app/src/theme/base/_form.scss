@@ -1,0 +1,11 @@
+.form-vertical{
+	display: flex;
+	flex-direction: column;
+}
+
+
+input.mat-input-element,
+textarea.mat-input-element
+{
+	//border-bottom: 1px solid ;
+}

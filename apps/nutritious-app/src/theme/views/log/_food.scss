@@ -1,0 +1,168 @@
+@use 'sass:math';
+
+.log-meal-food-panel {
+	
+	&.mat-expanded {
+		.mat-expansion-panel-content {
+		}
+		
+	}
+}
+
+
+log-meal{
+	@extend .log-step;
+	
+	ion-datetime{
+		margin-left: -24px;
+		margin-right: -24px;
+	}
+}
+
+
+app-food-list {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-height: 30vh;
+	//max-height: calc( 80vh - #{$gutter * 2} );
+	max-height: 650px;
+	
+	max-width: $grid-width-minor;
+	
+	.mat-expanded &{
+		min-height: 50vh;
+		height: 500px;
+	}
+	
+	.meal-items{
+		background: transparent;
+		overflow-y: auto;
+		
+		.meal-item{
+			padding: math.div($gutter,2) $gutter;
+			margin-bottom: math.div($gutter,2);
+			
+			background: color(body);
+			color: contrast-color(body);
+			
+			cursor: pointer;
+			
+			border-radius: $border-radius;
+			
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-start;
+			
+			> *{
+				pointer-events: none;
+			}
+			
+			.name{
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			
+			.quantity{
+				flex-shrink: 0;
+				margin-left: math.div($gutter,2);
+			}
+			
+			@include hover{
+			}
+		}
+	}
+	
+	
+	.search {
+		margin-top: auto;
+	}
+	
+	.results-anchor {
+		width: 100%;
+		margin-bottom: $gutter;
+	}
+	
+	.search-results {
+		flex-grow: 1;
+		
+		display: flex;
+		flex-direction: column;
+		//justify-content: flex-end;
+		
+		margin-top: $gutter;
+		
+		overflow: auto;
+		
+		position: absolute;
+		//bottom: 0;
+		width: 100%;
+		max-height: 90%;
+		transform: translateY(-100%);
+		//bottom: 6rem;
+		
+		border-radius: 10px;
+		box-shadow: 0 0 10px rgba(#000, .3);
+		
+		.item{
+			cursor: pointer;
+			@include hover{
+				color: color(primary);
+			}
+		}
+		
+	}
+	
+	.cdk-virtual-scroll-viewport {
+		flex-grow: 1;
+	}
+	
+	ion-searchbar {
+		padding-bottom: 0 !important;
+		padding-left: 0 !important;
+		padding-inline-start: 0 !important;
+		padding-right: 0 !important;
+		padding-inline-end: 0 !important;
+	}
+}
+
+
+.meal-item-editor{
+	
+	.mat-card-header{
+		justify-content: center;
+		text-align: center;
+	}
+	.mat-card-header-text{
+		margin: 0;
+	}
+	
+	.mat-card-content{
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		
+		margin-top: $gutter;
+	}
+	
+	.in-quantity{
+		text-align: center;
+	}
+}
+
+
+nutri-food-list-meal-item-editor{
+	//min-width: 350px;
+}
+.popover-content{
+}
+
+ion-popover {
+	--width: 350px;
+	
+	&::part(content) {
+		min-width: 350px;
+		
+	}
+}

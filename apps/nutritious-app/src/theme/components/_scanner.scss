@@ -1,0 +1,86 @@
+.ScanCodeButton, .mat-button.ScanCodeButton, .mat-flat-button.ScanCodeButton{
+	display: flex;
+	flex-grow: 1;
+	
+	align-items: center;
+	justify-content: space-evenly;
+	
+	aspect-ratio: 3/1;
+	
+	margin-top: $gutter;
+	margin-bottom: $gutter;
+}
+
+.scanner-ui{
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	
+	height: 100%;
+	width: 100%;
+	overflow: hidden;
+	
+	user-select: none;
+	
+	
+	--ion-safe-area-top: env(safe-area-inset-top);
+	--ion-safe-area-bottom: env(safe-area-inset-bottom);
+	--ion-safe-area-left: env(safe-area-inset-left);
+	--ion-safe-area-right: env(safe-area-inset-right);
+	
+	.content{
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+	}
+	
+	.window{
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		
+		aspect-ratio: 1;
+		width:80vw;
+		max-width: 500px;
+		margin-bottom: 2rem;
+		
+		box-shadow: 0 0 0 99999px rgba(0,0,0,.5);
+		
+		border-radius: 20px;
+		
+		&::before{
+			content: '';
+			display: block;
+			width: 14px;
+			height: 14px;
+			border: 4px solid #ffffff;
+			border-radius: 50%;
+		}
+	}
+	
+}
+
+
+html{
+	.scanner-ui{
+		display: none;
+	}
+	&.scanner-running {
+		.scanner-ui{
+			display: flex;
+		}
+		
+		body {
+			background: transparent;
+		}
+		ion-app{
+			display: none;
+		}
+		
+		::part(background) {
+			//background: transparent;
+		}
+	}
+}

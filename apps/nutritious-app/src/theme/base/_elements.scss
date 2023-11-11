@@ -1,0 +1,68 @@
+@use "sass:math";
+
+.accordion-desc-right{
+	.mat-expansion-panel-header-description{
+		justify-content: flex-end;
+		
+		&:last-child{
+			margin-right: 0;
+		}
+	}
+}
+
+.lang-switcher{
+	text-transform: uppercase;
+	display: flex;
+	a{
+		+ a{
+			margin-left: $gutter*2;
+		}
+	}
+	
+	.active{
+		opacity: .5;
+		
+	}
+}
+
+.view-header{
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	
+	padding: $gutter;
+	margin-bottom: $gutter*2;
+}
+
+.view-content{
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	
+	padding: $gutter*4  math.div($gutter,2) $gutter*2;
+	
+}
+
+.view-footer{
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	padding: $gutter;
+}
+
+.content-actions{
+	margin-top: math.div($gutter,2);
+	
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	
+	&.extra-space{
+		margin-top: $gutter*2;
+	}
+	
+}

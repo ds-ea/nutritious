@@ -1,0 +1,40 @@
+@use "sass:math";
+
+@import "log/food";
+@import "log/questions";
+
+.log-step{
+	padding: $gutter*4 math.div($gutter,2) $gutter*2;
+	
+	.step-actions{
+		display: flex;
+		justify-content: space-evenly;
+		justify-items: center;
+		flex-wrap: wrap;
+		
+		margin-top: $gutter;
+	}
+	
+	.log-header{
+		@extend .view-header;
+	}
+	
+	.log-footer{
+		@extend .view-footer;
+	}
+	
+}
+
+
+log-summary{
+	@extend .log-step;
+	
+	ion-note{
+		font-size: 1rem;
+		text-align: center;
+	}
+	
+	.log-footer{
+		margin-top: $gutter;
+	}
+}

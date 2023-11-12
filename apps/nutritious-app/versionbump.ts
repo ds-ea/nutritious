@@ -24,7 +24,7 @@ const processConfigXML = false;
 
 
 	const buildNumber = Number(generate());
-	const version = require(projectDir + '/package.json').version;
+	const version = require(projectDir + '/project.json').version;
 
 	console.log('version: ', version);
 	console.log('build: ', buildNumber);

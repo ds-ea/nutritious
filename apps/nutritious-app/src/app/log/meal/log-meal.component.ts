@@ -68,7 +68,7 @@ import { CoreService } from '../../core/core.service';
 						</mat-accordion>
 
 						<footer class="log-footer">
-							<button mat-flat-button color="primary" [disabled]="mealLogForm.invalid || !mealItems?.length"
+							<button mat-flat-button color="primary" [disabled]="mealLogForm.invalid || !mealItems.length"
 									type="submit"
 							>{{'GENERIC.CONTINUE_BTN' | translate}}</button>
 						</footer>

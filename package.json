@@ -4,6 +4,7 @@
 	"license": "UNLICENSED",
 	"scripts": {},
 	"private": true,
+	"packageManager": "^pnpm@8.10.0",
 	"dependencies": {
 		"@angular/animations": "^16.2.11",
 		"@angular/cdk": "16.2.10",
@@ -72,6 +73,8 @@
 		"@nx/playwright": "17.0.2",
 		"@nx/webpack": "17.0.3",
 		"@nx/workspace": "17.0.2",
+		"@nxext/capacitor": "^17.0.1",
+		"@nxext/ionic-angular": "^17.0.1",
 		"@playwright/test": "^1.36.0",
 		"@schematics/angular": "~16.2.0",
 		"@swc-node/register": "~1.6.7",

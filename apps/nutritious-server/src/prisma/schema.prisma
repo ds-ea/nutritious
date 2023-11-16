@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+model data_types {
+  id                    Int         @id @default(autoincrement()) @db.UnsignedInt
+  name                  String      @unique(map: "data_types_name_unique") @db.VarChar(255)
+  slug                  String      @unique(map: "data_types_slug_unique") @db.VarChar(255)
+  display_name_singular String      @db.VarChar(255)
+  display_name_plural   String      @db.VarChar(255)
+  icon                  String?     @db.VarChar(255)
+  model_name            String?     @db.VarChar(255)
+  policy_name           String?     @db.VarChar(255)
+  controller            String?     @db.VarChar(255)
+  description           String?     @db.VarChar(255)
+  generate_permissions  Boolean     @default(false)
+  server_side           Int         @default(0) @db.TinyInt
+  details               String?     @db.Text
+  created_at            DateTime?   @db.Timestamp(0)
+  updated_at            DateTime?   @db.Timestamp(0)
+}
+
+
+////////////////////////////////////////
+// NUTRITIOUS MODELS START
+////////////////////////////////////////
+model fs_bls {
+  id      Int    @id @default(autoincrement()) @db.UnsignedInt
+  bls_key String @db.VarChar(12)
+  name_de String @db.VarChar(255)
+  name_en String @db.VarChar(255)
+}
+
+model fs_log {
+  id       BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  user     BigInt   @db.UnsignedBigInt
+  study    Int      @db.UnsignedInt
+  date     DateTime @default(now()) @db.Timestamp(0)
+  received DateTime @default(now()) @db.Timestamp(0)
+  data     Json?
+
+  @@index([date], map: "fs_log_date_index")
+}
+
+model fs_log_food {
+  id        BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  user      BigInt   @db.UnsignedBigInt
+  study     Int      @db.UnsignedInt
+  date      DateTime @default(now()) @db.Timestamp(0)
+  received  DateTime @default(now()) @db.Timestamp(0)
+  bls       Int?     @db.UnsignedInt
+  bls_key   String?  @db.VarChar(255)
+  meal_type String?  @db.VarChar(128)
+  people    Int      @db.UnsignedSmallInt
+  data      Json?
+
+  @@index([date], map: "fs_log_food_date_index")
+}
+
+model fs_studies {
+  id               Int       @id @default(autoincrement()) @db.UnsignedInt
+  name             String    @db.VarChar(255)
+  prefix           String    @unique(map: "fs_studies_prefix_unique") @db.VarChar(32)
+  from             DateTime  @default(now()) @db.Timestamp(0)
+  until            DateTime? @db.Timestamp(0)
+  reg_public       Boolean   @default(false)
+  reg_key          String?   @db.VarChar(128)
+  reg_pass         String?   @db.VarChar(64)
+  reg_limit        Int?      @db.UnsignedInt
+  user_count       Int       @default(0) @db.UnsignedInt
+  question_catalog Json?
+}
+
+////////////////////////////////////////
+// NUTRITIOUS MODELS END
+////////////////////////////////////////
+
+
+model pages {
+  id               Int          @id @default(autoincrement()) @db.UnsignedInt
+  author_id        Int
+  title            String       @db.VarChar(255)
+  excerpt          String?      @db.Text
+  body             String?      @db.Text
+  image            String?      @db.VarChar(255)
+  slug             String       @unique(map: "pages_slug_unique") @db.VarChar(255)
+  meta_description String?      @db.Text
+  status           pages_status @default(INACTIVE)
+  created_at       DateTime?    @db.Timestamp(0)
+  updated_at       DateTime?    @db.Timestamp(0)
+  layout           String?      @db.Text
+}
+
+
+model settings {
+  id           Int     @id @default(autoincrement()) @db.UnsignedInt
+  key          String  @unique(map: "settings_key_unique") @db.VarChar(255)
+  display_name String  @db.VarChar(255)
+  value        String? @db.Text
+  details      String? @db.Text
+  type         String  @db.VarChar(255)
+  order        Int     @default(1)
+  group        String? @db.VarChar(255)
+}
+
+
+model users {
+  id                BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
+  role_id           BigInt?      @db.UnsignedBigInt
+  name              String       @db.VarChar(255)
+  username          String       @unique(map: "users_username_unique") @db.VarChar(255)
+  email             String?      @unique(map: "users_email_unique") @db.VarChar(255)
+  avatar            String?      @default("users/default.png") @db.VarChar(255)
+  email_verified_at DateTime?    @db.Timestamp(0)
+  password          String       @db.VarChar(255)
+  api_token         String?      @unique(map: "users_api_token_unique") @db.VarChar(80)
+  remember_token    String?      @db.VarChar(100)
+  settings          String?      @db.Text
+  created_at        DateTime?    @db.Timestamp(0)
+  updated_at        DateTime?    @db.Timestamp(0)
+  fs_study          Int?         @db.UnsignedInt
+  fs_participant    String?      @db.VarChar(128)
+  // user_roles        user_roles[]
+  // roles             roles?       @relation(fields: [role_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "users_role_id_foreign")
+
+  @@index([role_id], map: "users_role_id_foreign")
+}
+
+enum pages_status {
+  ACTIVE
+  INACTIVE
+}

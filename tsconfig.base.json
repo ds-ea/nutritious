@@ -7,18 +7,13 @@
 		"moduleResolution": "node",
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,
-
 		"importHelpers": true,
 		"target": "es2015",
 		"module": "esnext",
-		"lib": [
-			"es2020",
-			"dom"
-		],
+		"lib": ["es2020", "dom"],
 		"skipLibCheck": true,
 		"skipDefaultLibCheck": true,
 		"baseUrl": ".",
-
 		"strict": true,
 		"strictFunctionTypes": true,
 		"strictNullChecks": true,
@@ -30,14 +25,10 @@
 		"noPropertyAccessFromIndexSignature": true,
 		"noImplicitReturns": true,
 		"noFallthroughCasesInSwitch": true,
-
-
 		"paths": {
-			"@nutritious/server": ["apps/nutritious-server/src"],
+			"@nutritious/nutritious-admin": ["apps/nutritious-admin/src"],
+			"@nutritious/server": ["apps/nutritious-server/src"]
 		}
 	},
-	"exclude": [
-		"node_modules",
-		"tmp"
-	]
+	"exclude": ["node_modules", "tmp"]
 }

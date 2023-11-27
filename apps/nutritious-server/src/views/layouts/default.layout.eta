@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="robots" content="noimageindex, nofollow, nosnippet">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <% if( it.page ){ %>
+            <title><%= it.page.title %></title>
+        <% } %>
+
+
+        <% /*
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+
+        <meta name="description" content="@yield('meta_description')">
+
+        <!-- Icons -->
+        <meta name="msapplication-TileImage" content="{{ url('/') }}/ms-tile-icon.png" />
+        <meta name="msapplication-TileColor" content="#8cc641" />
+        <link rel="shortcut icon" href="{{ url('/') }}/images/favicon.ico" />
+        <link rel="apple-touch-icon-precomposed" href="{{ url('/') }}/images/apple-touch-icon.png" />
+
+        <!-- Fonts -->
+        <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet">
+        */%>
+
+        <!-- Styles -->
+        <link rel="stylesheet" type="text/css" href="/public/css/app.css">
+    </head>
+    <body>
+        <%~ it.nav ? include('../elements/nav', {nav: it.nav}) : '' %>
+        <main class="main-content">
+            <%~ it.body %>
+        </main>
+    </body>
+</html>
+
+
+
+

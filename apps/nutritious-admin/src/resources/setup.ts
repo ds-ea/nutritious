@@ -103,6 +103,11 @@ export const resources:[ DMMF.Model, ResourceWithOptions['options'], ResourceWit
 			models.Page,
 			{
 				listProperties: [ 'id', 'title', 'status' ] as Array<keyof Page>,
+				properties:{
+					body:{
+						type: 'richtext'
+					}
+				} as Record<keyof Page, PropertyOptions>
 			},
 		],
 

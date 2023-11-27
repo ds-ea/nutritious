@@ -1,0 +1,3 @@
+<% layout('./layouts/default.layout.eta') %>
+
+<%~ it.page.body || '' %>

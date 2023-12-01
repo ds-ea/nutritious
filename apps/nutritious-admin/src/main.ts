@@ -1,6 +1,7 @@
 import AdminJSFastify, { AuthenticationOptions } from '@adminjs/fastify';
 import { Database, Resource } from '@adminjs/prisma';
 import { FastifySessionOptions } from '@fastify/session';
+import { Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
 
@@ -20,8 +21,6 @@ type CallbackSession = ( err:any, result?:Fastify.Session | null ) => void;
 //@ts-ignore
 BigInt.prototype.toJSON = function(){ return this.toString(); };
 
-
-const PORT = 7880;
 
 const start = async () => {
 
@@ -71,11 +70,15 @@ const start = async () => {
 		sessionOptions,
 	);
 
-	app.listen( { port: PORT }, ( err, addr ) => {
+	const port = Number(process.env['PORT'] || 80);
+	const host = process.env['HOST'] || '0.0.0.0';
+
+	app.listen( { port, host }, ( err, addr ) => {
 		if( err ){
 			console.error( err );
 		}else{
-			console.log( `AdminJS started on http://localhost:${ PORT }${ admin.options.rootPath }` );
+			const localAddr = addr.replace('[::1]','localhost');
+			console.log( `AdminJS started on ${localAddr}${ admin.options.rootPath }` );
 		}
 	} );
 };

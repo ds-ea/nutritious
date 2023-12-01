@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import * as argon2 from 'argon2';
 import * as bcrypt from 'bcrypt';
@@ -8,7 +9,10 @@ import { PrismaService } from '../../prisma/prisma.service';
 @Injectable()
 export class AuthService{
 
-	constructor( private readonly prisma:PrismaService ){
+	constructor(
+		private readonly prisma:PrismaService,
+		private readonly jwtService:JwtService
+	){
 	}
 
 	/**
@@ -50,7 +54,15 @@ export class AuthService{
 	}
 
 	async signIn( username:string, password:string ){
+		const authorizedUser = await this.checkCredentials( {username}, password );
 
+		if( !authorizedUser )
+			return undefined;
+
+		const payload = {sub: authorizedUser.id };
+		return {
+			access_token: await this.jwtService.signAsync(payload)
+		}
 
 	}
 

@@ -2,7 +2,7 @@ import importExportFeature from '@adminjs/import-export';
 import passwordsFeature from '@adminjs/passwords';
 import { $Enums, BLS, Log, LogFood, Page, Prisma, Study, User } from '@prisma/client';
 import { DMMF } from '@prisma/client/runtime/library.js';
-import { PropertyOptions, ResourceWithOptions } from 'adminjs';
+import { FeatureType, PropertyOptions, ResourceOptions, ResourceWithOptions } from 'adminjs';
 import * as argon2 from 'argon2';
 import { componentLoader, Components } from './components.js';
 
@@ -28,6 +28,29 @@ export const enumMap = dataModel.enums.reduce(
 	),
 	{} as Record<PrismaServiceEnumName, DMMF.DatamodelEnum>,
 );
+
+
+type EntityResourceOptions<
+	TEntity,
+	TKeys extends string = Extract<keyof TEntity, string>,
+> = ResourceOptions & {
+	listProperties?: Array<TKeys>;
+	showProperties?: Array<TKeys>;
+	editProperties?: Array<TKeys>;
+	filterProperties?: Array<TKeys>;
+	properties?: { [key in TKeys]?: PropertyOptions };
+	sort?: {
+		direction: 'asc' | 'desc';
+		sortBy: TKeys;
+	};
+};
+
+const createEntitySetup = <TEntity>(
+	resource: new () => TEntity,
+	options: EntityResourceOptions<TEntity> = {},
+	features: FeatureType[] = [],
+): ResourceWithOptions => ({ resource, options, features });
+
 
 
 export const resources:[ DMMF.Model, ResourceWithOptions['options'], ResourceWithOptions['features']? ] [] =

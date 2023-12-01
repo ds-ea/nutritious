@@ -23,7 +23,7 @@ async function bootstrap(){
 
 
 	fastify.register( fastifyHttpProxy, {
-		upstream: 'http://localhost:7880/admin',
+		upstream: 'http://localhost:7882/admin',
 		prefix: '/admin',
 		http2: false,
 		proxyPayloads: false,
@@ -76,11 +76,20 @@ async function bootstrap(){
 
 	const globalPrefix = '';
 	app.setGlobalPrefix( globalPrefix );
-	const port = process.env['PORT'] || 3000;
-	await app.listen( port );
-	Logger.log(
-		`🚀 Application is running on: http://localhost:${ port }/${ globalPrefix }`,
-	);
+	const port = process.env['PORT'] || 80;
+	const host = process.env['HOST'] || '0.0.0.0';
+	await app.listen( port, host, ( err, addr ) => {
+		if( err ){
+			console.error( err );
+		}else{
+			const localAddr = addr
+				.replace('[::1]','localhost')
+				.replace('0.0.0.0','localhost')
+			;
+			Logger.log(`🚀 Application is running on: ${ localAddr }${ globalPrefix }`,	);
+		}
+	} );
+
 }
 
 bootstrap();

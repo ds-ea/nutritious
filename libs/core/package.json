@@ -1,5 +1,5 @@
 {
-	"name": "@nutritious/nutrituous-core",
+	"name": "@nutritious/core",
 	"version": "0.0.1",
 	"dependencies": {},
 	"type": "commonjs",

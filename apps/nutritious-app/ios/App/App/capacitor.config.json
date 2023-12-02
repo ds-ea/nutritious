@@ -1,7 +1,0 @@
-{
-	"appId": "com.ipsy.foodapp",
-	"appName": "Nutritious",
-	"webDir": "../../dist/apps/nutritious-app",
-	"bundledWebRuntime": false,
-	"launchAutoHide": false
-}

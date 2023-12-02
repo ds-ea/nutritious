@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import * as argon2 from 'argon2';
@@ -11,7 +12,8 @@ export class AuthService{
 
 	constructor(
 		private readonly prisma:PrismaService,
-		private readonly jwtService:JwtService
+		private readonly jwtService:JwtService,
+		private readonly config:ConfigService,
 	){
 	}
 
@@ -24,11 +26,10 @@ export class AuthService{
 
 		// bcrypt
 		if( hash.substring( 0, 4 ) === '$2y$' ){
-			const convertedHash = hash.replace(/^\$2y(.+)$/i, '$2a$1');
+			const convertedHash = hash.replace( /^\$2y(.+)$/i, '$2a$1' );
 			return bcrypt.compare( plain, convertedHash );
 		}
 
-		console.log('check flar', hash, plain);
 		// argon2
 		return argon2.verify( hash, plain );
 	}
@@ -49,20 +50,23 @@ export class AuthService{
 
 			settings: user.settings,
 			fs_study: user.fs_study,
-			fs_participant: user.fs_participant
+			fs_participant: user.fs_participant,
 		} as User;
 	}
 
 	async signIn( username:string, password:string ){
-		const authorizedUser = await this.checkCredentials( {username}, password );
+		const authorizedUser = await this.checkCredentials( { username }, password );
 
 		if( !authorizedUser )
 			return undefined;
 
-		const payload = {sub: authorizedUser.id };
+		const payload = { sub: authorizedUser.id };
 		return {
-			access_token: await this.jwtService.signAsync(payload)
-		}
+			access_token: await this.jwtService.signAsync(
+				payload,
+				{ secret: this.config.get( 'JWT_SECRET' ) },
+			),
+		};
 
 	}
 

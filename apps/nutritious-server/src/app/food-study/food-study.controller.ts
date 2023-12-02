@@ -14,8 +14,8 @@ export class FoodStudyController {
 
 	@Get('study')
 	public async getDefaultStudy( @Req()req:AuthedRequest ){
+
 		const defaultStudyId = req.user?.fs_study;
-		console.log(req.user);
 		if( !defaultStudyId )
 			throw new NotFoundException('no study assigned');
 
@@ -35,10 +35,7 @@ export class FoodStudyController {
 
 	@Post('food')
 	public async logFood(@Req() req:AuthedRequest, @Body() data:LegacyFoodLog ){
-		console.log('log food', data);
-
 		const recorded = await this.fsService.recordFood( data, req.user  );
-
 		return !!recorded;
 	}
 

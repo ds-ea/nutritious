@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '@nutritious/core';
 import { Page } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
 
 
 export type NavElement = {

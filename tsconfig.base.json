@@ -26,7 +26,8 @@
 		"noImplicitReturns": true,
 		"noFallthroughCasesInSwitch": true,
 		"paths": {
-			"@nutritious/nutritious-admin": ["apps/nutritious-admin/src"],
+			"@nutritious/admin": ["apps/nutritious-admin/src"],
+			"@nutritious/core": ["libs/core/src/index.ts"],
 			"@nutritious/server": ["apps/nutritious-server/src"]
 		}
 	},

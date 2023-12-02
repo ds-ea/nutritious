@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
-import { PrismaService } from '@nutritious/server';
+import { PrismaService } from '@nutritious/core';
 
-@Module({
-	providers:[
-		PrismaService
-	],
-	exports:[
+
+@Module( {
+	providers: [
 		PrismaService,
 	],
-})
-export class CoreModule {}
+	exports: [
+		PrismaService,
+	],
+} )
+export class CoreModule{}

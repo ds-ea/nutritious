@@ -34,22 +34,22 @@ type EntityResourceOptions<
 	TEntity,
 	TKeys extends string = Extract<keyof TEntity, string>,
 > = ResourceOptions & {
-	listProperties?: Array<TKeys>;
-	showProperties?: Array<TKeys>;
-	editProperties?: Array<TKeys>;
-	filterProperties?: Array<TKeys>;
-	properties?: { [key in TKeys]?: PropertyOptions };
-	sort?: {
-		direction: 'asc' | 'desc';
-		sortBy: TKeys;
+	listProperties?:Array<TKeys>;
+	showProperties?:Array<TKeys>;
+	editProperties?:Array<TKeys>;
+	filterProperties?:Array<TKeys>;
+	properties?:{ [key in TKeys]?:PropertyOptions };
+	sort?:{
+		direction:'asc' | 'desc';
+		sortBy:TKeys;
 	};
 };
 
 const createEntitySetup = <TEntity>(
-	resource: new () => TEntity,
-	options: EntityResourceOptions<TEntity> = {},
-	features: FeatureType[] = [],
-): ResourceWithOptions => ({ resource, options, features });
+	resource:new () => TEntity,
+	options:EntityResourceOptions<TEntity> = {},
+	features:FeatureType[] = [],
+):ResourceWithOptions => ( { resource, options, features } );
 
 
 
@@ -74,8 +74,9 @@ export const resources:[ DMMF.Model, ResourceWithOptions['options'], ResourceWit
 				listProperties: [ 'study', 'user', 'date' ] as Array<keyof Log>,
 				sort: { sortBy: 'date' as keyof Log, direction: 'desc' },
 				properties: {
-					study: { reference: 'Study', },
+					study: { reference: 'Study' },
 					user: { reference: 'User' },
+					//					data: { type: 'key-value' },
 				},
 			},
 			[
@@ -91,8 +92,9 @@ export const resources:[ DMMF.Model, ResourceWithOptions['options'], ResourceWit
 				listProperties: [ 'study', 'user', 'date', 'bls_key' ] as Array<keyof LogFood>,
 				sort: { sortBy: 'date' as keyof Log, direction: 'desc' },
 				properties: {
-					study: { reference: 'Study', },
-					user: { reference: 'User', },
+					study: { reference: 'Study' },
+					user: { reference: 'User' },
+					//					data: { type: 'key-value' },
 				},
 
 			},
@@ -126,11 +128,11 @@ export const resources:[ DMMF.Model, ResourceWithOptions['options'], ResourceWit
 			models.Page,
 			{
 				listProperties: [ 'id', 'title', 'status' ] as Array<keyof Page>,
-				properties:{
-					body:{
-						type: 'richtext'
-					}
-				} as Record<keyof Page, PropertyOptions>
+				properties: {
+					body: {
+						type: 'richtext',
+					},
+				} as Record<keyof Page, PropertyOptions>,
 			},
 		],
 

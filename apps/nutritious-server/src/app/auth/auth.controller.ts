@@ -1,7 +1,7 @@
 import { Body, Controller, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { FastifyRequest } from 'fastify';
+import { Public } from '../core/decorators/public.decorator';
 import { AuthedRequest } from '../types/server.types';
-import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 
 
@@ -12,6 +12,7 @@ export class AuthController{
 		private readonly auth:AuthService,
 	){}
 
+	@Public()
 	@Post( 'login' )
 	public async login( @Req() req:FastifyRequest, @Body() credentials:Partial<{ password:string, username:string }> ){
 
@@ -27,7 +28,6 @@ export class AuthController{
 	}
 
 
-	@UseGuards(AuthGuard)
 	@Post('me')
 	public async userinfo( @Req() req:AuthedRequest ){
 

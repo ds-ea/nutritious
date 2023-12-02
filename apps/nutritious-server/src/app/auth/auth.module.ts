@@ -1,13 +1,16 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { JwtModuleOptions } from '@nestjs/jwt/dist/interfaces/jwt-module-options.interface';
 import { PrismaService } from '@nutritious/server';
+import { CoreModule } from '../core/core.module';
 import { AuthController } from './auth.controller';
+import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 
 
 @Module( {
 	imports: [
+		CoreModule,
 		JwtModule.registerAsync({
 			useFactory:():JwtModuleOptions=>{
 				const secret = process.env['JWT_SECRET'] ?? undefined;
@@ -25,10 +28,12 @@ import { AuthService } from './auth.service';
 	controllers: [ AuthController ],
 	providers: [
 		AuthService,
-		PrismaService,
+		AuthGuard,
+		JwtService
 	],
 	exports: [
 		AuthService,
+		JwtService
 	],
 } )
 export class AuthModule{}

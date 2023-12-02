@@ -22,8 +22,10 @@ async function bootstrap(){
 	const fastify = adapter.getInstance();
 
 
+	const adminProxyTarget = process.env['ADMIN_URL'] ?? undefined;
+	if( adminProxyTarget )
 	fastify.register( fastifyHttpProxy, {
-		upstream: 'http://localhost:7882/admin',
+		upstream: adminProxyTarget,
 		prefix: '/admin',
 		http2: false,
 		proxyPayloads: false,
@@ -40,6 +42,7 @@ async function bootstrap(){
 	app.enableCors( {
 		credentials: true,
 		origin: true,
+		preflightContinue: true,
 	} );
 
 	await app.register( fastifyHelmet, {

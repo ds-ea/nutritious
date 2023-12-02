@@ -33,7 +33,7 @@ export class AuthGuard implements CanActivate{
 			if( !user )
 				throw new UnauthorizedException();
 
-			request['user'] = userId;
+			request['user'] = user;
 
 		}catch{
 			throw new UnauthorizedException();

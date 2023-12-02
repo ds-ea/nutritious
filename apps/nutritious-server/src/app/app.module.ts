@@ -14,6 +14,7 @@ import { PageService } from './pages/page.service';
 	imports: [
 		CoreModule,
 		AuthModule,
+		FoodStudyModule,
 	],
 	controllers: [ AppController ],
 	providers: [

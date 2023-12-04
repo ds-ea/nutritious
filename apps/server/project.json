@@ -62,47 +62,6 @@
 					"codeCoverage": true
 				}
 			}
-		},
-		"prisma": {
-			"executor": "nx:run-commands",
-			"options": {
-				"commands": [
-					{
-						"command": "prisma",
-						"forwardAllArgs": true
-					}
-				],
-				"cwd": "apps/server/src",
-				"parallel": false
-			},
-			"configurations": {
-				"push": {
-					"commands": [
-						"prisma db push"
-					]
-				},
-				"migrate-dev": {
-					"commands": [
-						{
-							"command": "prisma migrate dev",
-							"forwardAllArgs": true
-						}
-					]
-				},
-				"format": {
-					"commands": [
-						"prisma format"
-					]
-				},
-				"generate": {
-					"commands": [
-						{
-							"command": "prisma generate",
-							"forwardAllArgs": true
-						}
-					]
-				}
-			}
 		}
 	},
 	"tags": []

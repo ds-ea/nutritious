@@ -31,7 +31,8 @@ export class AuthService{
 		}
 
 		// argon2
-		return argon2.verify( hash, plain );
+		const secret = Buffer.from( this.config.getOrThrow<string>( 'PW_SECRET' ), 'utf-8' );
+		return argon2.verify( hash, plain, { secret } );
 	}
 
 	public async checkCredentials( login:{ username:string } | { email:string }, password:string ):Promise<User | undefined>{

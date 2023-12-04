@@ -1,6 +1,6 @@
 import { fastifyHelmet } from '@fastify/helmet';
 
-import * as fastifyHttpProxy from '@fastify/http-proxy';
+import fastifyHttpProxy from '@fastify/http-proxy';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 

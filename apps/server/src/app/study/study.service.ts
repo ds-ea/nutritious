@@ -1,13 +1,18 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { LegacyFoodLog, LogEntryCatalogAnswers, PickByType, PrismaService, StudyCatalog, StudyCatalogQuestionGroup } from '@nutritious/core';
-import { Study, User } from '@prisma/client';
+import { Prisma, Study, User } from '@prisma/client';
+import { hash } from 'argon2';
+import dayjs from 'dayjs';
+import generatePassword from 'omgopass';
 
 
 @Injectable()
-export class FoodStudyService{
+export class StudyService{
 
 	constructor(
 		private readonly prisma:PrismaService,
+		private readonly config:ConfigService,
 	){}
 
 	public async hasStudyAccess( userId:User['id'], studyId:Study['id'], role:'participant' = 'participant' ):Promise<boolean>{
@@ -125,6 +130,80 @@ export class FoodStudyService{
 
 
 		return result?.id;
+	}
+
+
+	public studyAvailable( study:Study ):boolean{
+		try{
+			const now = dayjs();
+			if( !study?.reg_public
+				|| ( study.reg_limit && study.user_count > study.reg_limit )
+				|| ( study.from && now.isBefore( study.from ) )
+				|| ( study.until && now.isAfter( study.until ) )
+			)
+				return false;
+
+		}catch( err ){
+			Logger.error( 'error parsing study date', study );
+			return false;
+		}
+
+		return true;
+	}
+
+	public async getStudyForSignup( key:string, regPass:string ):Promise<Study>{
+		const study = await this.prisma.study.findUnique( { where: { reg_key: key } } );
+		if( !study )
+			throw new NotFoundException( 'study not found' );
+
+		if( !this.studyAvailable( study ) )
+			throw new ServiceUnavailableException( 'study signup not available' );
+
+		if( study.reg_pass?.length && study.reg_pass !== regPass )
+			throw new ForbiddenException( 'invalid signup key/pass' );
+
+		return study;
+	}
+
+	public async studySignup( key:string, regPass:string, signup?:boolean, participantIdentifier?:User['fs_participant'] ){
+
+		const study = await this.getStudyForSignup( key, regPass );
+
+		const publicStudy = { name: study.name };
+		if( !signup )
+			return { study: publicStudy };
+
+		const { username, password } = await this.createParticipant( study.id, participantIdentifier );
+
+		return {
+			credentials: { username, password },
+			study: publicStudy,
+		};
+	}
+
+	private async createParticipant( studyId:Study['id'], participantIdentifier?:User['fs_participant'] | undefined ){
+
+		await this.prisma.study.update( { where: { id: studyId }, data: { user_count: { increment: 1 } } } );
+		const study = await this.prisma.study.findUniqueOrThrow( { where: { id: studyId } } );
+
+		const username = study.prefix + '_' + study.user_count;
+		const password = generatePassword( { syllablesCount: 2 } );
+
+		const secret = Buffer.from( this.config.getOrThrow<string>( 'PW_SECRET' ), 'utf-8' );
+		const hashedPass = await hash( password, { secret } );
+
+		const data:Prisma.UserCreateInput = {
+			name: username,
+			username,
+			password: hashedPass,
+			fs_study: studyId,
+			fs_participant: participantIdentifier,
+			roles: { connect: { id: 2 } },
+		};
+
+		const participant:User = await this.prisma.user.create( { data } );
+
+		return { username, password, participant };
 	}
 
 

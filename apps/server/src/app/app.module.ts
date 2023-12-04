@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 
 
 import { AppController } from './app.controller';
@@ -8,16 +8,16 @@ import { AppService } from './app.service';
 import { AuthGuard } from './auth/auth.guard';
 import { AuthModule } from './auth/auth.module';
 import { CoreModule } from './core/core.module';
-import { FoodStudyModule } from './food-study/food-study.module';
 import { PageService } from './pages/page.service';
+import { StudyModule } from './study/study.module';
 
 
 @Module( {
 	imports: [
-		ConfigModule.forRoot({ isGlobal: true}),
+		ConfigModule.forRoot( { isGlobal: true } ),
 		CoreModule,
 		AuthModule,
-		FoodStudyModule,
+		StudyModule,
 	],
 	controllers: [ AppController ],
 	providers: [

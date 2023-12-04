@@ -185,6 +185,9 @@ dependencies:
   ngx-date-fns:
     specifier: ^10.0.1
     version: 10.0.1(@angular/common@16.2.11)(@angular/core@16.2.11)(date-fns@2.30.0)
+  omgopass:
+    specifier: ^3.2.1
+    version: 3.2.1
   prisma:
     specifier: ^5.6.0
     version: 5.6.0
@@ -331,6 +334,9 @@ devDependencies:
   '@types/node':
     specifier: ^20.8.9
     version: 20.9.0
+  '@types/omgopass':
+    specifier: ^3.2.3
+    version: 3.2.3
   '@types/react':
     specifier: ^18.2.38
     version: 18.2.38
@@ -9800,6 +9806,10 @@ packages:
     resolution: {integrity: sha512-5PjwB0uP2XDp3nt5u5NJAG2DORHIRClPzWT/TTZhJ2Ekwe8M5bA9tvPdi9NO/n2uvu2/ictat8kgqvLfcIE1SA==}
     dev: false
 
+  /@types/omgopass@3.2.3:
+    resolution: {integrity: sha512-tBihWcBapTQb2tLgtAJ3kepzeP/Qg9lvem2VSsYbkttKMINRBfUWFUDGqP9QXSukIqjK4qpDnNaOiwKHNQpQfA==}
+    dev: true
+
   /@types/parse-json@4.0.1:
     resolution: {integrity: sha512-3YmXzzPAdOTVljVMkTMBdBEvlOLg2cDQaDhnnhT3nT9uDbnJzjWhKlzb+desT12Y7tGqaN6d+AbozcKzyL36Ng==}
 
@@ -16644,6 +16654,10 @@ packages:
 
   /obuf@1.1.2:
     resolution: {integrity: sha512-PX1wu0AmAdPqOL1mWhqmlOd8kOIZQwGZw6rh7uby9fTc5lhaOWFLX3I6R1hrF9k3zUY40e6igsLGkDXK92LJNg==}
+
+  /omgopass@3.2.1:
+    resolution: {integrity: sha512-Q0QqwwL3ag1Pyjhx6vfieaz73pHNLa3v59qhRcTCUINmJOwdcLu0kNKncBSF2ylnzrqmZw9VRgOEdAwvCSxffA==}
+    dev: false
 
   /on-exit-leak-free@2.1.2:
     resolution: {integrity: sha512-0eJJY6hXLGf1udHwfNftBqH+g73EU4B504nZeKpz1sYRKafAghwxEJunB2O7rDZkL4PGfsMVnTXZ2EjibbqcsA==}

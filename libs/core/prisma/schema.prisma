@@ -74,7 +74,7 @@ model Study {
   from             DateTime  @default(now()) @db.Timestamp(0)
   until            DateTime? @db.Timestamp(0)
   reg_public       Boolean   @default(false)
-  reg_key          String?   @db.VarChar(128)
+  reg_key          String?   @unique @db.VarChar(128)
   reg_pass         String?   @db.VarChar(64)
   reg_limit        Int?      @db.UnsignedInt
   user_count       Int       @default(0) @db.UnsignedInt
@@ -97,8 +97,8 @@ model Page {
   slug             String       @unique(map: "pages_slug_unique") @db.VarChar(255)
   meta_description String?      @db.Text
   status           pages_status @default(INACTIVE)
-  created_at       DateTime?    @db.Timestamp(0)
-  updated_at       DateTime?    @db.Timestamp(0)
+  created_at       DateTime?    @default(now())
+  updated_at       DateTime?    @default(now()) @updatedAt
   layout           String?      @db.Text
 
   @@map("pages")
@@ -116,8 +116,8 @@ model User {
   api_token         String?      @unique(map: "users_api_token_unique") @db.VarChar(80)
   remember_token    String?      @db.VarChar(100)
   settings          String?      @db.Text
-  created_at        DateTime?    @db.Timestamp(0)
-  updated_at        DateTime?    @db.Timestamp(0)
+  created_at        DateTime?    @default(now())
+  updated_at        DateTime?    @default(now()) @updatedAt
   fs_study          Int?         @db.UnsignedInt
   fs_participant    String?      @db.VarChar(128)
   user_roles        user_roles[]
@@ -162,8 +162,8 @@ model blog_posts {
   meta_description String            @db.Text
   status           blog_posts_status @default(DRAFT)
   featured         Boolean           @default(false)
-  created_at       DateTime?         @db.Timestamp(0)
-  updated_at       DateTime?         @db.Timestamp(0)
+  created_at       DateTime?         @default(now())
+  updated_at       DateTime?         @default(now()) @updatedAt
   tags             String?           @db.Text
   published_date   DateTime?         @default(now()) @db.Timestamp(0)
 }
@@ -220,8 +220,8 @@ model menu_items {
   color      String?   @db.VarChar(255)
   parent_id  Int?
   order      Int
-  created_at DateTime? @db.Timestamp(0)
-  updated_at DateTime? @db.Timestamp(0)
+  created_at DateTime? @default(now())
+  updated_at DateTime? @default(now()) @updatedAt
   route      String?   @db.VarChar(255)
   parameters String?   @db.Text
   menus      menus?    @relation(fields: [menu_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "menu_items_menu_id_foreign")
@@ -232,8 +232,8 @@ model menu_items {
 model menus {
   id         Int          @id @default(autoincrement()) @db.UnsignedInt
   name       String       @unique(map: "menus_name_unique") @db.VarChar(255)
-  created_at DateTime?    @db.Timestamp(0)
-  updated_at DateTime?    @db.Timestamp(0)
+  created_at DateTime?    @default(now())
+  updated_at DateTime?    @default(now()) @updatedAt
   menu_items menu_items[]
 }
 
@@ -247,7 +247,7 @@ model migrations {
 model password_resets {
   email      String    @db.VarChar(255)
   token      String    @db.VarChar(255)
-  created_at DateTime? @db.Timestamp(0)
+  created_at DateTime? @default(now())
 
   @@index([email], map: "password_resets_email_index")
   @@ignore

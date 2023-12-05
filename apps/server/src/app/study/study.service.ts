@@ -104,7 +104,8 @@ export class StudyService{
 					study: studyId,
 					date: data.date,
 					people: Number( data.people ),
-					data: JSON.stringify( foodData ),
+					meal_type: data.meal_type,
+					data: foodData,
 				},
 			} );
 
@@ -112,7 +113,7 @@ export class StudyService{
 		return result?.id;
 	}
 
-	public async recordAnswers( data:LogEntryCatalogAnswers, user:User ){
+	public async recordAnswers( data:{ data:LogEntryCatalogAnswers }, user:User ){
 		const studyId = user.fs_study || 0;
 
 		if( studyId )
@@ -124,7 +125,7 @@ export class StudyService{
 				data: {
 					user: user.id,
 					study: studyId,
-					data: data,
+					data: data.data,
 				},
 			} );
 

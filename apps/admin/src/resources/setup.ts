@@ -76,7 +76,7 @@ export const resources:[ DMMF.Model, ResourceWithOptions['options'], ResourceWit
 				properties: {
 					study: { reference: 'Study' },
 					user: { reference: 'User' },
-					//					data: { type: 'key-value' },
+					data: { type: 'key-value' },
 				},
 			},
 			[
@@ -89,12 +89,12 @@ export const resources:[ DMMF.Model, ResourceWithOptions['options'], ResourceWit
 		[
 			models.LogFood,
 			{
-				listProperties: [ 'study', 'user', 'date', 'bls_key' ] as Array<keyof LogFood>,
+				listProperties: [ 'study', 'date', 'meal_type', 'people', 'user', 'bls_key' ] as Array<keyof LogFood>,
 				sort: { sortBy: 'date' as keyof Log, direction: 'desc' },
 				properties: {
 					study: { reference: 'Study' },
 					user: { reference: 'User' },
-					//					data: { type: 'key-value' },
+					data: { type: 'key-value' },
 				},
 
 			},
@@ -116,7 +116,6 @@ export const resources:[ DMMF.Model, ResourceWithOptions['options'], ResourceWit
 							list: Components.TestComponent,
 						},
 					},
-
 				} as Record<keyof Study, PropertyOptions>,
 			},
 		],

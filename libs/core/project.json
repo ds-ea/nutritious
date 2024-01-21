@@ -75,7 +75,15 @@
 				"generate": {
 					"commands": [
 						{
-							"command": "prisma generate",
+							"command": "prisma generate --schema prisma/schema.prisma",
+							"forwardAllArgs": true
+						}
+					]
+				},
+				"generate-legacy": {
+					"commands": [
+						{
+							"command": "prisma generate --schema prisma/schema-legacy.prisma",
 							"forwardAllArgs": true
 						}
 					]

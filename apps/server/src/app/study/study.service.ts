@@ -199,7 +199,7 @@ export class StudyService{
 			password: hashedPass,
 			fs_study: studyId,
 			fs_participant: participantIdentifier,
-			roles: { connect: { id: 2 } },
+			role_id: 2,
 		};
 
 		const participant:User = await this.prisma.user.create( { data } );

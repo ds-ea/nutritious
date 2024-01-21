@@ -1,4 +1,4 @@
-import { LogFood } from '@prisma/client';
+import { LegacyLogFood } from '../../../../prisma/generated/client-legacy';
 
 
 export enum MealType{
@@ -24,12 +24,12 @@ export type LogEntryMeal = {
 export type LogEntryFood = MealItem[];
 
 export type LogEntryCatalogAnswers = {
-	[groupID:string]: {
+	[groupID:string]:{
 		[questionKey:string]:any
 	}
 };
 
-export type LogEntry ={
+export type LogEntry = {
 
 	date:string;
 
@@ -61,8 +61,8 @@ export type MealItem = {
 }
 
 export type LegacyFoodLog = {
-	date:LogFood['date'],
-	meal_type:LogFood['meal_type'],
-	people:LogFood['people'],
+	date:LegacyLogFood['date'],
+	meal_type:LegacyLogFood['meal_type'],
+	people:LegacyLogFood['people'],
 	data:LogEntryFood,
 }

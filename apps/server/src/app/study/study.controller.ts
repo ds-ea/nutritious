@@ -42,7 +42,7 @@ export class StudyController{
 	}
 
 	@Post( 'log' )
-	public async logAnswers( @Req() req:AuthedRequest, @Body() data:LogEntryCatalogAnswers ){
+	public async logAnswers( @Req() req:AuthedRequest, @Body() data:{ data:LogEntryCatalogAnswers } ){
 		const recorded = await this.fsService.recordAnswers( data, req.user );
 		return !!recorded;
 	}

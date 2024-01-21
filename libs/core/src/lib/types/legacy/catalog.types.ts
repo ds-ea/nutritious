@@ -2,8 +2,7 @@ import { StudyStep } from './study.types';
 import { PickByType } from './utility.types';
 
 
-export type StudyCatalogQuestionConfig = {
-};
+export type StudyCatalogQuestionConfig = {};
 
 export interface StudyCatalogQuestionConfigSlider extends StudyCatalogQuestionConfig{
 	min?:number;
@@ -45,7 +44,7 @@ export interface StudyCatalogQuestion<C extends StudyCatalogQuestionConfig = any
 	question:string;
 
 	translated?:{
-		[ langKey:string ]:{
+		[langKey:string]:{
 			question:string;
 		}
 	};

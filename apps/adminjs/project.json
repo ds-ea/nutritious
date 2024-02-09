@@ -1,7 +1,7 @@
 {
-	"name": "admin",
+	"name": "adminjs",
 	"$schema": "../../node_modules/nx/schemas/project-schema.json",
-	"sourceRoot": "apps/admin/src",
+	"sourceRoot": "apps/adminjs/src",
 	"projectType": "application",
 	"implicitDependencies": ["server", "core"],
 	"targets": {

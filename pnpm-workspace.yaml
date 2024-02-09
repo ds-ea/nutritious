@@ -1,0 +1,8 @@
+packages:
+    - 'apps/*'
+    - '!apps/adminjs'
+    - '!apps/adminjs-e2e'
+    - '!apps/nutritious-api-php'
+    - 'libs/*'
+    - '!**/test/**'
+    - '!dist/**'

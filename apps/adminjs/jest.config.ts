@@ -1,6 +1,6 @@
 /* eslint-disable */
 export default {
-	displayName: 'admin',
+	displayName: 'adminjs',
 	preset: '../../jest.preset.js',
 	testEnvironment: 'node',
 	transform: {
@@ -10,5 +10,5 @@ export default {
 		],
 	},
 	moduleFileExtensions: [ 'ts', 'js', 'html' ],
-	coverageDirectory: '../../coverage/apps/admin',
+	coverageDirectory: '../../coverage/apps/adminjs',
 };

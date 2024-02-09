@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '@nutritious/core';
-import { User } from '@prisma/client';
+import { LegacyUser, PrismaLegacyService } from '@nutritious/core';
 import * as argon2 from 'argon2';
 import * as bcrypt from 'bcrypt';
 
@@ -11,7 +10,7 @@ import * as bcrypt from 'bcrypt';
 export class AuthService{
 
 	constructor(
-		private readonly prisma:PrismaService,
+		private readonly prisma:PrismaLegacyService,
 		private readonly jwtService:JwtService,
 		private readonly config:ConfigService,
 	){
@@ -35,9 +34,9 @@ export class AuthService{
 		return argon2.verify( hash, plain, { secret } );
 	}
 
-	public async checkCredentials( login:{ username:string } | { email:string }, password:string ):Promise<User | undefined>{
+	public async checkCredentials( login:{ username:string } | { email:string }, password:string ):Promise<LegacyUser | undefined>{
 		const where = 'username' in login ? { username: login.username } : { email: login.email };
-		const user = await this.prisma.user.findUnique( { where } );
+		const user = await this.prisma.legacyUser.findUnique( { where } );
 		if( !user || !( await this.verifyPassword( password, user.password ) ) )
 			return undefined;
 
@@ -52,7 +51,7 @@ export class AuthService{
 			settings: user.settings,
 			fs_study: user.fs_study,
 			fs_participant: user.fs_participant,
-		} as User;
+		} as LegacyUser;
 	}
 
 	async signIn( username:string, password:string ){

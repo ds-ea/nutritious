@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@nutritious/core';
-import { Page } from '@prisma/client';
+import { LegacyPage, PrismaLegacyService } from '@nutritious/core';
 
 
 export type NavElement = {
-	page:Pick<Page, 'id' | 'slug' | 'title'>;
+	page:Pick<LegacyPage, 'id' | 'slug' | 'title'>;
 	name:string;
 	href:string;
 	children?:NavElement[];
@@ -14,11 +13,11 @@ export type NavElement = {
 export class PageService{
 
 	constructor(
-		private readonly prisma:PrismaService,
+		private readonly prisma:PrismaLegacyService,
 	){}
 
-	public async findPage( path:string ):Promise<Page | undefined>{
-		const page = await this.prisma.page.findUnique( {
+	public async findPage( path:string ):Promise<LegacyPage | undefined>{
+		const page = await this.prisma.legacyPage.findUnique( {
 			where: {
 				slug: path,
 			},
@@ -31,7 +30,7 @@ export class PageService{
 	}
 
 	public async getNav():Promise<NavElement[]>{
-		const pages = await this.prisma.page.findMany( {
+		const pages = await this.prisma.legacyPage.findMany( {
 			where: { status: 'ACTIVE' },
 			select: { id: true, slug: true, title: true },
 		} );

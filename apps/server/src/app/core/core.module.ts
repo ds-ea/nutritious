@@ -1,14 +1,16 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '@nutritious/core';
+import { PrismaLegacyService, PrismaService } from '@nutritious/core';
 
 
 @Module( {
 	providers: [
 		PrismaService,
+		PrismaLegacyService,
 	],
 	exports: [
 		PrismaService,
+		PrismaLegacyService,
 	],
 } )
 export class CoreModule{

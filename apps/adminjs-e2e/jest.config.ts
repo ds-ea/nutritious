@@ -1,6 +1,6 @@
 /* eslint-disable */
 export default {
-	displayName: 'admin-e2e',
+	displayName: 'adminjs-e2e',
 	preset: '../..//jest.preset.js',
 	setupFiles: [ '<rootDir>/src/test-setup.ts' ],
 	testEnvironment: 'node',
@@ -13,5 +13,5 @@ export default {
 		],
 	},
 	moduleFileExtensions: [ 'ts', 'js', 'html' ],
-	coverageDirectory: '../..//coverage/admin-e2e',
+	coverageDirectory: '../..//coverage/adminjs-e2e',
 };

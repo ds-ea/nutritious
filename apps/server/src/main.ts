@@ -46,9 +46,32 @@ async function bootstrap(){
 	} );
 
 	await app.register( fastifyHelmet, {
-		contentSecurityPolicy: {
-			directives: {
-				defaultSrc: [ `'self'` ],
+		contentSecurityPolicy:
+			process.env['NODE_ENV'] === 'development' && false
+			? {
+
+					directives: {
+						defaultSrc: [ `'self'`, 'unpkg.com' ],
+						styleSrc: [
+							`'self'`,
+							`'unsafe-inline'`,
+							'cdn.jsdelivr.net',
+							'fonts.googleapis.com',
+							'unpkg.com',
+						],
+						fontSrc: [ `'self'`, 'fonts.gstatic.com', 'data:' ],
+						imgSrc: [ `'self'`, 'data:', 'cdn.jsdelivr.net' ],
+						scriptSrc: [
+							`'self'`,
+							`https: 'unsafe-inline'`,
+							`cdn.jsdelivr.net`,
+							`'unsafe-eval'`,
+						],
+					},
+				}
+			: {
+					directives: {
+						defaultSrc: [ `'self'` ],
 				//				formAction: null, // currently important to allow redirect handling in OIDC flows
 				styleSrc: [ `'self'`, `'unsafe-inline'` ],
 				imgSrc: [ `'self'`, 'data:', 'validator.swagger.io' ],

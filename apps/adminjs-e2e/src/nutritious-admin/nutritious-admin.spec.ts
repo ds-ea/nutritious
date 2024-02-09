@@ -4,7 +4,7 @@ import { join } from 'path';
 
 describe( 'CLI tests', () => {
 	it( 'should print a message', () => {
-		const cliPath = join( process.cwd(), 'dist/apps/admin' );
+		const cliPath = join( process.cwd(), 'dist/apps/adminjs' );
 
 		const output = execSync( `node ${ cliPath }` ).toString();
 

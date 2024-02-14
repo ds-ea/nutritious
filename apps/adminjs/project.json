@@ -53,23 +53,15 @@
 		},
 		"lint": {
 			"executor": "@nx/eslint:lint",
-			"outputs": ["{options.outputFile}"],
 			"options": {
-				"lintFilePatterns": ["apps/admin/**/*.ts"]
+				"lintFilePatterns": ["apps/adminjs", "apps/admin/**/*.ts"]
 			}
 		},
 		"test": {
 			"executor": "@nx/jest:jest",
 			"outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
 			"options": {
-				"jestConfig": "apps/admin/jest.config.ts",
-				"passWithNoTests": true
-			},
-			"configurations": {
-				"ci": {
-					"ci": true,
-					"codeCoverage": true
-				}
+				"jestConfig": "apps/admin/jest.config.ts"
 			}
 		}
 	},

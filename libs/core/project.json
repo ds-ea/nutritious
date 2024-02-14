@@ -19,26 +19,13 @@
 		},
 		"lint": {
 			"executor": "@nx/eslint:lint",
-			"outputs": ["{options.outputFile}"],
-			"options": {
-				"lintFilePatterns": [
-					"libs/core/**/*.ts",
-					"libs/core/package.json"
-				]
-			}
+			"outputs": ["{options.outputFile}"]
 		},
 		"test": {
 			"executor": "@nx/jest:jest",
 			"outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
 			"options": {
-				"jestConfig": "libs/core/jest.config.ts",
-				"passWithNoTests": true
-			},
-			"configurations": {
-				"ci": {
-					"ci": true,
-					"codeCoverage": true
-				}
+				"jestConfig": "libs/core/jest.config.ts"
 			}
 		},
 		"prisma": {
@@ -55,9 +42,7 @@
 			},
 			"configurations": {
 				"push": {
-					"commands": [
-						"prisma db push"
-					]
+					"commands": ["prisma db push"]
 				},
 				"migrate-dev": {
 					"commands": [
@@ -68,9 +53,7 @@
 					]
 				},
 				"format": {
-					"commands": [
-						"prisma format"
-					]
+					"commands": ["prisma format"]
 				},
 				"generate": {
 					"commands": [
@@ -90,7 +73,6 @@
 				}
 			}
 		}
-
 	},
 	"tags": []
 }

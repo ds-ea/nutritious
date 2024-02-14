@@ -1,10 +1,10 @@
-import { Component, OnInit, ChangeDetectionStrategy, Input, Output, EventEmitter, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef, AfterContentInit, AfterViewChecked } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { MealItem } from '../../../../interfaces/log.interface';
 
 
 @Component( {
-	            selector: 'nutri-food-list-meal-item-editor',
-	            template: `
+	selector: 'nutri-food-list-meal-item-editor',
+	template: `
 					<form (ngSubmit)="done()">
 						<mat-card class="meal-item-editor" *ngIf="mealItem">
 							<mat-card-header>
@@ -12,7 +12,7 @@ import { MealItem } from '../../../../interfaces/log.interface';
 								<mat-card-title>{{mealItem._food?.[ langKey ] || mealItem.foodKey}}</mat-card-title>
 							</mat-card-header>
 							<mat-card-content>
-								<mat-form-field appearance="standard">
+								<mat-form-field >
 									<!--<mat-label>Standard form field</mat-label>-->
 									<input class="in-quantity" #inQuantity
 										   matInput type="number"
@@ -40,35 +40,35 @@ import { MealItem } from '../../../../interfaces/log.interface';
 						</mat-card>
 					</form>
 	            `,
-	            styles: [],
-	            changeDetection: ChangeDetectionStrategy.OnPush,
-            } )
+	styles: [],
+	changeDetection: ChangeDetectionStrategy.OnPush,
+} )
 export class FoodListMealItemEditorComponent implements AfterViewInit{
-	public popover:HTMLIonPopoverElement|any|undefined;
+	public popover:HTMLIonPopoverElement | any | undefined;
 
-	@ViewChild('inQuantity', {read:ElementRef}) inQuantity:ElementRef|undefined;
+	@ViewChild( 'inQuantity', { read: ElementRef } ) inQuantity:ElementRef | undefined;
 
-	@Input() langKey:'en'|'de' = 'en';
+	@Input() langKey:'en' | 'de' = 'en';
 	@Input() mealItem:MealItem | undefined;
 
-	@Output() remove  = new EventEmitter<MealItem|undefined>();
+	@Output() remove = new EventEmitter<MealItem | undefined>();
 
 	constructor(
-		private cdr:ChangeDetectorRef
+		private cdr:ChangeDetectorRef,
 	){}
 
 	public ngAfterViewInit():void{
 		// TODO: do this properly
-		setTimeout(()=>{
+		setTimeout( () => {
 			this.inQuantity?.nativeElement.focus();
 			this.cdr.detectChanges();
-		}, 500);
+		}, 500 );
 	}
 
 	public removeItem(){
-		this.remove.next(this.mealItem);
+		this.remove.next( this.mealItem );
 		if( this.popover ){
-			this.popover.dismiss( {item: this.mealItem, remove: true } );
+			this.popover.dismiss( { item: this.mealItem, remove: true } );
 		}
 	}
 
@@ -77,7 +77,7 @@ export class FoodListMealItemEditorComponent implements AfterViewInit{
 			return;
 
 		if( this.popover ){
-			this.popover.dismiss( {item: this.mealItem } );
+			this.popover.dismiss( { item: this.mealItem } );
 		}
 	}
 }

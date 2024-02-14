@@ -1,29 +1,31 @@
-app-login{
-	.mat-card-footer{
+app-login {
+	.mat-card-footer {
 		display: flex;
 		justify-content: center;
 		padding: $gutter;
-		
+
 		border-top: 1px solid color(body);
-		
-		> .mat-button-base{
+
+		> .mat-button-base,
+		> .mat-mdc-button-base,
+		{
 			flex-grow: 1;
 		}
 	}
 }
 
 
-app-registration{
-	
-	.mat-card{
+app-registration {
+
+	.mat-card {
 		max-width: $grid-width-minor;
 	}
-	
-	.explain{
+
+	.explain {
 		margin: $gutter 0 $gutter*2 0 !important;
 	}
-	
-	.study-title{
+
+	.study-title {
 		text-align: center;
 		margin-bottom: $gutter *2;
 	}

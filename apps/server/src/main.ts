@@ -1,6 +1,5 @@
 import { fastifyHelmet } from '@fastify/helmet';
-
-import fastifyHttpProxy from '@fastify/http-proxy';
+import { fastifyHttpProxy } from '@fastify/http-proxy';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
@@ -47,6 +46,7 @@ async function bootstrap(){
 
 	await app.register( fastifyHelmet, {
 		contentSecurityPolicy:
+		// eslint-disable-next-line no-constant-condition
 			process.env['NODE_ENV'] === 'development' && false
 			? {
 
@@ -72,12 +72,12 @@ async function bootstrap(){
 			: {
 					directives: {
 						defaultSrc: [ `'self'` ],
-				//				formAction: null, // currently important to allow redirect handling in OIDC flows
-				styleSrc: [ `'self'`, `'unsafe-inline'` ],
-				imgSrc: [ `'self'`, 'data:', 'validator.swagger.io' ],
-				scriptSrc: [ `'self'`, `https: 'unsafe-inline'` ],
-			},
-		},
+						//				formAction: null, // currently important to allow redirect handling in OIDC flows
+						styleSrc: [ `'self'`, `'unsafe-inline'` ],
+						imgSrc: [ `'self'`, 'data:', 'validator.swagger.io' ],
+						scriptSrc: [ `'self'`, `https: 'unsafe-inline'` ],
+					},
+				},
 	} );
 
 

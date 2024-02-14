@@ -8,15 +8,16 @@
 			"executor": "@nx/jest:jest",
 			"outputs": ["{workspaceRoot}/coverage/{e2eProjectRoot}"],
 			"options": {
-				"jestConfig": "apps/admin-e2e/jest.config.ts",
-				"passWithNoTests": true
+				"jestConfig": "apps/admin-e2e/jest.config.ts"
 			}
 		},
 		"lint": {
 			"executor": "@nx/eslint:lint",
-			"outputs": ["{options.outputFile}"],
 			"options": {
-				"lintFilePatterns": ["apps/admin-e2e/**/*.{js,ts}"]
+				"lintFilePatterns": [
+					"apps/adminjs-e2e",
+					"apps/admin-e2e/**/*.{js,ts}"
+				]
 			}
 		}
 	}

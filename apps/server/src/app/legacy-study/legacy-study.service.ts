@@ -1,11 +1,11 @@
 import { ForbiddenException, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { LegacyLog, LegacyLogFood, LegacyStudy, LegacyUser, Prisma, PrismaLegacyService } from '@nutritious/core';
+import { LegacyLog, LegacyLogFood, LegacyStudy, LegacyUser, Prisma as LegacyPrisma, PrismaLegacyService } from '@nutritious/core/legacy';
 import { hash } from 'argon2';
 import dayjs from 'dayjs';
 import generatePassword from 'omgopass';
 import { PickByType, StudyCatalog, StudyCatalogQuestionGroup } from '../../../../../libs/core/src/lib/types/legacy';
-import LegacyUserCreateInput = Prisma.LegacyUserCreateInput;
+import LegacyUserCreateInput = LegacyPrisma.LegacyUserCreateInput;
 
 
 @Injectable()

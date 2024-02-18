@@ -14,7 +14,9 @@
 				"assets": [],
 				"project": "libs/core/package.json",
 				"compiler": "swc",
-				"format": ["cjs", "esm"]
+				"format": ["cjs", "esm"],
+				"generateExportsFields": true,
+				"rootDir": "libs/core/src"
 			}
 		},
 		"lint": {

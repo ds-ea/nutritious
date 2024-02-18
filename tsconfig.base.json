@@ -29,6 +29,7 @@
 			"@nutritious/admin": ["apps/admin/src"],
 			"@nutritious/api-client": ["libs/api-client/src/index.ts"],
 			"@nutritious/core": ["libs/core/src/index.ts"],
+			"@nutritious/core/legacy": ["libs/core/legacy/index.ts"],
 			"@nutritious/server": ["apps/server/src"]
 		}
 	},

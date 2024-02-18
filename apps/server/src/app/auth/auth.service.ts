@@ -1,16 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { LegacyUser, PrismaLegacyService } from '@nutritious/core';
+import { Prisma, PrismaService } from '@nutritious/core';
+import { Participant, User } from '@prisma/client';
 import * as argon2 from 'argon2';
 import * as bcrypt from 'bcrypt';
+import dayjs from 'dayjs';
+import { AuthCredentials, AuthLoginResponse, AuthUserInfo } from '../../../../../libs/core/src/lib/types/auth.types';
 
 
 @Injectable()
 export class AuthService{
 
 	constructor(
-		private readonly prisma:PrismaLegacyService,
+		private readonly prisma:PrismaService,
 		private readonly jwtService:JwtService,
 		private readonly config:ConfigService,
 	){
@@ -34,13 +37,44 @@ export class AuthService{
 		return argon2.verify( hash, plain, { secret } );
 	}
 
-	public async checkCredentials( login:{ username:string } | { email:string }, password:string ):Promise<LegacyUser | undefined>{
-		const where = 'username' in login ? { username: login.username } : { email: login.email };
-		const user = await this.prisma.legacyUser.findUnique( { where } );
-		if( !user || !( await this.verifyPassword( password, user.password ) ) )
+	public async checkCredentials( credentials:AuthCredentials ):Promise<{ user:User } | { participant:Participant } | undefined>{
+		if( !credentials?.password?.length )
 			return undefined;
 
-		return {
+		let password:User['password'] | Participant['password'] | undefined;
+		let data:{ user:User } | { participant:Participant } | undefined = undefined;
+
+
+		// participant login
+		if( 'participant' in credentials ){
+			const where:Prisma.ParticipantWhereUniqueInput = { login: credentials.participant };
+			const participant = await this.prisma.participant.findUnique( { where } );
+			if( participant?.state === 'ENABLED' ){
+				password = participant.password;
+				data = { participant };
+			}
+
+
+
+		}else{ // user login
+
+			const where:Prisma.UserWhereUniqueInput = { email: credentials.email };
+			const user = await this.prisma.user.findUnique( { where } );
+			if( user?.state === 'ENABLED' ){
+				password = user.password;
+				data = { user };
+			}
+		}
+
+		if( !password?.length )
+			return undefined;
+
+		if( !data || !( await this.verifyPassword( credentials.password, password ) ) )
+			return undefined;
+
+		return data;
+
+		/*return {
 			id: user.id,
 			role_id: user.role_id,
 
@@ -51,21 +85,50 @@ export class AuthService{
 			settings: user.settings,
 			fs_study: user.fs_study,
 			fs_participant: user.fs_participant,
-		} as LegacyUser;
+		} as LegacyUser;*/
 	}
 
-	async signIn( username:string, password:string ){
-		const authorizedUser = await this.checkCredentials( { username }, password );
+	async signIn( credentials:AuthCredentials ):Promise<AuthLoginResponse | undefined>{
 
-		if( !authorizedUser )
+		const authorized = await this.checkCredentials( credentials );
+
+		if( !authorized )
 			return undefined;
 
-		const payload = { sub: authorizedUser.id };
+		const sub =
+			'user' in authorized
+			? { user: authorized.user.id }
+			: { participant: authorized.participant.id };
+
+		const userInfo:AuthUserInfo =
+			'user' in authorized
+			? {
+					user: {
+						id: authorized.user.id,
+						name: authorized.user.name,
+					},
+				}
+			: {
+					participant: {
+						id: authorized.participant.id,
+						name: authorized.participant.name,
+						settings: authorized.participant.settings,
+						lang: authorized.participant.lang,
+						timeZone: authorized.participant.timeZone,
+					},
+				};
+
+		const exp = dayjs().add( 30, 'minutes' ).unix();
+
 		return {
 			access_token: await this.jwtService.signAsync(
-				payload,
-				{ secret: this.config.get( 'JWT_SECRET' ) },
+				{ sub },
+				{
+					secret: this.config.get( 'JWT_SECRET' ),
+					expiresIn: exp,
+				},
 			),
+			...userInfo,
 		};
 
 	}

@@ -6,23 +6,20 @@ import { Refine } from '@refinedev/core';
 import { DevtoolsProvider } from '@refinedev/devtools';
 
 import { RefineKbar, RefineKbarProvider } from '@refinedev/kbar';
-import dataProvider from '@refinedev/nestjsx-crud';
-//import dataProvider, { GraphQLClient } from '@refinedev/nestjs-query';
 import routerProvider, { UnsavedChangesNotifier } from '@refinedev/remix-router';
 
 import type { MetaFunction } from '@remix-run/node';
 import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
 import { App as AntdApp } from 'antd';
-import { authProvider } from '~/authProvider';
 import resources from '~/data/resources';
 
 
-const API_URL = 'http://localhost:7880';
-const restDataProvider = dataProvider( API_URL );
+import { authProvider, restDataProvider } from '~/services';
+
 
 export const meta:MetaFunction = () => [
 	{
-		title: 'New Remix + Refine App',
+		title: 'Nutritious Admin',
 	},
 ];
 

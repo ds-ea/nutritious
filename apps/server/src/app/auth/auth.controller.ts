@@ -1,5 +1,6 @@
-import { Body, Controller, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Req, UnauthorizedException } from '@nestjs/common';
 import { FastifyRequest } from 'fastify';
+import { AuthCredentials, AuthLoginResponse } from '../../../../../libs/core/src/lib/types/auth.types';
 import { Public } from '../core/decorators/public.decorator';
 import { AuthedRequest } from '../types/server.types';
 import { AuthService } from './auth.service';
@@ -14,12 +15,9 @@ export class AuthController{
 
 	@Public()
 	@Post( 'login' )
-	public async login( @Req() req:FastifyRequest, @Body() credentials:Partial<{ password:string, username:string }> ){
+	public async login( @Req() req:FastifyRequest, @Body() credentials:AuthCredentials ):Promise<AuthLoginResponse>{
 
-		const { username, password } = credentials;
-		const authed = username && password
-					   ? await this.auth.signIn(  username, password )
-					   : undefined;
+		const authed = await this.auth.signIn( credentials );
 
 		if( !authed?.access_token )
 			throw new UnauthorizedException();
@@ -28,7 +26,7 @@ export class AuthController{
 	}
 
 
-	@Post('me')
+	@Post( 'me' )
 	public async userinfo( @Req() req:AuthedRequest ){
 
 		if( !req.user )

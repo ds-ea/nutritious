@@ -1,4 +1,4 @@
-import { LegacyUser } from '@nutritious/core';
+import { LegacyUser } from '@nutritious/core/legacy';
 import { User } from '@prisma/client';
 import { FastifyRequest } from 'fastify';
 

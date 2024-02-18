@@ -39,11 +39,15 @@ export class AuthGuard implements CanActivate{
 				{ secret },
 			);
 
-			const userId = payload.sub;
+			if( !payload.exp || payload.exp < ( Date.now() / 1000 ) )
+				throw new UnauthorizedException();
+
+			const userId = payload.sub?.user;
 			const user = userId
 						 ? await this.prisma.user.findUnique( { where: { id: userId } } )
 						 : undefined;
-			if( !user )
+
+			if( user?.state !== 'ENABLED' )
 				throw new UnauthorizedException();
 
 			request['user'] = user;

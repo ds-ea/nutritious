@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { LegacyPage, PrismaLegacyService } from '@nutritious/core';
+import { LegacyPage, PrismaLegacyService } from '@nutritious/core/legacy';
 
 
 export type NavElement = {

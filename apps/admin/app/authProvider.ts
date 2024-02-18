@@ -1,43 +1,29 @@
+import { AdminClient } from '@nutritious/api-client';
 import type { AuthBindings } from '@refinedev/core';
-import * as cookie from 'cookie';
-import Cookies from 'js-cookie';
+import { type AuthUserCredentials } from '../../../libs/core/src/lib/types/auth.types';
 
 
-const mockUsers = [
-	{
-		name: 'John Doe',
-		email: 'admin@refine.dev',
-		roles: [ 'admin' ],
-		avatar: 'https://i.pravatar.cc/150?img=1',
-	},
-	{
-		name: 'Jane Doe',
-		email: 'editor@refine.dev',
-		roles: [ 'editor' ],
-		avatar: 'https://i.pravatar.cc/150?img=1',
-	},
-	{
-		name: 'John Doe',
-		email: 'demo@refine.dev',
-		roles: [ 'admin' ],
-		avatar: 'https://i.pravatar.cc/150?img=1',
-	},
-];
 
-const COOKIE_NAME = 'user';
+export class AuthProvider implements AuthBindings{
 
-export const authProvider:AuthBindings = {
-	login: async ( { email } ) => {
-		// Suppose we actually send a request to the back end here.
-		const user = mockUsers.find( ( item ) => item.email === email );
+	constructor( private api:AdminClient ){}
 
-		if( user ){
-			Cookies.set( COOKIE_NAME, JSON.stringify( user ) );
+	async login( credentials:AuthUserCredentials ){
+		const response = await this.api.auth.login( credentials );
+
+		if( response.access_token
+			&& ( 'user' in response )
+			&& response?.user
+		){
+			localStorage.setItem( 'auth.token', response.access_token );
+			localStorage.setItem( 'auth.user', JSON.stringify( response.user ) );
+
 			return {
 				success: true,
 				redirectTo: '/',
 			};
 		}
+
 
 		return {
 			success: false,
@@ -46,21 +32,31 @@ export const authProvider:AuthBindings = {
 				name: 'Invalid email or password',
 			},
 		};
-	},
-	logout: async () => {
-		Cookies.remove( COOKIE_NAME );
+
+	}
+
+	async logout(){
+		console.info( 'logout' );
+		localStorage.removeItem( 'auth.token' );
+		localStorage.removeItem( 'auth.user' );
 
 		return {
 			success: true,
 			redirectTo: '/login',
 		};
-	},
-	onError: async ( error ) => {
+	}
+
+	async onError( error:any ){
+		console.log( 'errrrrrrrr' );
 		console.error( error );
 		return { error };
-	},
-	check: async ( request ) => {
+	}
+
+	async check( request:any ){
 		let user = undefined;
+
+		console.info( 'log che' );
+		/*
 		if( request ){
 			const hasCookie = request.headers.get( 'Cookie' );
 			if( hasCookie ){
@@ -71,6 +67,7 @@ export const authProvider:AuthBindings = {
 			const parsedCookie = Cookies.get( COOKIE_NAME );
 			user = parsedCookie ? JSON.parse( parsedCookie ) : undefined;
 		}
+		*/
 
 		const { pathname } = new URL( request.url );
 
@@ -89,14 +86,16 @@ export const authProvider:AuthBindings = {
 		return {
 			authenticated: true,
 		};
-	},
-	getPermissions: async () => null,
-	getIdentity: async () => {
-		const parsedCookie = Cookies.get( COOKIE_NAME );
-		if( parsedCookie ){
-			const user = parsedCookie ? JSON.parse( parsedCookie ) : undefined;
-			return user;
-		}
-		return null;
-	},
-};
+	}
+
+	//	async getPermissions(){}
+
+	async getIdentity(){
+		const rawUser = localStorage.getItem( 'auth.user' );
+		console.log( 'ident', rawUser );
+		if( !rawUser )
+			return null;
+
+		return JSON.parse( rawUser );
+	}
+}

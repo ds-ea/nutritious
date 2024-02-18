@@ -12,19 +12,20 @@ import { CoreModule } from './core/core.module';
 import { LegacyStudyModule } from './legacy-study/legacy-study.module';
 import { PageService } from './pages/page.service';
 import { StudyModule } from './study/study.module';
-import { UserModule } from './user/user.module';
+import { UsersModule } from './users/users.module';
 
-@Module({
+
+@Module( {
 	imports: [
-		ConfigModule.forRoot({ isGlobal: true }),
-		PrismaCrudModule.register({ prismaService: PrismaService }),
+		ConfigModule.forRoot( { isGlobal: true } ),
+		PrismaCrudModule.register( { prismaService: PrismaService } ),
 		CoreModule,
 		AuthModule,
 		StudyModule,
 		LegacyStudyModule,
-		UserModule,
+		UsersModule,
 	],
-	controllers: [AppController],
+	controllers: [ AppController ],
 	providers: [
 		AppService,
 		PageService,
@@ -33,5 +34,5 @@ import { UserModule } from './user/user.module';
 			useClass: AuthGuard,
 		},
 	],
-})
-export class AppModule {}
+} )
+export class AppModule{}

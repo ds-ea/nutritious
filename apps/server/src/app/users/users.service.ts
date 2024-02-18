@@ -9,7 +9,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 
 @Injectable()
-export class UserService extends PrismaCrudService{
+export class UsersService extends PrismaCrudService{
 	constructor(
 		private readonly config:ConfigService,
 	){

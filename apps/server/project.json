@@ -19,7 +19,6 @@
 					"apps/server/src/public",
 					"apps/server/src/views"
 				],
-				"isolatedConfig": true,
 				"webpackConfig": "apps/server/webpack.config.js"
 			},
 			"configurations": {

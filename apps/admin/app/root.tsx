@@ -11,10 +11,11 @@ import routerProvider, { UnsavedChangesNotifier } from '@refinedev/remix-router'
 import type { MetaFunction } from '@remix-run/node';
 import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
 import { App as AntdApp } from 'antd';
+import { useEffect } from 'react';
 import resources from '~/data/resources';
 
 
-import { authProvider, restDataProvider } from '~/services';
+import { authProvider, restDataProvider, restoreAuth } from '~/services/services';
 
 
 export const meta:MetaFunction = () => [
@@ -24,6 +25,9 @@ export const meta:MetaFunction = () => [
 ];
 
 export default function App(){
+	useEffect( () => {
+		restoreAuth();
+	}, [] );
 	return (
 		<html lang="en">
 			<head>
@@ -48,6 +52,7 @@ export default function App(){
 										useNewQueryKeys: true,
 										disableTelemetry: true,
 										projectId: 'p8Q6UV-cOiBz0-ZzPRVD',
+
 									} }
 									resources={ resources }
 								>

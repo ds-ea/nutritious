@@ -7,13 +7,13 @@ import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify
 import { Eta } from 'eta';
 import { join } from 'path';
 
-import { AppModule } from './app/app.module';
+import { ServerModule } from './app/server.module';
 
 
 async function bootstrap(){
 
 	const app = await NestFactory.create<NestFastifyApplication>(
-		AppModule,
+		ServerModule,
 		new FastifyAdapter(),
 	);
 

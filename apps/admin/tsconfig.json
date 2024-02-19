@@ -24,7 +24,9 @@
 			"@public/*": ["public/*"],
 			"@public": ["public"],
 			"@nutritious/api-client/*": ["../../libs/api-client/src/*"],
-			"@nutritious/api-client": ["../../libs/api-client/src"]
+			"@nutritious/api-client": ["../../libs/api-client/src"],
+			"@nutritious/core/*": ["../../libs/core/src/*"],
+			"@nutritious/core": ["../../libs/core/src"]
 		},
 		"noEmit": true
 	}

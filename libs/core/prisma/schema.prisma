@@ -85,6 +85,9 @@ model Page {
   updatedAt DateTime    @default(now()) @updatedAt
   state     EntityState @default(ENABLED)
 
+  /// included in nav when set, can use string for use in template (e.g. multiple navs)
+  nav	String?
+
   name  String
   alias String @unique
 

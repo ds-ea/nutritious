@@ -9,8 +9,10 @@ import { AppService } from './app.service';
 import { AuthGuard } from './auth/auth.guard';
 import { AuthModule } from './auth/auth.module';
 import { CoreModule } from './core/core.module';
+import { LegacyMigrationsService } from './legacy-migrations.service';
 import { LegacyStudyModule } from './legacy-study/legacy-study.module';
-import { PageService } from './pages/page.service';
+import { PagesModule } from './pages/pages.module';
+import { PagesService } from './pages/pages.service';
 import { StudyModule } from './study/study.module';
 import { UsersModule } from './users/users.module';
 
@@ -24,15 +26,17 @@ import { UsersModule } from './users/users.module';
 		StudyModule,
 		LegacyStudyModule,
 		UsersModule,
+		PagesModule,
 	],
 	controllers: [ AppController ],
 	providers: [
 		AppService,
-		PageService,
+		PagesService,
+		LegacyMigrationsService,
 		{
 			provide: APP_GUARD,
 			useClass: AuthGuard,
 		},
 	],
 } )
-export class AppModule{}
+export class ServerModule{}

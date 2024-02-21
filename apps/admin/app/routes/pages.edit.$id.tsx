@@ -25,15 +25,17 @@ import React from 'react';
 
 
 export const PageEdit:React.FC<IResourceComponentsProps> = () => {
-	const { formProps, saveButtonProps, queryResult, onFinish } = useForm( {
-		meta: { operation: 'users' },
+	const {
+		formProps,
+		saveButtonProps,
+		queryResult, onFinish,
+	} = useForm( {
+		//		meta: { operation: 'users' },
 	} );
 
 	const pagesData = queryResult?.data?.data as Prisma.PageCreateInput;
 	//	if( pagesData?.['nav']?.length )
 	//		pagesData['nav'] = true;
-
-	console.log( 'pg', pagesData );
 
 	const handleOnFinish = ( values:Record<string, unknown> ) => {
 		onFinish( {

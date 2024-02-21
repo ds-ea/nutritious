@@ -41,11 +41,12 @@ export const PagesList:React.FC<IResourceComponentsProps> = () => {
 					{/*<Table.Column dataIndex="id" title="Id" />*/ }
 					<Table.Column dataIndex="name" title="Name" />
 					<Table.Column dataIndex="alias" title="Alias" />
-					<Table.Column dataIndex="state" title="State" />
 					<Table.Column dataIndex="nav" title="Menu" />
+					<Table.Column dataIndex="state" title="State" width={ 1 } />
 					<Table.Column
 						title="Actions"
 						dataIndex="actions"
+						width={ 1 }
 						render={ ( _, record:BaseRecord ) => (
 							<Space>
 								<EditButton

@@ -7,7 +7,9 @@
 		"dev": "refine dev",
 		"build": "refine build",
 		"start": "refine start ./build/index.js",
-		"refine": "refine"
+		"refine": "refine",
+		"build:css": "sass ./styles:./app/styles --style=compressed --source-map",
+		"dev:css": "pnpm run build:css && sass -w ./styles:./app/styles --source-map"
 	},
 	"dependencies": {
 		"@refinedev/cli": "^2.16.22",
@@ -38,7 +40,8 @@
 		"@types/react-dom": "^18.0.0",
 		"eslint": "^8.24.0",
 		"typescript": "^4.7.4",
-		"@types/js-cookie": "^3.0.2"
+		"@types/js-cookie": "^3.0.2",
+		"sass": "^1.71.0"
 	},
 	"refine": {
 		"projectId": "p8Q6UV-cOiBz0-ZzPRVD"

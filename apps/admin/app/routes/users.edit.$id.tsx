@@ -18,7 +18,7 @@ export default function UsersEdit(){
 
 import { CommonLayout } from '@components/common-layout';
 import { StateSelect } from '@components/form/StateSelect';
-import type { Prisma } from '@nutritious/core';
+import type { Prisma, User } from '@nutritious/core';
 import { Edit, useForm } from '@refinedev/antd';
 import { IResourceComponentsProps } from '@refinedev/core';
 import { Form, Input } from 'antd';
@@ -26,7 +26,7 @@ import React from 'react';
 
 
 const UserEdit:React.FC<IResourceComponentsProps> = () => {
-	const { formProps, saveButtonProps, queryResult } = useForm();
+	const { formProps, saveButtonProps, queryResult } = useForm<User>();
 
 	const usersData = queryResult?.data?.data as Prisma.UserCreateInput;
 

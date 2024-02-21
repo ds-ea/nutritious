@@ -86,7 +86,7 @@ model Page {
   state     EntityState @default(ENABLED)
 
   /// included in nav when set, can use string for use in template (e.g. multiple navs)
-  nav	String?
+  nav String?
 
   name  String
   alias String @unique
@@ -151,13 +151,15 @@ model Study {
   participants GroupMember[]
 
   name         String
+  notes        String?
   translations Json?
 
-  logPeriod          TimeFrame?
-  registrationPeriod TimeFrame?
+  signupPeriod   TimeFrame?
+  responsePeriod TimeFrame?
 
   schedules Schedule[]
-  StepForm  StepForm[]
+  forms     StepForm[]
+  groups    Group[]
 }
 
 model Group {
@@ -173,13 +175,19 @@ model Group {
   instructions String?
   translations Json?
 
-  regKey   String? @unique
-  regPass  String?
+  notes String?
+
+  regKey  String? @unique
+  regPass String?
+
   /// maximum number of registrations
   regLimit Int?
 
-  logPeriod          TimeFrame?
-  registrationPeriod TimeFrame?
+  signupPeriod   TimeFrame?
+  responsePeriod TimeFrame?
+
+  studyId String? @db.ObjectId
+  study   Study?  @relation(fields: [studyId], references: [id])
 
   scheduleId String?   @db.ObjectId
   schedule   Schedule? @relation(fields: [scheduleId], references: [id])

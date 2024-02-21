@@ -45,7 +45,7 @@ export class LegacyMigrationsService{
 				alias: old.slug,
 				body: old.body,
 				state: 'ENABLED',
-				nav: true,
+				nav: 'main',
 			};
 
 			ops.push(

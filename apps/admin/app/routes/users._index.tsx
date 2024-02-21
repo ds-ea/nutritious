@@ -31,8 +31,7 @@ export const UserList:React.FC<IResourceComponentsProps> = () => {
 		<CommonLayout>
 			<List>
 				<Table { ...tableProps } rowKey="id">
-					<Table.Column dataIndex="id" title="Id" />
-					<Table.Column dataIndex="state" title="State" />
+					<Table.Column dataIndex="id" title="Id" width={ 1 } />
 					<Table.Column dataIndex="name" title="Name" />
 					<Table.Column
 						dataIndex={ [ 'email' ] }
@@ -53,9 +52,11 @@ export const UserList:React.FC<IResourceComponentsProps> = () => {
 						render={(value: any) => <DateField value={value} />}
 					/>*/ }
 
+					<Table.Column dataIndex="state" title="State" width={ 1 } />
 					<Table.Column
 						title="Actions"
 						dataIndex="actions"
+						width={ 1 }
 						render={ ( _, record:BaseRecord ) => (
 							<Space>
 								<EditButton

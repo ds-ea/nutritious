@@ -87,7 +87,6 @@ export default function( api:AdminClient, clearAuth:() => void ):AuthBindings{
 
 		getIdentity: async () => {
 			const rawUser = localStorage.getItem( 'auth.user' );
-			console.log( 'ident', rawUser );
 			if( !rawUser )
 				return null;
 

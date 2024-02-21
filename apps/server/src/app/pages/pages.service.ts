@@ -26,9 +26,9 @@ export class PagesService extends PrismaCrudService{
 
 
 	public override findMany( opts:CrudMethodOpts ){
-		/*opts.crudQuery = {
+		opts.crudQuery = {
 			select: { only: [ 'id', 'alias', 'name', 'state' ] },
-		};*/
+		};
 		return super.findMany( opts );
 	}
 

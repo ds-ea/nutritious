@@ -38,17 +38,6 @@ const UserCreate:React.FC<IResourceComponentsProps> = () => {
 			<Create saveButtonProps={ saveButtonProps } resource={ 'users' }>
 				<Form { ...formProps } layout="vertical">
 					<StateSelect />
-					{/*<Form.Item
-						label="State"
-						name={ [ 'state' ] }
-						rules={ [
-							{
-								required: true,
-							},
-						] }
-					>
-						<Select options={ [ { label: 'Enabled', value: 'ENABLED' }, { label: 'Disabled', value: 'DISABLED' } ] } />
-					</Form.Item>*/ }
 					<Form.Item
 						label="Name"
 						name={ [ 'name' ] }

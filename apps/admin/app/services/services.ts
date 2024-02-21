@@ -46,6 +46,7 @@ const clearAuth = () => {
 //restoreAuth();
 
 const restDataProvider = dataProvider( API_URL, apiClient.axios );
+
 const authProvider = getAuthProvider( apiClient, clearAuth );
 
 

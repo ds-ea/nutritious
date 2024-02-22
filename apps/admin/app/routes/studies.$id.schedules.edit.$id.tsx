@@ -1,7 +1,6 @@
 import { CommonLayout } from '@components/common-layout';
-import { TimeFrameFormValue, timeFrameOnFinish, timeFrameOnLoad } from '@components/form/TimeFrame';
-import { GroupFormElements } from '@components/groups/GroupFormElements';
-import type { Group, Prisma, Study } from '@nutritious/core';
+import { ScheduleFormElements } from '@components/groups/ScheduleFormElements';
+import type { Prisma, Schedule, Study } from '@nutritious/core';
 import { Edit, useForm } from '@refinedev/antd';
 import { IResourceComponentsProps, useOne, useParsed } from '@refinedev/core';
 import { Form } from 'antd';
@@ -9,7 +8,7 @@ import React from 'react';
 
 
 export const GroupEdit:React.FC<IResourceComponentsProps> = () => {
-	const { id: groupId, params } = useParsed<{ studyId?:string }>();
+	const { id: scheduleId, params } = useParsed<{ studyId?:string }>();
 	// get study
 	const studyId = params?.studyId;
 	const { data: studyData, isLoading: isLoadingStudy } =
@@ -26,23 +25,18 @@ export const GroupEdit:React.FC<IResourceComponentsProps> = () => {
 		queryResult,
 		onFinish,
 	} =
-		useForm<Group>( {
+		useForm<Schedule>( {
 			redirect: 'show',
 		} );
 
-	const studiesData = queryResult?.data?.data;
-	if( studiesData )
-		timeFrameOnLoad( studiesData, [ 'signupPeriod', 'responsePeriod' ] );
+	const scheduleData = queryResult?.data?.data;
+
 
 	const handleOnFinish = ( values:Record<string, unknown> ) => {
-		const data:Prisma.GroupUpdateInput & { id?:Group['id'] } = {
+		const data:Prisma.GroupUpdateInput & { id?:Schedule['id'] } = {
 			...values,
-			signupPeriod: timeFrameOnFinish( values['signupPeriod'] as TimeFrameFormValue ),
-			responsePeriod: timeFrameOnFinish( values['responsePeriod'] as TimeFrameFormValue ),
 		};
 		delete data.id;
-
-		data.regLimit = Number( data.regLimit ) || null;
 
 		return onFinish( data );
 	};
@@ -51,10 +45,12 @@ export const GroupEdit:React.FC<IResourceComponentsProps> = () => {
 
 	return (
 		<CommonLayout>
-			<Edit saveButtonProps={ saveButtonProps }>
+			<Edit saveButtonProps={ saveButtonProps }
+				  contentProps={ { className: 'card-transparent' } }
+			>
 				<Form { ...formProps } onFinish={ handleOnFinish } layout="vertical">
 
-					<GroupFormElements study={ study } />
+					<ScheduleFormElements study={ study } formProps={ formProps } />
 
 				</Form>
 			</Edit>

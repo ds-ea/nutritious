@@ -1,17 +1,14 @@
 import { CommonLayout } from '@components/common-layout';
-import type { Group, Participant, Prisma, Study } from '@nutritious/core';
+import type { Group, Participant, Prisma, Schedule, Study } from '@nutritious/core';
 import { Show, TextField } from '@refinedev/antd';
 import { IResourceComponentsProps, useOne, useParsed, useShow } from '@refinedev/core';
-import { LinksFunction } from '@remix-run/node';
 import { Alert, Button, Card, Col, QRCode, Row, Space, Statistic, Typography } from 'antd';
 import React from 'react';
-
-import styles from '~/styles/shared.css';
 
 
 const { Title } = Typography;
 
-export const links:LinksFunction = () => [ { rel: 'stylesheet', href: styles } ];
+
 
 export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 	const { id: groupId, params } = useParsed<{ studyId?:string }>();
@@ -27,7 +24,7 @@ export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 
 	// get group -> show
 	const { queryResult } =
-		useShow<Group>( {
+		useShow<Group & { schedule?:Schedule }>( {
 			meta: {
 				fields: [ 'id', 'name', 'state', 'signupPeriod', 'responsePeriod' ],
 				operation: 'groups',
@@ -103,6 +100,9 @@ export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 				<TextField value={ group?.state } />
 				<Title level={ 5 }>Name</Title>
 				<TextField value={ group?.name } />
+
+				<Title level={ 5 }>Schedule</Title>
+				<TextField value={ group?.schedule?.name || 'unassigned' } />
 			</Show>
 
 			<Row gutter={ [ 20, 20 ] } style={ { marginBlockStart: 20 } }>
@@ -131,7 +131,7 @@ export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 									/>
 									<QRCode
 										type={ 'svg' }
-										size={ '100%' }
+										size={ '100%' as any }
 										errorLevel={ 'Q' }
 										value={ qrcValue }
 									/>

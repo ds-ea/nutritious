@@ -8,7 +8,7 @@ import { DevtoolsProvider } from '@refinedev/devtools';
 import { RefineKbar, RefineKbarProvider } from '@refinedev/kbar';
 import routerProvider, { UnsavedChangesNotifier } from '@refinedev/remix-router';
 
-import type { MetaFunction } from '@remix-run/node';
+import type { LinksFunction, MetaFunction } from '@remix-run/node';
 import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
 import { App as AntdApp } from 'antd';
 import { useEffect } from 'react';
@@ -16,6 +16,14 @@ import resources from '~/data/resources';
 
 
 import { authProvider, restDataProvider, restoreAuth } from '~/services/services';
+
+import sharedStyles from '~/styles/shared.css';
+
+
+export const links:LinksFunction = () => [
+	{ rel: 'stylesheet', href: resetStyle },
+	{ rel: 'stylesheet', href: sharedStyles },
+];
 
 
 export const meta:MetaFunction = () => [
@@ -73,8 +81,4 @@ export default function App(){
 			</body>
 		</html>
 	);
-}
-
-export function links(){
-	return [ { rel: 'stylesheet', href: resetStyle } ];
 }

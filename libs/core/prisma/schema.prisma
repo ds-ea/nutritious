@@ -229,7 +229,7 @@ type ScheduleDaySetup {
   days Int[]
 
   /// start of day - offset in minutes from midnight
-  start Int
+  start Int?
   /// end of day - offset in minutes from midnight
   end   Int?
   /// day end grace period in minute
@@ -247,8 +247,7 @@ type SlotTimeFrame {
   grace    Int?
 }
 
-type SlotImportance {
-  obligatory Boolean?
+type SlotFrequency {
   min        Int?
   max        Int?
   // range the limits relate to ( occurance, same-day, same-week, same-month, 123-minutes )
@@ -283,7 +282,7 @@ model Schedule {
   isTemplate Boolean?
 
   daySetup  ScheduleDaySetup[]
-  weekSetup ScheduleWeekSetup[]
+  weekSetup ScheduleWeekSetup
 
   studyId String? @db.ObjectId
   study   Study?  @relation(fields: [studyId], references: [id])
@@ -304,6 +303,8 @@ model Slot {
   name         String
   translations Json?
 
+  obligatory Boolean?
+
   /// assigned to system events (overwrites date and availability)
   event        String?
   /// for explicit dates (combines with availability when set, otherwise all day)
@@ -311,10 +312,10 @@ model Slot {
   /// when the slot is available (at any time otherwise)
   availability SlotTimeFrame?
 
-  importance SlotImportance?
+  frequency SlotFrequency?
   reminders  SlotReminder[]
 
-  /// dependency on another slot's
+  /// dependency to another slot
   dependsOn SlotDependency?
 
   steps     Step[]

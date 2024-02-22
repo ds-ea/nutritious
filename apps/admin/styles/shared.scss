@@ -5,3 +5,35 @@
 		font-size: 20px;
 	}
 }
+
+
+.ant-card.card-transparent {
+	background-color: transparent;
+	box-shadow: none;
+
+	> .ant-card-body {
+		padding: 0;
+	}
+
+	> .ant-card-actions {
+		//background-color: transparent;
+		//border: none;
+		border-radius: 8px;
+		margin-block-start: 10px;
+	}
+}
+
+
+.ant-space-vertical.stretch {
+	display: flex;
+}
+
+.dual-col-checkbox-group {
+	display: grid;
+	grid-template-rows: 1fr 1fr 1fr 1fr;
+	grid-auto-flow: column;
+
+	> .ant-checkbox-wrapper {
+
+	}
+}

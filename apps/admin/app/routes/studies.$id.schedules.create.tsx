@@ -1,29 +1,28 @@
 import { CommonLayout } from '@components/common-layout';
-import { TimeFrameFormValue, timeFrameOnFinish } from '@components/form/TimeFrame';
-import { GroupFormElements } from '@components/groups/GroupFormElements';
+import { ScheduleFormElements } from '@components/groups/ScheduleFormElements';
 import type { Prisma, Study } from '@nutritious/core';
 import { Create, useForm } from '@refinedev/antd';
 import { useOne, useParsed } from '@refinedev/core';
 import { Form } from 'antd';
 
-import generatePassword from 'omgopass';
 import React, { useEffect } from 'react';
 
 
-export default function GroupCreate(){
+
+export default function SchedulesCreate(){
 	const {
 		form,
 		formProps,
 		saveButtonProps,
 		queryResult,
 		onFinish,
-	} = useForm<Partial<Prisma.GroupCreateInput>>( {
+	} = useForm<Partial<Prisma.ScheduleCreateInput>>( {
 		redirect: 'show',
 	} );
 
 	const { params } = useParsed<{ studyId?:string }>();
 	let studyId = params?.studyId;
-	const { data: studyData, isLoading: isLoadinStudy } = useOne<Study>( {
+	const { data: studyData, isLoading: isLoadingStudy } = useOne<Study>( {
 		resource: 'studies',
 		id: studyId,
 	} );
@@ -33,11 +32,17 @@ export default function GroupCreate(){
 		form.setFieldsValue( {
 			studyId,
 			state: 'ENABLED',
-			regKey: generatePassword( { syllablesCount: 4 } ),
-			regPass: generatePassword( { syllablesCount: 4 } ),
-			//			signupPeriod: { state: 'ENABLED' },
-			//			responsePeriod: { state: 'ENABLED' },
-		} );
+			weekSetup: { startOfWeek: 1 },
+			daySetup: [
+				{
+					days: [ 0, 1, 2, 3, 4, 5, 6 ],
+					start: 6 * 60,
+					//					end: 0 * 60,
+					grace: 5 * 60,
+				},
+			],
+
+		} as Prisma.ScheduleCreateInput );
 	}, [] );
 
 	const handleOnFinish = ( values:Record<string, unknown> ) => {
@@ -45,20 +50,25 @@ export default function GroupCreate(){
 		const data = {
 			...values,
 			studyId,
-			signupPeriod: timeFrameOnFinish( values['signupPeriod'] as TimeFrameFormValue ),
-			responsePeriod: timeFrameOnFinish( values['responsePeriod'] as TimeFrameFormValue ),
 		};
 
 		onFinish( data );
 	};
 
 	return <CommonLayout>
-		<Create saveButtonProps={ saveButtonProps } resource={ 'groups' } isLoading={ isLoadinStudy }>
+		<Create saveButtonProps={ saveButtonProps } resource={ 'schedules' }
+				isLoading={ isLoadingStudy }
+				contentProps={ { className: 'card-transparent' } }
+		>
+
 			<Form { ...formProps }
 				  layout="vertical"
 				  onFinish={ handleOnFinish }
+				  autoComplete="off"
 			>
-				<GroupFormElements study={ study } isCreate={ true } />
+				<input type="hidden" autoComplete="false" />
+
+				<ScheduleFormElements study={ study } isCreate={ true } formProps={ formProps } />
 
 			</Form>
 		</Create>

@@ -1,4 +1,4 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateScheduleDto } from './create-schedule.dto';
+import { Prisma } from '@nutritious/core';
 
-export class UpdateScheduleDto extends PartialType(CreateScheduleDto) {}
+
+export type UpdateScheduleDto = Prisma.ScheduleUpdateInput;

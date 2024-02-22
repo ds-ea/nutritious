@@ -11,8 +11,8 @@ export class GroupsService extends PrismaCrudService{
 	){
 		super( {
 			model: 'group',
-			allowedJoins: [],
-			defaultJoins: [],
+			allowedJoins: [ 'schedule' ],
+			defaultJoins: [ 'schedule' ],
 		} );
 	}
 
@@ -29,6 +29,7 @@ export class GroupsService extends PrismaCrudService{
 			data,
 		} );
 		return this.findOne( record.id, opts );
-
 	}
+
+
 }

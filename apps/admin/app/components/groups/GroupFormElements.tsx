@@ -1,12 +1,31 @@
 import { StateSelect } from '@components/form/StateSelect';
 import { TimeFrame } from '@components/form/TimeFrame';
-import type { Study } from '@nutritious/core';
+import type { Schedule, Study } from '@nutritious/core';
 import { TextField } from '@refinedev/antd';
-import { Col, Divider, Form, Input, Row, Space, Typography } from 'antd';
+import { useList } from '@refinedev/core';
+import { Col, Divider, Form, Input, Row, Select, Space, Typography } from 'antd';
+import { DefaultOptionType } from 'rc-select/lib/Select';
 import React from 'react';
 
 
-export const GroupEditElements:React.FC<{ study:Study, isCreate?:boolean }> = ( { study, isCreate } ) => {
+export const GroupFormElements:React.FC<{ study:Study, isCreate?:boolean }> = ( { study, isCreate } ) => {
+
+	let availableSchedules:Schedule[] | undefined = undefined;
+	let availableSchedulesOptions:DefaultOptionType[] = [];
+	let isLoadingSchedules = true;
+
+	if( study ){
+		const { data: schedulesData, isLoading } =
+			useList<Schedule>( {
+				resource: 'schedules',
+				filters: [ { field: 'studyId', operator: 'eq', value: study?.id } ],
+			} );
+		isLoadingSchedules = isLoading;
+
+		availableSchedules = schedulesData?.data as Schedule[];
+		availableSchedulesOptions = availableSchedules?.map( sch => ( { label: sch.name, value: sch.id } ) );
+	}
+
 
 	return (
 		<>
@@ -52,7 +71,20 @@ export const GroupEditElements:React.FC<{ study:Study, isCreate?:boolean }> = ( 
 
 			<Divider />
 
-			<Typography.Title level={ 2 }>Signup</Typography.Title>
+			<Typography.Title level={ 3 }>Schedule</Typography.Title>
+			<Space>
+				<Form.Item
+					label="Assigned Schedule"
+					name={ [ 'scheduleId' ] }
+				>
+					<Select options={ availableSchedulesOptions } loading={ isLoadingSchedules } />
+				</Form.Item>
+			</Space>
+
+
+			<Divider />
+
+			<Typography.Title level={ 3 }>Signup</Typography.Title>
 			<Row gutter={ [ 50, 50 ] }>
 				<Col xs={ 24 } lg={ 12 }>
 

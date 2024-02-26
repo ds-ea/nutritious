@@ -2,7 +2,7 @@ import { CommonLayout } from '@components/common-layout';
 import { ScheduleFormElements } from '@components/groups/ScheduleFormElements';
 import type { Prisma, Study } from '@nutritious/core';
 import { Create, useForm } from '@refinedev/antd';
-import { useOne, useParsed } from '@refinedev/core';
+import { HttpError, useOne, useParsed } from '@refinedev/core';
 import { Form } from 'antd';
 
 import React, { useEffect } from 'react';
@@ -16,7 +16,7 @@ export default function SchedulesCreate(){
 		saveButtonProps,
 		queryResult,
 		onFinish,
-	} = useForm<Partial<Prisma.ScheduleCreateInput>>( {
+	} = useForm<Prisma.ScheduleCreateInput, HttpError, Prisma.ScheduleCreateInput>( {
 		redirect: 'show',
 	} );
 
@@ -45,7 +45,7 @@ export default function SchedulesCreate(){
 		} as Prisma.ScheduleCreateInput );
 	}, [] );
 
-	const handleOnFinish = ( values:Record<string, unknown> ) => {
+	const handleOnFinish = ( values:Prisma.ScheduleCreateInput ) => {
 
 		const data = {
 			...values,

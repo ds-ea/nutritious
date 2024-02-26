@@ -37,3 +37,38 @@
 
 	}
 }
+
+
+.ant-timeline {
+
+	.leading-trail, .trailing-trail {
+		.ant-timeline-item-head {
+			display: none;
+		}
+
+		.ant-timeline-item-tail {
+			inset-block-start: 0 !important;;
+		}
+	}
+
+	.leading-trail {
+		padding-block-end: 40px;
+
+		.ant-timeline-item-tail {
+			height: 100%;
+		}
+	}
+
+	.trailing-trail {
+	}
+
+	.day-boundary {
+		min-height: 40px;
+
+		.ant-timeline-item-label,
+		.ant-timeline-item-content {
+			font-size: -1;
+			color: #888;
+		}
+	}
+}

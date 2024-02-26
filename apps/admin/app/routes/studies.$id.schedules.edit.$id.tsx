@@ -1,13 +1,13 @@
 import { CommonLayout } from '@components/common-layout';
-import { ScheduleFormElements } from '@components/groups/ScheduleFormElements';
+import { ScheduleFormElements, SlotWithListId } from '@components/groups/ScheduleFormElements';
 import type { Prisma, Schedule, Study } from '@nutritious/core';
 import { Edit, useForm } from '@refinedev/antd';
-import { IResourceComponentsProps, useOne, useParsed } from '@refinedev/core';
+import { HttpError, IResourceComponentsProps, useOne, useParsed } from '@refinedev/core';
 import { Form } from 'antd';
 import React from 'react';
 
 
-export const GroupEdit:React.FC<IResourceComponentsProps> = () => {
+export const ScheduleEdit:React.FC<IResourceComponentsProps> = () => {
 	const { id: scheduleId, params } = useParsed<{ studyId?:string }>();
 	// get study
 	const studyId = params?.studyId;
@@ -25,18 +25,26 @@ export const GroupEdit:React.FC<IResourceComponentsProps> = () => {
 		queryResult,
 		onFinish,
 	} =
-		useForm<Schedule>( {
+		useForm<Schedule, HttpError, Prisma.ScheduleUpdateInput>( {
 			redirect: 'show',
 		} );
 
 	const scheduleData = queryResult?.data?.data;
 
 
-	const handleOnFinish = ( values:Record<string, unknown> ) => {
-		const data:Prisma.GroupUpdateInput & { id?:Schedule['id'] } = {
+	const handleOnFinish = ( values:Prisma.ScheduleUpdateInput ) => {
+
+		const data:Prisma.ScheduleUpdateInput & { id?:string, slots:Partial<SlotWithListId>[] } = {
 			...values,
+			slots: formProps?.form?.getFieldValue( 'slots' ),
 		};
-		delete data.id;
+
+		if( data.id )
+			delete data.id;
+
+		if( data.slots?.length )
+			for( const slot of data.slots )
+				delete slot._listId;
 
 		return onFinish( data );
 	};
@@ -48,7 +56,10 @@ export const GroupEdit:React.FC<IResourceComponentsProps> = () => {
 			<Edit saveButtonProps={ saveButtonProps }
 				  contentProps={ { className: 'card-transparent' } }
 			>
-				<Form { ...formProps } onFinish={ handleOnFinish } layout="vertical">
+				<Form { ...formProps }
+					  onFinish={ handleOnFinish }
+					  layout="vertical"
+				>
 
 					<ScheduleFormElements study={ study } formProps={ formProps } />
 
@@ -57,4 +68,4 @@ export const GroupEdit:React.FC<IResourceComponentsProps> = () => {
 		</CommonLayout>
 	);
 };
-export default GroupEdit;
+export default ScheduleEdit;

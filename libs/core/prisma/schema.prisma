@@ -288,7 +288,7 @@ model Schedule {
   study   Study?  @relation(fields: [studyId], references: [id])
 
   groups Group[]
-  Slot   Slot[]
+  slots   Slot[]
 }
 
 model Slot {

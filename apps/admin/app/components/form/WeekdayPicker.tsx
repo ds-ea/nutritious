@@ -79,7 +79,7 @@ export const WeekdayPicker:React.FC<InputProps & { startOfWeek:0 | 1, shiftStart
 
 	return <>
 		<Popover content={ picker } trigger="click">
-			<Button disabled={ disabled || readOnly }>{ label } <CalendarOutlined /></Button>
+			<Button type={ disabled || readOnly ? 'dashed' : 'default' }>{ label } <CalendarOutlined /></Button>
 		</Popover>
 	</>;
 };

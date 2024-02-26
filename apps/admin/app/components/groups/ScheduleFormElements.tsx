@@ -1,20 +1,58 @@
-import { ClockCircleOutlined } from '@ant-design/icons';
+import { ClockCircleOutlined, EditOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import { WeekdayPicker } from '@components/form/WeekdayPicker';
-import type { Study } from '@nutritious/core';
-import { TextField } from '@refinedev/antd';
-import { Card, Col, Divider, Form, FormProps, Input, Row, Select, Space, Typography } from 'antd';
+import { SlotShortEditor } from '@components/schedule/SlotShortEditor';
+import type { Prisma, Schedule, Slot, Study } from '@nutritious/core';
+import { Button, Card, Col, Descriptions, Divider, Form, FormProps, Input, List, Modal, Row, Select, Space, Timeline } from 'antd';
+import { TimeLineItemProps } from 'antd/lib/timeline/TimelineItem';
 import { DefaultOptionType } from 'rc-select/lib/Select';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 
-export const ScheduleFormElements:React.FC<{ formProps:FormProps, study:Study, isCreate?:boolean }> = ( { study, isCreate, formProps } ) => {
+export type SlotInputTypes = Slot | Prisma.SlotCreateInput | Prisma.SlotUpdateInput;
+
+export type SlotWithListId<T extends SlotInputTypes = Slot> = T & { _listId:string };
+
+function hoursToTime( hours:number ):string{
+	return hours.toString().padStart( 2, '0' ) + ':00';
+}
+
+function minutesToTime( minutes:number | null | undefined ):string{
+	if( minutes == null )
+		return '';
+
+	return `${ String( Math.floor( minutes / 60 ) ).padStart( 2, '0' ) }:${ String( minutes % 60 ).padStart( 2, '0' ) }`;
+}
+
+function SlotItemContent( props:{ slot:SlotWithListId, onEdit?:( slot:SlotWithListId ) => void } ){
+	const { slot } = props;
+	return <Space direction={ 'vertical' }>
+		<Space>
+			<Button size="small" shape="round" type="default">{ slot.name }</Button>
+			<Button size="small" shape="circle" type="default" icon={ <EditOutlined /> }
+					onClick={ () => props.onEdit?.( slot ) }
+			/>
+		</Space>
+		<ul>
+			<li>step</li>
+			<li>step</li>
+		</ul>
+	</Space>;
+}
+
+export const ScheduleFormElements:React.FC<{
+	formProps:FormProps<Prisma.ScheduleCreateInput> | FormProps<Prisma.ScheduleUpdateInput>,
+	study:Study,
+	isCreate?:boolean
+}> = ( { study, isCreate, formProps } ) => {
+
+	let createCount = 0;
 
 	const startOfWeek = formProps?.form?.getFieldValue( [ 'weekSetup', 'startOfWeek' ] );
 
 	const dayHoursOptions:DefaultOptionType[] = Array.from(
 		{ length: 24 },
 		( v, h ) => ( {
-			label: h.toString().padStart( 2, '0' ) + ':00',
+			label: hoursToTime( h ),
 			value: h * 60,
 		} ),
 	);
@@ -30,10 +68,187 @@ export const ScheduleFormElements:React.FC<{ formProps:FormProps, study:Study, i
 		),
 	];
 
-	return (
-		<Space direction={ 'vertical' } className={ 'stretch' }>
 
-			<Card title={ 'Schedule' }>
+	const [ allDaySlots, setAllDaySlots ] = useState<SlotWithListId[]>( [] );
+	const [ timeline, setTimeline ] = useState<TimeLineItemProps[]>( [] );
+	const [ dayStart, setDayStart ] = useState<number>( formProps?.form?.getFieldValue( 'daySetup' )?.[0].start ?? 0 );
+
+	const updateTimeline = () => {
+		const items:{ item:TimeLineItemProps, time:number, type:'spacer' | 'slot' | 'boundary' | 'plain' }[] = [];
+
+		const daySetup:Schedule['daySetup'] = formProps?.form?.getFieldValue( 'daySetup' );
+		setDayStart( daySetup?.[0].start ?? 0 );
+		const dayEnd = daySetup?.[0].end ?? 0;
+
+
+		// add day boundaries if not overlapping with day start/end
+		if( dayStart !== 0 )
+			items.push( {
+				type: 'boundary',
+				time: 0,
+				item: { label: '00:00', color: 'gray', className: 'day-boundary' },
+			} );
+
+		if( dayEnd !== 0 && dayEnd !== 24 * 60 )
+			items.push( {
+				type: 'boundary',
+				time: 24 * 60,
+				item: { label: '23:59', color: 'gray', className: 'day-boundary' },
+			} );
+
+		// day start + end
+		items.push( {
+			type: 'plain',
+			time: dayStart,
+			item: {
+				label: ( dayStart / 60 ).toString().padStart( 2, '0' ) + ':00',
+				children: 'Start of Day',
+				color: 'blue', className: 'day-start',
+			},
+		} );
+
+		items.push( {
+			type: 'plain',
+			time: dayEnd < dayStart ? dayEnd + 24 * 60 : dayEnd,
+			item: {
+				label: !dayEnd ? '23:59' : ( dayEnd / 60 ).toString().padStart( 2, '0' ) + ':00',
+				children: 'End of Day',
+				color: 'blue', className: 'day-end',
+			},
+		} );
+
+
+		// slots
+		const slots:SlotWithListId[] = formProps?.form?.getFieldValue( 'slots' ) ?? [];
+		const allDay:SlotWithListId[] = [];
+		const scheduleSlots = [];
+
+		for( const slot of slots ){
+			slot._listId = slot._listId ?? slot.id ?? 'new_' + ++createCount;
+
+			if( !slot.availability || slot.availability.allDay ){
+				allDay.push( slot );
+			}else{
+				scheduleSlots.push( slot );
+				items.push( {
+					type: 'slot',
+					time: slot?.availability?.start! + dayStart,
+					item: {
+						color: 'green', className: 'slot',
+						label: minutesToTime( slot?.availability?.start! + dayStart ),
+						children: <SlotItemContent slot={ slot } onEdit={ editSlot } />,
+					},
+				} );
+
+			}
+		}
+
+
+
+		const timelineItems:TimeLineItemProps[] = [];
+		// leading spacer
+		timelineItems.push( { label: '', children: <></>, className: 'leading-trail' } );
+
+		timelineItems.push( ...items
+			.sort( ( a, b ) => a.time - b.time )
+			.map( item => item.item ),
+		);
+
+		// trailing spacer
+		timelineItems.push( { label: '', className: 'trailing-trail' } );
+		timelineItems.push( { label: '', dot: <></> } );
+
+		setAllDaySlots( allDay );
+		setTimeline( timelineItems );
+		setUniqueSlotChecks( slots.map( ( { key, name, availability, _listId } ) => ( {
+			key,
+			name,
+			time: availability?.allDay ? undefined : availability?.start ?? undefined,
+			_listId,
+		} ) ) );
+	};
+
+
+	useEffect( () => {
+		updateTimeline();
+	}, [ formProps ] );
+	//	updateTimeline();
+
+
+
+	let [ selectedSlot, setSelectedSlot ] = useState<SlotWithListId<SlotInputTypes> | undefined | null>();
+	const [ isNewSlot, setIsNewSlot ] = useState( false );
+	const [ submitSlotForm, callSubmitSlotForm ] = useState( 0 );
+
+	const [ uniqueSlotChecks, setUniqueSlotChecks ] = useState<( Pick<Slot, 'key' | 'name'> & { _listId:string, time?:number } )[]>( [] );
+
+
+
+	const cancelSlotEditing = () => {
+		setSelectedSlot( null );
+	};
+
+	const confirmSlotChanges = ( data:SlotWithListId<SlotInputTypes> ) => {
+		const slotsValue:( SlotInputTypes )[] = formProps?.form?.getFieldValue( 'slots' ) ?? [];
+
+		// patch slot
+		const existing = slotsValue.find( slot => slot === selectedSlot );
+		if( existing )
+			Object.assign( existing, data );
+		else
+			slotsValue.push( data );
+
+		formProps?.form?.setFieldValue( 'slots', slotsValue );
+		updateTimeline();
+
+		setIsNewSlot( false );
+		setSelectedSlot( null );
+	};
+
+	const addSlot = () => {
+		const slot:typeof selectedSlot = {
+			key: '',
+			name: '',
+			_listId: 'new_' + ++createCount,
+		};
+		setIsNewSlot( true );
+		setSelectedSlot( slot );
+	};
+
+	const editSlot = ( slot:SlotWithListId ) => {
+		setIsNewSlot( false );
+		setSelectedSlot( slot );
+	};
+
+
+	return ( <>
+		<Modal open={ !!selectedSlot } onCancel={ cancelSlotEditing }
+			   centered
+			   title={ ( selectedSlot && 'id' in selectedSlot && selectedSlot?.id ) ? 'Edit Slot' : 'Add Slot' }
+			   footer={ <><Button type={ 'primary' } onClick={ () => callSubmitSlotForm( prev => prev + 1 ) }>{ 'Ok' }</Button></> }
+		>
+			{ !selectedSlot
+			  ? <></>
+			  : <SlotShortEditor slot={ selectedSlot }
+								 dayStart={ dayStart }
+								 isCreate={ isNewSlot }
+								 onFinish={ confirmSlotChanges }
+								 uniqueSlotChecks={ uniqueSlotChecks }
+								 submit={ submitSlotForm }
+			  />
+			}
+		</Modal>
+
+
+		<Space direction={ 'vertical' } className={ 'stretch' }>
+			<Card title={ 'Schedule' + ( isCreate ? 'New' : ` ( ${ formProps?.form?.getFieldValue( 'id' ) } )` ) }
+				  extra={
+					  <Descriptions size={ 'small' } bordered={ true }
+									items={ [ { label: 'Study', children: study?.name } ] }
+					  />
+				  }>
+
+				{/*
 				<Typography.Title level={ 5 }>Study</Typography.Title>
 				<TextField value={ study?.name } />
 
@@ -50,6 +265,7 @@ export const ScheduleFormElements:React.FC<{ formProps:FormProps, study:Study, i
 						<Input readOnly disabled />
 					</Form.Item>
 				) }
+				*/ }
 
 				<Row gutter={ [ 50, 50 ] }>
 					<Col xs={ 24 } lg={ 12 }>
@@ -57,7 +273,7 @@ export const ScheduleFormElements:React.FC<{ formProps:FormProps, study:Study, i
 							label="Name" name={ [ 'name' ] }
 							rules={ [ { required: true } ] }
 						>
-							<Input autoFocus={ !!isCreate } />
+							<Input autoFocus={ isCreate } />
 						</Form.Item>
 					</Col>
 					<Col xs={ 24 } lg={ 12 }>
@@ -111,6 +327,7 @@ export const ScheduleFormElements:React.FC<{ formProps:FormProps, study:Study, i
 													allowClear={ true }
 													placeholder={ 'at midnight' }
 													suffixIcon={ <ClockCircleOutlined /> }
+													onChange={ updateTimeline }
 												/>
 											</Form.Item>
 
@@ -119,7 +336,12 @@ export const ScheduleFormElements:React.FC<{ formProps:FormProps, study:Study, i
 												label={ 'Day ends' }
 												name={ [ name, 'end' ] }
 											>
-												<Select options={ dayHoursOptions } allowClear={ true } placeholder={ 'at midnight' } />
+												<Select options={ dayHoursOptions }
+														allowClear={ true }
+														placeholder={ 'at midnight' }
+														suffixIcon={ <ClockCircleOutlined /> }
+														onChange={ updateTimeline }
+												/>
 											</Form.Item>
 
 											<Form.Item
@@ -157,10 +379,55 @@ export const ScheduleFormElements:React.FC<{ formProps:FormProps, study:Study, i
 				</Row>
 			</Card>
 
-			<Card title={ 'Schedule' }>
+			<Card title={ 'Schedule' } extra={
+				<Button type={ 'primary' } icon={ <PlusCircleOutlined /> }
+						onClick={ addSlot }
+				>{ 'add slot to schedule' }</Button>
+			}>
 
+				<Row gutter={ [ 50, 50 ] }>
+					<Col xs={ 24 } lg={ { span: 12, order: 2 } }>
+
+						<Divider orientation={ 'left' }>All Day Slots</Divider>
+
+						{/*<Form.List name={ 'slots' }>
+							{ ( fields, { add, remove } ) => (
+								<Space direction={ 'vertical' }>
+									{ fields.map( ( { key, name, ...restField } ) => (
+										<Space>
+											<Form.Item name={ [ name, 'key' ] } label={ 'key' }>
+												<Input />
+											</Form.Item>
+											<Form.Item name={ [ name, 'name' ] } label={ 'name' }>
+												<Input />
+											</Form.Item>
+										</Space>
+									) ) }
+								</Space>
+							) }
+						</Form.List>*/ }
+
+						<List
+							dataSource={ allDaySlots }
+							renderItem={ ( slot:SlotWithListId ) => (
+								<List.Item
+									/*actions={ [ <a key="list-loadmore-edit">edit</a>, <a key="list-loadmore-more">more</a> ] }*/
+								>
+									<SlotItemContent slot={ slot } onEdit={ editSlot } />
+								</List.Item>
+							) }
+						/>
+
+					</Col>
+
+					<Col xs={ 24 } lg={ 12 }>
+						<Divider>Scheduled Slots</Divider>
+
+						<Timeline mode={ 'left' } items={ timeline } />
+					</Col>
+				</Row>
 			</Card>
 
 		</Space>
-	);
+	</> );
 };

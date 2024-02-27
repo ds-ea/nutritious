@@ -43,8 +43,13 @@ export const ScheduleEdit:React.FC<IResourceComponentsProps> = () => {
 			delete data.id;
 
 		if( data.slots?.length )
-			for( const slot of data.slots )
+			for( const slot of data.slots ){
+				if( slot.steps?.length )
+					for( const step of slot.steps )
+						delete step._listId;
+
 				delete slot._listId;
+			}
 
 		return onFinish( data );
 	};

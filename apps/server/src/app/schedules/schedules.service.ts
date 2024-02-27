@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { type Prisma, PrismaService, Schedule } from '@nutritious/core';
+import { type Prisma, PrismaService, Schedule, type Slot, type Step } from '@nutritious/core';
 import { CrudMethodOpts, PrismaCrudService } from 'nestjs-prisma-crud';
 
 
@@ -10,8 +10,8 @@ export class SchedulesService extends PrismaCrudService{
 	){
 		super( {
 			model: 'schedule',
-			allowedJoins: [ 'slots' ],
-			defaultJoins: [ 'slots' ],
+			allowedJoins: [ 'slots', 'slots.steps' ],
+			defaultJoins: [ 'slots', 'slots.steps' ],
 		} );
 	}
 
@@ -20,40 +20,87 @@ export class SchedulesService extends PrismaCrudService{
 		return this.findOne( record.id, opts );
 	}
 
-	public override async update( id:Schedule['id'], data:Prisma.ScheduleUpdateInput, opts:CrudMethodOpts ){
-		if( data.slots && Array.isArray( data.slots ) ){
-			const slotUpdates:Prisma.ScheduleUpdateInput['slots'] = {};
+	public override async update( scheduleId:Schedule['id'], data:Prisma.ScheduleUpdateInput, opts:CrudMethodOpts ){
 
-			const creates:Prisma.SlotCreateManyScheduleInput[] = [];
-			const updates:Prisma.SlotUpdateManyWithWhereWithoutScheduleInput[] = [];
+		const slots = data.slots;
+		if( data.slots )
+			delete data.slots;
 
-			for( const slotData of data.slots ){
+		const record = await this.prisma.schedule.update( {
+			where: { id: scheduleId },
+			data,
+		} );
+
+
+		if( slots && Array.isArray( slots ) ){
+
+			const stepCreates:Prisma.StepCreateManyInput[] = [];
+			const stepUpdates:Prisma.StepUpdateArgs[] = [];
+			const stepRemoves:Step['id'][] = [];
+
+			for( const slotData of slots ){
+				slotData.scheduleId = scheduleId;
+
+				const steps = slotData.steps;
+				delete slotData.steps;
+
+				let slot:Slot | undefined;
+
 				if( slotData.id ){
-					const { id, scheduleId, ...withoutId } = slotData as typeof slotData & { scheduleId:unknown };
+					const { id, ...withoutId } = slotData as typeof slotData;
+					delete withoutId['createdAt'];
+					delete withoutId['updatedAt'];
 
-					updates.push( {
-							where: { id: slotData.id },
-							data: withoutId,
-						},
-					);
+					slot = await this.prisma.slot.update( {
+						where: { id: slotData.id },
+						data: withoutId as Prisma.SlotUncheckedUpdateInput,
+					} );
+
 				}else
-					creates.push( slotData );
+					slot = await this.prisma.slot.create( { data: slotData } );
+
+				if( !slot )
+					throw new Error( 'unable to update slot' );
+
+
+				if( steps?.length ){
+					for( const stepData of steps ){
+						stepData.slotId = slot.id;
+
+						if( '_remove' in stepData ){
+							if( stepData.id )
+								stepRemoves.push( stepData.id );
+
+						}else if( stepData.id ){
+							const { id, ...withoutId } = stepData as typeof stepData;
+							delete withoutId['createdAt'];
+							delete withoutId['updatedAt'];
+
+							stepUpdates.push( {
+								where: { id: stepData.id },
+								data: withoutId,
+							} );
+						}else{
+							stepCreates.push( stepData );
+						}
+					}
+
+				}
 			}
 
 
-			if( creates?.length )
-				slotUpdates.createMany ??= { data: creates };
+			if( stepCreates.length )
+				await this.prisma.step.createMany( { data: stepCreates } );
+			if( stepUpdates.length )
+				await Promise.all( stepUpdates.map( stepUpdate => this.prisma.step.update( stepUpdate ) ) );
+			if( stepRemoves.length )
+				await this.prisma.step.deleteMany( { where: { id: { in: stepRemoves } } } );
 
-			if( updates?.length )
-				slotUpdates.updateMany ??= updates;
 
-			data.slots = slotUpdates;
+
 		}
 
-		const record = await this.prisma.schedule.update( {
-			where: { id },
-			data,
-		} );
+
 
 		return this.findOne( record.id, opts );
 	}

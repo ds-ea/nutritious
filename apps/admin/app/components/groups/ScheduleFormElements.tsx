@@ -1,16 +1,17 @@
 import { ClockCircleOutlined, EditOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import { WeekdayPicker } from '@components/form/WeekdayPicker';
 import { SlotShortEditor } from '@components/schedule/SlotShortEditor';
-import type { Prisma, Schedule, Slot, Study } from '@nutritious/core';
+import type { Prisma, Schedule, Slot, Step, Study } from '@nutritious/core';
 import { Button, Card, Col, Descriptions, Divider, Form, FormProps, Input, List, Modal, Row, Select, Space, Timeline } from 'antd';
 import { TimeLineItemProps } from 'antd/lib/timeline/TimelineItem';
 import { DefaultOptionType } from 'rc-select/lib/Select';
 import React, { useEffect, useState } from 'react';
 
 
-export type SlotInputTypes = Slot | Prisma.SlotCreateInput | Prisma.SlotUpdateInput;
 
-export type SlotWithListId<T extends SlotInputTypes = Slot> = T & { _listId:string };
+export type SlotUpdateDto = Partial<Slot> & { steps?:Partial<Step & { _remove?:boolean, _listId?:string }>[] };
+
+export type SlotWithListId<T extends SlotUpdateDto = SlotUpdateDto> = T & { _listId:string };
 
 function hoursToTime( hours:number ):string{
 	return hours.toString().padStart( 2, '0' ) + ':00';
@@ -27,15 +28,19 @@ function SlotItemContent( props:{ slot:SlotWithListId, onEdit?:( slot:SlotWithLi
 	const { slot } = props;
 	return <Space direction={ 'vertical' }>
 		<Space>
-			<Button size="small" shape="round" type="default">{ slot.name }</Button>
+			<Button size="small" shape="round" type="default">{ slot.name as string }</Button>
 			<Button size="small" shape="circle" type="default" icon={ <EditOutlined /> }
 					onClick={ () => props.onEdit?.( slot ) }
 			/>
 		</Space>
-		<ul>
-			<li>step</li>
-			<li>step</li>
-		</ul>
+		<ol>
+			{ slot.steps?.map( step => (
+				<li key={ step._listId ?? step.id }>
+					{ step.type }:
+					{ step.reference }
+				</li>
+			) ) }
+		</ol>
 	</Space>;
 }
 
@@ -176,11 +181,11 @@ export const ScheduleFormElements:React.FC<{
 
 
 
-	let [ selectedSlot, setSelectedSlot ] = useState<SlotWithListId<SlotInputTypes> | undefined | null>();
+	let [ selectedSlot, setSelectedSlot ] = useState<SlotWithListId | undefined | null>();
 	const [ isNewSlot, setIsNewSlot ] = useState( false );
 	const [ submitSlotForm, callSubmitSlotForm ] = useState( 0 );
 
-	const [ uniqueSlotChecks, setUniqueSlotChecks ] = useState<( Pick<Slot, 'key' | 'name'> & { _listId:string, time?:number } )[]>( [] );
+	const [ uniqueSlotChecks, setUniqueSlotChecks ] = useState<( Pick<SlotWithListId, 'key' | 'name' | '_listId'> & { time?:number } )[]>( [] );
 
 
 
@@ -188,8 +193,8 @@ export const ScheduleFormElements:React.FC<{
 		setSelectedSlot( null );
 	};
 
-	const confirmSlotChanges = ( data:SlotWithListId<SlotInputTypes> ) => {
-		const slotsValue:( SlotInputTypes )[] = formProps?.form?.getFieldValue( 'slots' ) ?? [];
+	const confirmSlotChanges = ( data:SlotWithListId<SlotUpdateDto> ) => {
+		const slotsValue:( SlotUpdateDto )[] = formProps?.form?.getFieldValue( 'slots' ) ?? [];
 
 		// patch slot
 		const existing = slotsValue.find( slot => slot === selectedSlot );
@@ -209,6 +214,8 @@ export const ScheduleFormElements:React.FC<{
 		const slot:typeof selectedSlot = {
 			key: '',
 			name: '',
+			availability: { allDay: false } as SlotWithListId['availability'],
+			steps: [ { _listId: 'new_' + Date.now() } ],
 			_listId: 'new_' + ++createCount,
 		};
 		setIsNewSlot( true );
@@ -223,7 +230,7 @@ export const ScheduleFormElements:React.FC<{
 
 	return ( <>
 		<Modal open={ !!selectedSlot } onCancel={ cancelSlotEditing }
-			   centered
+			   centered width={ 600 }
 			   title={ ( selectedSlot && 'id' in selectedSlot && selectedSlot?.id ) ? 'Edit Slot' : 'Add Slot' }
 			   footer={ <><Button type={ 'primary' } onClick={ () => callSubmitSlotForm( prev => prev + 1 ) }>{ 'Ok' }</Button></> }
 		>
@@ -247,25 +254,6 @@ export const ScheduleFormElements:React.FC<{
 									items={ [ { label: 'Study', children: study?.name } ] }
 					  />
 				  }>
-
-				{/*
-				<Typography.Title level={ 5 }>Study</Typography.Title>
-				<TextField value={ study?.name } />
-
-				{ isCreate ? undefined : (
-					<Form.Item
-						label="Id"
-						name={ [ 'id' ] }
-						rules={ [
-							{
-								required: true,
-							},
-						] }
-					>
-						<Input readOnly disabled />
-					</Form.Item>
-				) }
-				*/ }
 
 				<Row gutter={ [ 50, 50 ] }>
 					<Col xs={ 24 } lg={ 12 }>
@@ -310,7 +298,7 @@ export const ScheduleFormElements:React.FC<{
 										<Space key={ key } style={ { display: 'flex', marginBottom: 8 } } align="baseline">
 
 											<Form.Item { ...restField }
-													   label={ 'On days:' }
+													   label={ 'On days' }
 													   name={ [ name, 'days' ] }
 													   rules={ [ { required: true } ] }
 											>
@@ -390,25 +378,9 @@ export const ScheduleFormElements:React.FC<{
 
 						<Divider orientation={ 'left' }>All Day Slots</Divider>
 
-						{/*<Form.List name={ 'slots' }>
-							{ ( fields, { add, remove } ) => (
-								<Space direction={ 'vertical' }>
-									{ fields.map( ( { key, name, ...restField } ) => (
-										<Space>
-											<Form.Item name={ [ name, 'key' ] } label={ 'key' }>
-												<Input />
-											</Form.Item>
-											<Form.Item name={ [ name, 'name' ] } label={ 'name' }>
-												<Input />
-											</Form.Item>
-										</Space>
-									) ) }
-								</Space>
-							) }
-						</Form.List>*/ }
-
 						<List
 							dataSource={ allDaySlots }
+							split={ false }
 							renderItem={ ( slot:SlotWithListId ) => (
 								<List.Item
 									/*actions={ [ <a key="list-loadmore-edit">edit</a>, <a key="list-loadmore-more">more</a> ] }*/

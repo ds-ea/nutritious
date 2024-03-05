@@ -1,15 +1,19 @@
 import { MinusCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
-import { SlotWithListId } from '@components/groups/ScheduleFormElements';
-import type { Prisma } from '@nutritious/core';
+import { SlotWithListId } from '@components/schedule/ScheduleFormElements';
+import type { Prisma, Step, Study, StudyContent, StudyForm } from '@nutritious/core';
+import { useList } from '@refinedev/core';
 import { Button, Card, Flex, Form, Input, List, Popconfirm, Segmented, Select, TimePicker, TimePickerProps } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
+import { DefaultOptionType } from 'rc-select/lib/Select';
 import React, { useEffect, useState } from 'react';
 
 
+type StepWithListId = Step & { _listId:string };
 
 type Props = {
 	dayStart?:number,
-	slot?:SlotWithListId
+	slot:SlotWithListId,
+	study:Study,
 	isCreate?:boolean,
 	onChange?:( data:SlotWithListId ) => void,
 	onFinish?:( data:SlotWithListId ) => void,
@@ -18,15 +22,45 @@ type Props = {
 
 };
 
+function StepReferencePicker( props:{
+	type:Step['type'],
+	value?:string,
+	onChange?:() => void,
+	forms:StudyForm[] | undefined,
+	contents:StudyContent[] | undefined,
+} ){
+	//	const [ value, setValue ] = useState( [] );
+
+	const [ options, setOptions ] = useState<DefaultOptionType[]>( [] );
+
+	useEffect( () => {
+		let opts:{ label:string, value:string }[] = [];
+
+		if( props.type === 'form' && props.forms?.length )
+			opts = props.forms?.map( opt => ( { label: opt.name, value: opt.id } ) );
+		else if( props.type === 'content' && props.contents?.length )
+			opts = props.contents?.map( opt => ( { label: opt.name, value: opt.id } ) );
+
+		opts = opts.sort( ( a, b ) => a.label!.localeCompare( b.label ) );
+		setOptions( opts );
+
+	}, [ props.type ] );
+
+	return <Select options={ options } value={ props.value } onChange={ props.onChange } />;
+}
+
 export const SlotShortEditor:React.FC<Props> = ( {
-	dayStart, slot, isCreate,
+	dayStart,
+	slot, study,
+	isCreate,
 	onChange, onFinish,
 	submit, uniqueSlotChecks,
 	...props
 } ) => {
 
-	if( !slot )
+	if( !slot || !study )
 		return ( <></> );
+
 	const [ form ] = Form.useForm<Props['slot']>();
 
 	const [ isAllDay, setIsAllDay ] = useState<boolean>( slot.availability ? !!slot.availability?.allDay : true );
@@ -37,9 +71,22 @@ export const SlotShortEditor:React.FC<Props> = ( {
 	// for triggering submit from outside buttons
 	useEffect( () => ( submit && form.submit(), undefined ), [ submit, form ] );
 
+	const [ stepTypeMap, setStepTypeMap ] = useState<Record<string, string>>( {} );
+	const updateStepTypeMap = () => {
+		const steps = form.getFieldValue( 'steps' ) as StepWithListId[];
+		const map = steps.reduce(
+			( map, step, k ) => (
+				map[k] = step.type,
+					map ),
+			{} as typeof stepTypeMap,
+		);
+		setStepTypeMap( map );
+	};
+
 	const onFormChanges = () => {
 		const data = form.getFieldsValue();
 		setIsAllDay( data?.availability ? !!data.availability?.allDay : true );
+		updateStepTypeMap();
 	};
 
 	const finishUp = () => {
@@ -48,7 +95,7 @@ export const SlotShortEditor:React.FC<Props> = ( {
 	};
 
 
-
+	// form init
 	useEffect( () => {
 		if( !slot.availability )
 			slot.availability = { allDay: true } as SlotWithListId['availability'];
@@ -69,8 +116,25 @@ export const SlotShortEditor:React.FC<Props> = ( {
 
 		setStartMinutes( slot.availability?.start ?? undefined );
 		setStartTime( time );
+		updateStepTypeMap();
 
 	}, [ slot ] );
+
+
+
+	const { data: availableForms, isLoading: isLoadingForms } =
+		useList<StudyForm>( {
+			resource: 'study-forms',
+			filters: [ { field: 'studyId', operator: 'eq', value: study.id } ],
+		} );
+
+	const availableContents:StudyContent[] = [];
+	/*const { data: availableContents, isLoading: isLoadingContents } =
+		useList<Schedule>( {
+			resource: 'study-forms',contents
+			filters: [ { field: 'studyId', operator: 'eq', value: study.id } ],
+		} );*/
+
 
 
 	const applyTime:TimePickerProps['onChange'] = ( date, dateStr ) => {
@@ -232,14 +296,16 @@ export const SlotShortEditor:React.FC<Props> = ( {
 										>
 											<Select placeholder="Select Type"
 													options={ [ { label: 'Content', value: 'content' }, { label: 'Form', value: 'form' } ] }
+													onChange={ () => updateStepTypeMap() }
 											/>
 										</Form.Item>
 
-										<Form.Item name={ [ name, 'reference' ] } { ...restField }
+										<Form.Item name={ [ name, 'ref' ] } { ...restField }
 											/*rules={ [ { required: true, message: 'Please set the reference' } ] }*/
 												   style={ { flexGrow: 1 } }
 										>
-											<Input />
+											<StepReferencePicker type={ stepTypeMap[key] } forms={ availableForms?.data } contents={ availableContents } />
+											{/*<Input />*/ }
 										</Form.Item>
 
 										<div>

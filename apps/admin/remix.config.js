@@ -4,5 +4,5 @@ module.exports = {
 	// assetsBuildDirectory: "public/build",
 	// serverBuildPath: "build/index.js",
 	// publicPath: "/build/",
-	browserNodeBuiltinsPolyfill: {modules: {path: true, events: true, fs: true, util: true, assert: true}}
+	browserNodeBuiltinsPolyfill: {modules: {path: true, events: true, stream: true, fs: true, util: true, assert: true}}
 };

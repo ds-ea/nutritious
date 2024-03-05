@@ -1,5 +1,5 @@
 import { CommonLayout } from '@components/common-layout';
-import { ScheduleFormElements, SlotWithListId } from '@components/groups/ScheduleFormElements';
+import { ScheduleFormElements, SlotWithListId } from '@components/schedule/ScheduleFormElements';
 import type { Prisma, Schedule, Study } from '@nutritious/core';
 import { Edit, useForm } from '@refinedev/antd';
 import { HttpError, IResourceComponentsProps, useOne, useParsed } from '@refinedev/core';

@@ -1,8 +1,9 @@
-import { ClockCircleOutlined, EditOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { ClockCircleOutlined, ContainerOutlined, EditOutlined, PlusCircleOutlined, ReadOutlined } from '@ant-design/icons';
 import { WeekdayPicker } from '@components/form/WeekdayPicker';
 import { SlotShortEditor } from '@components/schedule/SlotShortEditor';
-import type { Prisma, Schedule, Slot, Step, Study } from '@nutritious/core';
-import { Button, Card, Col, Descriptions, Divider, Form, FormProps, Input, List, Modal, Row, Select, Space, Timeline } from 'antd';
+import type { Prisma, Schedule, Slot, Step, Study, StudyContent, StudyForm } from '@nutritious/core';
+import { useList } from '@refinedev/core';
+import { Button, Card, Col, Descriptions, Divider, Form, FormProps, Input, List, Modal, Row, Select, Space, Tag, Timeline } from 'antd';
 import { TimeLineItemProps } from 'antd/lib/timeline/TimelineItem';
 import { DefaultOptionType } from 'rc-select/lib/Select';
 import React, { useEffect, useState } from 'react';
@@ -24,7 +25,12 @@ function minutesToTime( minutes:number | null | undefined ):string{
 	return `${ String( Math.floor( minutes / 60 ) ).padStart( 2, '0' ) }:${ String( minutes % 60 ).padStart( 2, '0' ) }`;
 }
 
-function SlotItemContent( props:{ slot:SlotWithListId, onEdit?:( slot:SlotWithListId ) => void } ){
+function SlotItemContent( props:{
+	slot:SlotWithListId,
+	onEdit?:( slot:SlotWithListId ) => void,
+	formMap:Record<string, StudyForm> | undefined,
+	contentMap:Record<string, StudyContent> | undefined
+} ){
 	const { slot } = props;
 	return <Space direction={ 'vertical' }>
 		<Space>
@@ -36,8 +42,21 @@ function SlotItemContent( props:{ slot:SlotWithListId, onEdit?:( slot:SlotWithLi
 		<ol>
 			{ slot.steps?.map( step => (
 				<li key={ step._listId ?? step.id }>
-					{ step.type }:
-					{ step.reference }
+					<Space>
+						{
+							step.type === 'form'
+							? <ContainerOutlined />
+							: <ReadOutlined />
+						}
+
+						<Tag>
+							{ ( step.type === 'form'
+								? props.formMap?.[step.ref ?? 0]?.name
+								: props.contentMap?.[step.ref ?? 0]?.name
+							) ?? ( step.ref ?? '?' )
+							}
+						</Tag>
+					</Space>
 				</li>
 			) ) }
 		</ol>
@@ -77,6 +96,30 @@ export const ScheduleFormElements:React.FC<{
 	const [ allDaySlots, setAllDaySlots ] = useState<SlotWithListId[]>( [] );
 	const [ timeline, setTimeline ] = useState<TimeLineItemProps[]>( [] );
 	const [ dayStart, setDayStart ] = useState<number>( formProps?.form?.getFieldValue( 'daySetup' )?.[0].start ?? 0 );
+
+	const { data: availableForms, isLoading: isLoadingForms } =
+		useList<StudyForm>( {
+			resource: 'study-forms',
+			filters: [ { field: 'studyId', operator: 'eq', value: study?.id } ],
+		} );
+
+	const [ formMap, setFormMap ] = useState<Record<string, StudyForm>>();
+	useEffect( () => {
+		setFormMap( availableForms?.data?.reduce( (
+				map, form ) => (
+				map[form.id] = form,
+					map
+			)
+			, {} as Record<string, StudyForm> ) );
+	}, [ availableForms ] );
+
+
+	/*const { data: availableForms, isLoading: isLoadingForms } =
+		useList<StudyForm>( {
+			resource: 'study-forms',
+			filters: [ { field: 'studyId', operator: 'eq', value: study.id } ],
+		} );*/
+
 
 	const updateTimeline = () => {
 		const items:{ item:TimeLineItemProps, time:number, type:'spacer' | 'slot' | 'boundary' | 'plain' }[] = [];
@@ -141,7 +184,7 @@ export const ScheduleFormElements:React.FC<{
 					item: {
 						color: 'green', className: 'slot',
 						label: minutesToTime( slot?.availability?.start! + dayStart ),
-						children: <SlotItemContent slot={ slot } onEdit={ editSlot } />,
+						children: <SlotItemContent slot={ slot } onEdit={ editSlot } contentMap={ undefined } formMap={ formMap } />,
 					},
 				} );
 
@@ -237,6 +280,7 @@ export const ScheduleFormElements:React.FC<{
 			{ !selectedSlot
 			  ? <></>
 			  : <SlotShortEditor slot={ selectedSlot }
+								 study={ study }
 								 dayStart={ dayStart }
 								 isCreate={ isNewSlot }
 								 onFinish={ confirmSlotChanges }
@@ -385,7 +429,7 @@ export const ScheduleFormElements:React.FC<{
 								<List.Item
 									/*actions={ [ <a key="list-loadmore-edit">edit</a>, <a key="list-loadmore-more">more</a> ] }*/
 								>
-									<SlotItemContent slot={ slot } onEdit={ editSlot } />
+									<SlotItemContent slot={ slot } onEdit={ editSlot } contentMap={ undefined } formMap={ formMap } />
 								</List.Item>
 							) }
 						/>

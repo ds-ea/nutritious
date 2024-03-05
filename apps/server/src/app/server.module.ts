@@ -21,6 +21,7 @@ import { SlotsModule } from './slots/slots.module';
 import { StepsModule } from './steps/steps.module';
 import { StudiesModule } from './studies/studies.module';
 import { StudyContentsModule } from './study-contents/study-contents.module';
+import { StudyFormsModule } from './study-forms/study-forms.module';
 import { StudyModule } from './study/study.module';
 import { UsersModule } from './users/users.module';
 
@@ -41,6 +42,7 @@ import { UsersModule } from './users/users.module';
 		ParticipantsModule,
 		SchedulesModule,
 		StudyContentsModule,
+		StudyFormsModule,
 		SlotsModule,
 		StepsModule,
 	],

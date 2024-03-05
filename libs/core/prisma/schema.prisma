@@ -157,9 +157,10 @@ model Study {
   signupPeriod   TimeFrame?
   responsePeriod TimeFrame?
 
-  schedules Schedule[]
-  forms     StepForm[]
-  groups    Group[]
+  schedules    Schedule[]
+  forms        StudyForm[]
+  groups       Group[]
+  StudyContent StudyContent[]
 }
 
 model Group {
@@ -248,12 +249,12 @@ type SlotTimeFrame {
 }
 
 type SlotFrequency {
-  min        Int?
-  max        Int?
+  min   Int?
+  max   Int?
   // range the limits relate to ( occurance, same-day, same-week, same-month, 123-minutes )
-  per        String?
+  per   String?
   // repeat within slot availability every n-minutes
-  every      Int?
+  every Int?
 }
 
 type SlotReminder {
@@ -288,7 +289,7 @@ model Schedule {
   study   Study?  @relation(fields: [studyId], references: [id])
 
   groups Group[]
-  slots   Slot[]
+  slots  Slot[]
 }
 
 model Slot {
@@ -313,7 +314,7 @@ model Slot {
   availability SlotTimeFrame?
 
   frequency SlotFrequency?
-  reminders  SlotReminder[]
+  reminders SlotReminder[]
 
   /// dependency to another slot
   dependsOn SlotDependency?
@@ -327,19 +328,28 @@ model Step {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  type      String
-  reference String?
+  type String
+  ref  String? @db.ObjectId
 
   slotId String? @db.ObjectId
   slot   Slot?   @relation(fields: [slotId], references: [id])
 }
 
-model StepForm {
+model StudyForm {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   template Boolean?
+
+  name  String
+  notes String?
+
+  title        String?
+  intro        String?
+  translations String?
+
+  setup Json
 
   studyId String? @db.ObjectId
   study   Study?  @relation(fields: [studyId], references: [id])
@@ -350,7 +360,11 @@ model StudyContent {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  name String
+  studyId String? @db.ObjectId
+  study   Study?  @relation(fields: [studyId], references: [id])
+
+  name  String
+  notes String?
 
   title        String
   body         String

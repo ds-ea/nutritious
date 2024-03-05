@@ -75,6 +75,18 @@ export const resources:Record<string, ResourceProps> = {
 		},
 	},
 
+	'study-forms': {
+		name: 'study-forms',
+		list: '/studies/show/:studyId',
+		create: '/studies/:studyId/forms/create',
+		edit: '/studies/:studyId/forms/edit/:id',
+		show: '/studies/:studyId/forms/show/:id',
+		meta: {
+			parent: 'studies',
+			hide: true,
+		},
+	},
+
 
 	system: {
 		name: 'system',

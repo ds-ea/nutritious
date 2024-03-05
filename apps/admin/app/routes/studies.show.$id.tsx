@@ -1,5 +1,5 @@
 import { CommonLayout } from '@components/common-layout';
-import type { Group, Prisma, Schedule, Study } from '@nutritious/core';
+import type { Group, Prisma, Schedule, Study, StudyForm } from '@nutritious/core';
 import { CreateButton, EditButton, Show, ShowButton, TextField, useTable } from '@refinedev/antd';
 import { IResourceComponentsProps, useParsed, useShow } from '@refinedev/core';
 import { Card, Col, Divider, Row, Space, Table, Typography } from 'antd';
@@ -54,6 +54,25 @@ export const StudyShow:React.FC<IResourceComponentsProps> = () => {
 			},
 		} );
 
+	// get forms
+	const { tableProps: formsTableProps } =
+		useTable( {
+			syncWithLocation: true,
+			resource: 'study-forms',
+			meta: {
+				fields: [ 'id', 'name', 'state' ],
+			},
+			filters: {
+				permanent: [
+					{
+						field: 'studyId',
+						operator: 'eq',
+						value: studyId,
+					},
+				],
+			},
+		} );
+
 
 	return (
 		<CommonLayout>
@@ -76,11 +95,11 @@ export const StudyShow:React.FC<IResourceComponentsProps> = () => {
 
 			<Row gutter={ [ 20, 20 ] } style={ { marginBlockStart: 20 } }>
 
-				<Col xs={ 24 } lg={ 12 }>
+				<Col xs={ 24 } lg={ 12 } xl={ 8 }>
 					<Card title="Participant Groups" id={ 'groups' }
 						  extra={ (
 							  <CreateButton resource={ 'groups' } disabled={ isLoading } meta={ { studyId } }>
-								  Add Group
+								  add Group
 							  </CreateButton>
 						  ) }
 					>
@@ -115,11 +134,11 @@ export const StudyShow:React.FC<IResourceComponentsProps> = () => {
 					</Card>
 				</Col>
 
-				<Col xs={ 24 } lg={ 12 }>
+				<Col xs={ 24 } lg={ 12 } xl={ 8 }>
 					<Card title="Schedules" id="schedules"
 						  extra={ (
 							  <CreateButton resource={ 'schedules' } disabled={ isLoading } meta={ { studyId } }>
-								  Add Schedule
+								  add Schedule
 							  </CreateButton>
 						  ) }
 					>
@@ -145,6 +164,45 @@ export const StudyShow:React.FC<IResourceComponentsProps> = () => {
 											size="small"
 											resource={ 'schedules' }
 											recordItemId={ schedule.id }
+											meta={ { studyId } }
+										/>
+									</Space>
+								) }
+							/>
+						</Table>
+					</Card>
+				</Col>
+
+				<Col xs={ 24 } lg={ 12 } xl={ 8 }>
+					<Card title="Forms" id="forms"
+						  extra={ (
+							  <CreateButton resource={ 'study-forms' } disabled={ isLoading } meta={ { studyId } }>
+								  add Form
+							  </CreateButton>
+						  ) }
+					>
+						<Table { ...formsTableProps } rowKey="id">
+							{/*<Table.Column dataIndex="id" title="Id" />*/ }
+							<Table.Column dataIndex="name" title="Name" />
+							<Table.Column dataIndex="state" title="State" width={ 1 } />
+							<Table.Column
+								title="Actions"
+								dataIndex="actions"
+								width={ 1 }
+								render={ ( _, form:StudyForm ) => (
+									<Space>
+										<EditButton
+											hideText
+											size="small"
+											resource={ 'study-forms' }
+											recordItemId={ form.id }
+											meta={ { studyId } }
+										/>
+										<ShowButton
+											hideText
+											size="small"
+											resource={ 'study-forms' }
+											recordItemId={ form.id }
 											meta={ { studyId } }
 										/>
 									</Space>

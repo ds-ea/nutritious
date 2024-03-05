@@ -72,3 +72,18 @@
 		}
 	}
 }
+
+
+.ant-descriptions.label-top {
+	.ant-descriptions-item-label {
+		vertical-align: top;
+	}
+}
+
+
+.ant-descriptions-item-content {
+	> span > .ant-form-item:last-child,
+	.ant-form-item.nopad {
+		margin-block-end: 0;
+	}
+}

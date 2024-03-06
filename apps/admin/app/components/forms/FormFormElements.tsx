@@ -75,14 +75,13 @@ export const FormFormElements:React.FC<{
 
 
 			<Card title={ 'Form Data' }
+				  styles={ { header: { position: 'sticky', top: 63, background: 'white', zIndex: 20, borderBlockEnd: '2px solid blue' } } }
 				  extra={ <Space>
-					  <Button icon={ <PlusCircleOutlined /> } onClick={ () => addItem( 'question' ) }>add Question</Button>
-					  <Button icon={ <PlusCircleOutlined /> } onClick={ () => addItem( 'content' ) }>add Content</Button>
+					  <Button icon={ <PlusCircleOutlined /> } onClick={ () => addItem( 'question' ) }>Question</Button>
+					  <Button icon={ <PlusCircleOutlined /> } onClick={ () => addItem( 'content' ) }>Content</Button>
 				  </Space> }
 			>
-
 				<Form.Item name={ 'setup' }>
-
 					<FormEditor
 						formProps={ formProps }
 						setup={ formProps?.form?.getFieldValue( 'setup' ) }

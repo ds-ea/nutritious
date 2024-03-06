@@ -27,7 +27,7 @@ export interface FormItem{
 
 export interface FormQuestion<T extends FormInputConfiguration = FormInputConfiguration> extends FormItem{
 	key:string;
-	label:string;
+	heading:string;
 	description?:string;
 	required?:FormInputRequiredLevels;
 
@@ -36,7 +36,7 @@ export interface FormQuestion<T extends FormInputConfiguration = FormInputConfig
 }
 
 export interface FormContent extends FormItem{
-	title?:string;
+	heading?:string;
 	content:string;
 
 }

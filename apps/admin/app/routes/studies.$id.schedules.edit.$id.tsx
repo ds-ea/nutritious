@@ -29,8 +29,6 @@ export const ScheduleEdit:React.FC<IResourceComponentsProps> = () => {
 			redirect: 'show',
 		} );
 
-	const scheduleData = queryResult?.data?.data;
-
 
 	const handleOnFinish = ( values:Prisma.ScheduleUpdateInput ) => {
 
@@ -73,4 +71,5 @@ export const ScheduleEdit:React.FC<IResourceComponentsProps> = () => {
 		</CommonLayout>
 	);
 };
+
 export default ScheduleEdit;

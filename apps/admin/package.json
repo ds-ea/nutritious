@@ -31,6 +31,8 @@
 		"graphql-request": "^5.2.0",
 		"isbot": "^3.6.8",
 		"js-cookie": "^3.0.1",
+		"@mui/icons-material": "^5.15.10",
+		"@mui/material": "^5.15.10",
 		"react": "^18.0.0",
 		"react-dom": "^18.0.0"
 	},

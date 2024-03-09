@@ -1,6 +1,7 @@
 import { MinusCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import { SlotWithListId } from '@components/schedule/ScheduleFormElements';
 import type { Prisma, Step, Study, StudyContent, StudyForm } from '@nutritious/core';
+import { StudyStepType, StudyStepTypeMeta } from '@nutritious/core/lib/types/study/step.types';
 import { useList } from '@refinedev/core';
 import { Button, Card, Flex, Form, Input, List, Popconfirm, Segmented, Select, TimePicker, TimePickerProps } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
@@ -29,7 +30,9 @@ function StepReferencePicker( props:{
 	forms:StudyForm[] | undefined,
 	contents:StudyContent[] | undefined,
 } ){
-	//	const [ value, setValue ] = useState( [] );
+
+	if( props.type === StudyStepType.BlsFood )
+		return <></>;
 
 	const [ options, setOptions ] = useState<DefaultOptionType[]>( [] );
 
@@ -120,6 +123,8 @@ export const SlotShortEditor:React.FC<Props> = ( {
 
 	}, [ slot ] );
 
+
+	const stepTypeOptions = Object.entries( StudyStepTypeMeta ).map( ( [ value, meta ] ) => ( { label: meta.name, value } as DefaultOptionType ) );
 
 
 	const { data: availableForms, isLoading: isLoadingForms } =
@@ -295,7 +300,7 @@ export const SlotShortEditor:React.FC<Props> = ( {
 												   style={ { minWidth: 140 } }
 										>
 											<Select placeholder="Select Type"
-													options={ [ { label: 'Content', value: 'content' }, { label: 'Form', value: 'form' } ] }
+													options={ stepTypeOptions }
 													onChange={ () => updateStepTypeMap() }
 											/>
 										</Form.Item>

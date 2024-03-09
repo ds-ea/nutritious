@@ -1,12 +1,15 @@
 import { CommonLayout } from '@components/common-layout';
-import type { Participant, Prisma, Schedule, Study } from '@nutritious/core';
-import { Show, TextField } from '@refinedev/antd';
-import { IResourceComponentsProps, useOne, useParsed, useShow } from '@refinedev/core';
-import { Typography } from 'antd';
-import React from 'react';
+import { WeekdayPicker } from '@components/form/WeekdayPicker';
+import { DetailsHeader } from '@components/header/DetailsHeader';
+import { minutesToTime, SlotItemContent, SlotWithListId } from '@components/schedule/ScheduleFormElements';
+import { parseSchedule } from '@components/schedule/ScheduleTimeline';
+import type { Participant, Prisma, Study, StudyForm } from '@nutritious/core';
+import { Show } from '@refinedev/antd';
+import { IResourceComponentsProps, useList, useOne, useParsed, useShow } from '@refinedev/core';
+import { Card, Col, Descriptions, Divider, List, Row, Space, Timeline } from 'antd';
+import { TimeLineItemProps } from 'antd/lib/timeline/TimelineItem';
+import React, { useEffect, useState } from 'react';
 
-
-const { Title } = Typography;
 
 
 export const GroupShow:React.FC<IResourceComponentsProps> = () => {
@@ -23,7 +26,7 @@ export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 
 	// get schedule -> show
 	const { queryResult } =
-		useShow<Schedule>( {
+		useShow<Prisma.ScheduleGetPayload<{ include:{ slots:true } }>>( {
 			meta: {
 				fields: [ 'id', 'name', 'state', 'signupPeriod', 'responsePeriod' ],
 				operation: 'schedules',
@@ -34,24 +37,111 @@ export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 	const schedule = scheduleData?.data;
 
 
+	const [ allDaySlots, setAllDaySlots ] = useState<SlotWithListId[]>( [] );
+	const [ dayStart, setDayStart ] = useState<number>( schedule?.daySetup?.[0].start ?? 0 );
+	const [ timeline, setTimeline ] = useState<TimeLineItemProps[]>( [] );
+
+	const { data: availableForms, isLoading: isLoadingForms } =
+		useList<StudyForm>( {
+			resource: 'study-forms',
+			filters: [ { field: 'studyId', operator: 'eq', value: study?.id } ],
+		} );
+
+	const [ formMap, setFormMap ] = useState<Record<string, StudyForm>>();
+	useEffect( () => {
+		setFormMap( availableForms?.data?.reduce( (
+				map, form ) => (
+				map[form.id] = form,
+					map
+			)
+			, {} as Record<string, StudyForm> ) );
+	}, [ availableForms ] );
+
+
+	useEffect( () => {
+		if( !schedule )
+			return;
+
+		const { dayStart, allDaySlots, timelineItems, uniqueSlotChecks }
+			= parseSchedule( schedule.daySetup, schedule.slots );
+
+		setDayStart( dayStart );
+		setAllDaySlots( allDaySlots );
+		setTimeline( timelineItems );
+
+	}, [ schedule ] );
+
 
 	return (
 		<CommonLayout>
 
-			<Show isLoading={ isLoading }>
-				<Title level={ 5 }>Study</Title>
-				<TextField value={ study?.name } />
+			<Show isLoading={ isLoading } contentProps={ { className: 'card-transparent' } }>
+				<Space direction="vertical" className={ 'stretch' } size={ 'middle' }>
 
-				<Title level={ 5 }>Id</Title>
-				<TextField value={ schedule?.id } />
-				{/*<Title level={ 5 }>Created At</Title>
-			<DateField value={ record?.createdAt } />
-			<Title level={ 5 }>Updated At</Title>
-			<DateField value={ record?.updatedAt } />*/ }
-				<Title level={ 5 }>Name</Title>
-				<TextField value={ schedule?.name } />
+					<Card>
+						<DetailsHeader study={ study! } schedule={ schedule } />
+						<Divider />
+
+						<Descriptions bordered={ true } column={ 4 }>
+							{ schedule?.notes &&
+								<Descriptions.Item label={ 'Notes' } span={ 3 } labelStyle={ { width: 140 } }>
+									<p>{ schedule.notes }</p>
+								</Descriptions.Item>
+							}
+
+						</Descriptions>
+
+					</Card>
+
+					<Card title={ 'Week' }>
+						<List>
+							{ schedule?.daySetup.map( daySetup =>
+								<List.Item>
+									<Space direction={ 'vertical' }>
+										<Space>
+											Days: { WeekdayPicker.Parse( daySetup.days ).label }
+										</Space>
+										<Space>
+											Start: { minutesToTime( daySetup.start ) } - End: { minutesToTime( daySetup.end ) } ({ daySetup.grace === 0 ? 'no grace period' : daySetup.grace == null ? 'no limit' : minutesToTime(
+											daySetup.grace ) + 'h grace' } )
+										</Space>
+									</Space>
+								</List.Item>,
+							) }
+						</List>
+					</Card>
+
+					<Card title={ 'Schedule' }>
+
+						<Row gutter={ [ 50, 50 ] }>
+							<Col xs={ 24 } lg={ { span: 12, order: 2 } }>
+
+								<Divider orientation={ 'left' }>All Day Slots</Divider>
+
+								<List
+									dataSource={ allDaySlots }
+									split={ false }
+									renderItem={ ( slot:SlotWithListId ) => (
+										<List.Item>
+											<SlotItemContent slot={ slot } contentMap={ undefined } formMap={ formMap } />
+										</List.Item>
+									) }
+								/>
+
+							</Col>
+
+							<Col xs={ 24 } lg={ 12 }>
+								<Divider>Scheduled Slots</Divider>
+
+								<Timeline mode={ 'left' } items={ timeline } />
+							</Col>
+						</Row>
+					</Card>
+
+				</Space>
+
+
 			</Show>
-
 
 		</CommonLayout>
 	);

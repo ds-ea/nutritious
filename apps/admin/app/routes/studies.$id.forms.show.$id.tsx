@@ -1,9 +1,12 @@
+import { ExpandAltOutlined, ShrinkOutlined } from '@ant-design/icons';
 import { CommonLayout } from '@components/common-layout';
-import type { Participant, Prisma, Study, StudyForm } from '@nutritious/core';
-import { Show, TextField } from '@refinedev/antd';
+import { FormItemInput } from '@components/forms/FormItemInput';
+import { DetailsHeader } from '@components/header/DetailsHeader';
+import { FormContent, FormQuestion, FormSetup, Participant, Prisma, Study, StudyForm } from '@nutritious/core';
+import { Show } from '@refinedev/antd';
 import { IResourceComponentsProps, useOne, useParsed, useShow } from '@refinedev/core';
-import { Divider, Empty, Typography } from 'antd';
-import React from 'react';
+import { Button, Card, Collapse, Descriptions, Divider, Empty, Flex, Space, Typography } from 'antd';
+import React, { useEffect, useState } from 'react';
 
 
 const { Title } = Typography;
@@ -30,36 +33,123 @@ export const FormShow:React.FC<IResourceComponentsProps> = () => {
 	const { data: formData, status, isLoading } = queryResult;
 	const form = formData?.data;
 
+	const [ items, setItems ] = useState<( FormQuestion | FormContent )[]>( [] );
+	useEffect( () => {
+		const setup:FormSetup = ( form?.setup ? typeof form.setup === 'string' ? JSON.parse( form.setup ) : form.setup : {} ) ?? {};
+
+		if( !setup.items )
+			return;
+
+		setItems( setup.items );
+
+	}, [ form ] );
+
+	const [ activeKey, setActiveKey ] = useState<string[]>( [] );
+	const toggleExpanded = () => {
+		if( activeKey.length != items.length )
+			setActiveKey( items.map( ( value, index ) => index + '' ) );
+		else
+			setActiveKey( [] );
+	};
 
 	return (
 		<CommonLayout>
 
-			<Show isLoading={ isLoading }>
-				{ !form ? <Empty /> : <>
+			<Show isLoading={ isLoading } contentProps={ { className: 'card-transparent' } }>
+				<Space direction="vertical" className={ 'stretch' } size={ 'middle' }>
 
-					<Title level={ 5 }>Study</Title>
-					<TextField value={ study?.name } />
+					{ !form ? <Empty /> : <>
 
-					<Title level={ 5 }>Id</Title>
-					<TextField value={ form?.id } />
-					{/*<Title level={ 5 }>Created At</Title>
-				<DateField value={ record?.createdAt } />
-				<Title level={ 5 }>Updated At</Title>
-				<DateField value={ record?.updatedAt } />*/ }
+						<Card>
+							<DetailsHeader study={ study! } form={ form } />
+							<Divider />
 
-					<Title level={ 5 }>Name</Title>
-					<TextField value={ form.name } />
+							<Descriptions bordered={ true } column={ 4 }>
+								{ form.notes &&
+									<Descriptions.Item label={ 'Notes' } span={ 3 } labelStyle={ { width: 140 } }>
+										<p>{ form.notes }</p>
+									</Descriptions.Item>
+								}
 
-					<Title level={ 5 }>Notes</Title>
-					<TextField value={ form.notes } />
+							</Descriptions>
 
-					<Divider orientation={ 'left' }>Public</Divider>
-					<Title level={ 5 }>Title</Title>
-					<TextField value={ form.title } />
-					<Title level={ 5 }>Intro</Title>
-					<TextField value={ form.intro } />
 
-				</> }
+							<Divider orientation={ 'left' }>Public</Divider>
+							<Descriptions bordered={ true } column={ 4 }>
+								<Descriptions.Item label={ 'Title' }>{ form.title }</Descriptions.Item>
+								<Descriptions.Item label={ 'Intro' }>{ form.intro }</Descriptions.Item>
+							</Descriptions>
+
+						</Card>
+
+						<Card title={ 'Form' }
+							  extra={
+								  <Button onClick={ toggleExpanded }>
+									  { activeKey?.length === items.length ? <ShrinkOutlined /> : <ExpandAltOutlined /> }
+								  </Button>
+							  }
+						>
+							<Collapse activeKey={ activeKey }>
+								{ items?.map( ( item, num ) =>
+									<Collapse.Panel key={ num }
+													header={ ( num + 1 ) + ' - ' + ( 'heading' in item ? item.heading : '' ) }
+
+									>
+										{ item.type === 'content'
+										  ? <>
+											  <Descriptions size={ 'small' } bordered={ true } className={ 'label-top' } column={ 4 }>
+												  <Descriptions.Item label={ 'Content' } span={ 4 }>
+													  { item.content?.plain?.data }
+												  </Descriptions.Item>
+											  </Descriptions>
+										  </>
+										  : <>
+											  <Descriptions size={ 'small' } bordered={ true } className={ 'label-top' } column={ 4 }>
+												  <Descriptions.Item key={ num + '-key' } label={ 'Key' } labelStyle={ { width: 170 } } span={ 4 }>
+													  { item.key }
+												  </Descriptions.Item>
+
+												  <Descriptions.Item key={ num + '-desc' } label={ 'Description' } span={ 4 }>
+													  { item.description }
+												  </Descriptions.Item>
+
+												  <Descriptions.Item key={ num + '-required' } label={ 'Necessity' } span={ 4 }>
+													  { item.required }
+												  </Descriptions.Item>
+
+												  <Descriptions.Item key={ num + '-input' } span={ 4 }
+																	 label={
+																		 <Flex gap={ 'small' } align={ 'center' } justify={ 'space-between' }>
+																			 <span>Preview</span>
+																		 </Flex>
+																	 }
+												  >
+													  <FormItemInput input={ item.input } config={ item.config } />
+												  </Descriptions.Item>
+
+												  <Descriptions.Item key={ num + '-config' } span={ 4 }
+																	 label={
+																		 <Flex gap={ 'small' } align={ 'center' } justify={ 'space-between' }>
+																			 <span>Config</span>
+																			 <span>{ item.input }</span>
+																		 </Flex>
+																	 }
+												  >
+													  <small>{ JSON.stringify( item.config ) }</small>
+												  </Descriptions.Item>
+
+											  </Descriptions>
+
+										  </>
+										}
+
+									</Collapse.Panel>,
+								) }
+							</Collapse>
+						</Card>
+
+					</> }
+				</Space>
 
 			</Show>
 

@@ -104,7 +104,7 @@ export const FormEditor:React.FC<{
 										  </Descriptions.Item>
 
 										  <Descriptions.Item key={ name + '-content' } label={ 'Content' } span={ 4 }>
-											  <Form.Item name={ [ name, 'content', 'plain' ] }
+											  <Form.Item name={ [ name, 'content', 'plain', 'data' ] }
 														 rules={ [ { required: true, message: 'Content needs at least a bit of text' } ] }
 											  >
 												  <Input.TextArea rows={ 2 } autoSize={ true } placeholder={ 'optional description for the user' } />

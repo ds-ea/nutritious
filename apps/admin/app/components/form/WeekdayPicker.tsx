@@ -6,22 +6,21 @@ import React, { useState } from 'react';
 
 type CheckboxValueType = number;
 
-export const WeekdayPicker:React.FC<InputProps & { startOfWeek:0 | 1, shiftStartOfWeek?:boolean }> = ( {
-	value, onChange, startOfWeek, shiftStartOfWeek,
-	...props
-} ) => {
+const dayData:( CheckboxOptionType<CheckboxValueType> & { short:string } )[] = [
+	{ label: 'Monday', short: 'Mon', value: 1 },
+	{ label: 'Tuesday', short: 'Tue', value: 2 },
+	{ label: 'Wednesday', short: 'Wed', value: 3 },
+	{ label: 'Thursday', short: 'Thu', value: 4 },
+	{ label: 'Friday', short: 'Fri', value: 5 },
+	{ label: 'Saturday', short: 'Sat', value: 6 },
+	{ label: 'Sunday', short: 'Sun', value: 0 },
+];
 
-	const { disabled, readOnly } = props;
 
-	const dayOptions:( CheckboxOptionType<CheckboxValueType> & { short:string } )[] = [
-		{ label: 'Monday', short: 'Mon', value: 1 },
-		{ label: 'Tuesday', short: 'Tue', value: 2 },
-		{ label: 'Wednesday', short: 'Wed', value: 3 },
-		{ label: 'Thursday', short: 'Thu', value: 4 },
-		{ label: 'Friday', short: 'Fri', value: 5 },
-		{ label: 'Saturday', short: 'Sat', value: 6 },
-		{ label: 'Sunday', short: 'Sun', value: 0 },
-	];
+const Parse = ( days:number[], startOfWeek = 0, shiftStartOfWeek = true ) => {
+
+	const dayOptions = [ ...dayData ];
+
 	if( startOfWeek === 0 && shiftStartOfWeek )
 		dayOptions.unshift( dayOptions.pop()! );
 
@@ -30,13 +29,10 @@ export const WeekdayPicker:React.FC<InputProps & { startOfWeek:0 | 1, shiftStart
 			( map[day.value as number] = day, map )
 		, {} );
 
+	const checkedAllWeek = days?.length === 7;
+	const checkedWeekend = days.length === 2 && days[0] === 6 && days[1] === 0;
 
-	const [ checkedDays, setCheckedDaysList ] = useState<CheckboxValueType[]>( value as unknown as CheckboxValueType[] );
-
-	const checkedAllWeek = checkedDays?.length === 7;
-	const checkedWeekend = checkedDays.length === 2 && checkedDays[0] === 6 && checkedDays[1] === 0;
-
-	const indeterminateAllWeek = !checkedWeekend && !checkedAllWeek && checkedDays?.length > 0;
+	const indeterminateAllWeek = !checkedWeekend && !checkedAllWeek && days?.length > 0;
 
 	let label = '';
 	if( checkedAllWeek )
@@ -44,8 +40,30 @@ export const WeekdayPicker:React.FC<InputProps & { startOfWeek:0 | 1, shiftStart
 	else if( checkedWeekend )
 		label = 'weekends';
 	else{
-		label = checkedDays.map( day => dayMap[day].short ).join( ', ' );
+		label = days.map( day => dayMap[day].short ).join( ', ' );
 	}
+
+	return { label, checkedAllWeek, checkedWeekend, indeterminateAllWeek, dayOptions };
+};
+Parse.displayName = 'Parse weekday information';
+
+
+export const WeekdayPicker:
+	React.FC<InputProps & { startOfWeek:0 | 1, shiftStartOfWeek?:boolean }>
+	& { Parse:typeof Parse }
+	= ( {
+	value, onChange, startOfWeek, shiftStartOfWeek,
+	...props
+} ) => {
+
+	const { disabled, readOnly } = props;
+
+	const [ checkedDays, setCheckedDaysList ] = useState<CheckboxValueType[]>( value as unknown as CheckboxValueType[] );
+
+
+	const { checkedAllWeek, indeterminateAllWeek, checkedWeekend, label, dayOptions }
+		= Parse( checkedDays, startOfWeek, shiftStartOfWeek );
+
 
 	const onCheckWeekdays:CheckboxProps['onChange'] = ( e ) => {
 		if( readOnly || disabled )
@@ -83,3 +101,6 @@ export const WeekdayPicker:React.FC<InputProps & { startOfWeek:0 | 1, shiftStart
 		</Popover>
 	</>;
 };
+
+WeekdayPicker.Parse = Parse;
+

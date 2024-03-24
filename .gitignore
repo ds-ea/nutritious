@@ -45,3 +45,4 @@ Thumbs.db
 .env
 
 /libs/core/prisma/generated/
+/cloudbuild.yaml

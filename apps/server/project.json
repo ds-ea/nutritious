@@ -17,13 +17,20 @@
 				"assets": [
 					"apps/server/src/assets",
 					"apps/server/src/public",
-					"apps/server/src/views"
+					"apps/server/src/views",
+					{
+						"glob": "**/*",
+						"input": "libs/core/prisma",
+						"output": "./prisma"
+					}
 				],
 				"webpackConfig": "apps/server/webpack.config.js"
 			},
 			"configurations": {
 				"development": {},
-				"production": {}
+				"production": {
+					"generatePackageJson": true
+				}
 			}
 		},
 		"serve": {

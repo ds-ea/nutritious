@@ -1,0 +1,19 @@
+options:
+#    logging: CLOUD_LOGGING_ONLY
+#    pool: { }
+projectId: PROJECT_ID
+
+steps:
+    -   name: gcr.io/k8s-skaffold/pack
+        entrypoint: pack
+        dir: 'apps/server'
+        args:
+            - build
+            - IMAGE_ARTIFACT_REPO_URL
+            - --builder
+            - gcr.io/buildpacks/builder:latest
+            - --network
+            - cloudbuild
+
+images:
+    - IMAGE_ARTIFACT_REPO_URL

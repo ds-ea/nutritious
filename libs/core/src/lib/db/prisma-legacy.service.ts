@@ -12,7 +12,7 @@ export class PrismaLegacyService extends PrismaClient implements OnModuleInit{
 	public readonly _dmmf:BaseDMMF = Prisma.dmmf;
 
 	async onModuleInit(){
-		await this.$connect();
+		//		await this.$connect();
 	}
 }
 

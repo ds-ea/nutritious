@@ -1,5 +1,6 @@
 packages:
     - 'apps/*'
+    - '!apps/admin-remix'
     - '!apps/adminjs'
     - '!apps/adminjs-e2e'
     - '!apps/nutritious-api-php'

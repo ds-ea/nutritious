@@ -126,6 +126,7 @@ export const ScheduleFormElements:React.FC<{
 
 
 	const updateTimeline = () => {
+
 		const daySetup:Schedule['daySetup'] = formProps?.form?.getFieldValue( 'daySetup' );
 		const slots:SlotWithListId[] = formProps?.form?.getFieldValue( 'slots' ) ?? [];
 
@@ -159,10 +160,10 @@ export const ScheduleFormElements:React.FC<{
 	};
 
 	const confirmSlotChanges = ( data:SlotWithListId<SlotUpdateDto> ) => {
-		const slotsValue:( SlotUpdateDto )[] = formProps?.form?.getFieldValue( 'slots' ) ?? [];
+		const slotsValue:( SlotWithListId<SlotUpdateDto> )[] = formProps?.form?.getFieldValue( 'slots' ) ?? [];
 
 		// patch slot
-		const existing = slotsValue.find( slot => slot === selectedSlot );
+		const existing = slotsValue.find( slot => ( slot._listId || slot.id ) === ( selectedSlot?._listId || selectedSlot?.id ) );
 		if( existing )
 			Object.assign( existing, data );
 		else

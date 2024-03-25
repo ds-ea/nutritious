@@ -44,8 +44,10 @@ export const FormShow:React.FC<IResourceComponentsProps> = () => {
 	}, [ form ] );
 
 	const [ activeKey, setActiveKey ] = useState<string[]>( [] );
-	const toggleExpanded = () => {
-		if( activeKey.length != items.length )
+	const toggleExpanded = ( keys?:string | string[] ) => {
+		if( keys && Array.isArray( keys ) )
+			setActiveKey( keys );
+		else if( activeKey.length != items.length )
 			setActiveKey( items.map( ( value, index ) => index + '' ) );
 		else
 			setActiveKey( [] );
@@ -81,16 +83,15 @@ export const FormShow:React.FC<IResourceComponentsProps> = () => {
 
 					<Card title={ 'Form' }
 						  extra={
-							  <Button onClick={ toggleExpanded }>
+							  <Button onClick={ () => toggleExpanded() }>
 								  { activeKey?.length === items.length ? <ShrinkOutlined /> : <ExpandAltOutlined /> }
 							  </Button>
 						  }
 					>
-						<Collapse activeKey={ activeKey }>
+						<Collapse activeKey={ activeKey } onChange={ toggleExpanded }>
 							{ items?.map( ( item, num ) =>
 								<Collapse.Panel key={ num }
 												header={ ( num + 1 ) + ' - ' + ( 'heading' in item ? item.heading : '' ) }
-
 								>
 									{ item.type === 'content'
 									  ? <>

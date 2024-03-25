@@ -61,9 +61,7 @@ export const ScheduleEdit:React.FC<IResourceComponentsProps> = () => {
 				  onFinish={ handleOnFinish }
 				  layout="vertical"
 			>
-
 				<ScheduleFormElements study={ study } formProps={ formProps } />
-
 			</Form>
 		</Edit>
 	);

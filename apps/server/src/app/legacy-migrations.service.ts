@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { Page, Prisma, PrismaService } from '@nutritious/core';
-import { PrismaLegacyService } from '@nutritious/core/legacy';
+import type { Page, Prisma } from '@nutritious/core';
+import { PrismaLegacyService } from './core/services/db/prisma-legacy.service';
+import { PrismaService } from './core/services/db/prisma.service';
 
 
 @Injectable()

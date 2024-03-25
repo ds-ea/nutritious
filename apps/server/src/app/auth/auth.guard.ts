@@ -2,9 +2,9 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '@nutritious/core';
 import { FastifyRequest } from 'fastify';
 import { IS_PUBLIC_KEY } from '../core/decorators/public.decorator';
+import { PrismaService } from '../core/services/db/prisma.service';
 
 
 @Injectable()

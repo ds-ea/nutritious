@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { type Prisma, PrismaService, type Study } from '@nutritious/core';
+import type { Prisma, Study } from '@nutritious/core';
 import { CrudMethodOpts, PrismaCrudService } from 'nestjs-prisma-crud';
+import { PrismaService } from '../core/services/db/prisma.service';
 
 
 @Injectable()

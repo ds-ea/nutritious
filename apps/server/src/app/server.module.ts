@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
-import { PrismaService } from '@nutritious/core';
 import { PrismaCrudModule } from 'nestjs-prisma-crud';
 
 import { AppController } from './app.controller';
@@ -10,6 +9,7 @@ import { AuthGuard } from './auth/auth.guard';
 import { AuthModule } from './auth/auth.module';
 import { BlsModule } from './bls/bls.module';
 import { CoreModule } from './core/core.module';
+import { PrismaService } from './core/services/db/prisma.service';
 import { GroupsModule } from './groups/groups.module';
 import { LegacyMigrationsService } from './legacy-migrations.service';
 import { LegacyStudyModule } from './legacy-study/legacy-study.module';

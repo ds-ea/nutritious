@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Prisma, PrismaService } from '@nutritious/core';
+import type { Prisma } from '@nutritious/core';
 import { Participant, User } from '@prisma/client';
 import * as argon2 from 'argon2';
 import * as bcrypt from 'bcrypt';
 import dayjs from 'dayjs';
 import { AuthCredentials, AuthLoginResponse, AuthUserInfo } from '../../../../../libs/core/src/lib/types/auth.types';
+import { PrismaService } from '../core/services/db/prisma.service';
 
 
 @Injectable()

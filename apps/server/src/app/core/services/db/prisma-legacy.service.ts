@@ -1,6 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { $Enums, Prisma, PrismaClient } from '../../../prisma/generated/client-legacy';
-import { BaseDMMF } from '../../../prisma/generated/client-legacy/runtime/library';
+import { $Enums, Prisma, PrismaClient } from '@nutritious/core/legacy';
 
 // TODO: find better way of patching bigint
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -9,7 +8,7 @@ BigInt.prototype.toJSON = function(){ return this.toString(); };
 
 @Injectable()
 export class PrismaLegacyService extends PrismaClient implements OnModuleInit{
-	public readonly _dmmf:BaseDMMF = Prisma.dmmf;
+	public readonly _dmmf = Prisma.dmmf;
 
 	async onModuleInit(){
 		//		await this.$connect();

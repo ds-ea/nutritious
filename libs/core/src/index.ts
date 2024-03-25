@@ -1,3 +1,3 @@
-export * from './lib/db/prisma.service';
-export * from './lib/types';
-export * from '@prisma/client';
+export * from './lib/study';
+export type * from './lib/types';
+export type { Prisma, Group, Page, Participant, Study, StudyForm, Schedule, Slot, Step, StudyContent, User } from '@prisma/client';

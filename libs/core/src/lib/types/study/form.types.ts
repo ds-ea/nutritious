@@ -1,10 +1,5 @@
-export enum FormInputType{
-	Slider = 'slider',
-	Text = 'text',
-	Number = 'number',
-	Choices = 'choices',
-	Binary = 'binary',
-}
+import { FormInputNecessity, FormInputType } from '../../study';
+
 
 export type FormInputTypes = typeof FormInputType[ keyof typeof FormInputType ];
 export type FormInputConfiguration = Record<string, unknown>;
@@ -36,12 +31,6 @@ export type FormInputConfigChoices = {
 	options:{ label:string, value:string }[];
 }
 
-
-export enum FormInputNecessity{
-	Must = 'must',
-	Should = 'should',
-	Ignore = 'ignore'
-}
 
 export type FormInputRequiredLevels = typeof FormInputNecessity[ keyof typeof FormInputNecessity ];
 

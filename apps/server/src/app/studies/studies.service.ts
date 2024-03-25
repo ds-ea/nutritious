@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, PrismaService, Study } from '@nutritious/core';
+import { Prisma, Study } from '@nutritious/core';
 import { CrudMethodOpts, PrismaCrudService } from 'nestjs-prisma-crud';
 import generatePassword from 'omgopass';
+import { PrismaService } from '../core/services/db/prisma.service';
 
 
 @Injectable()

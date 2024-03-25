@@ -1,33 +1,40 @@
 {
-	"extends": "../../tsconfig.base.json",
-	"include": ["remix.env.d.ts", "**/*.ts", "**/*.tsx"],
 	"compilerOptions": {
-		"lib": ["DOM", "DOM.Iterable", "ES2019"],
-		"isolatedModules": true,
-		"esModuleInterop": true,
-		"jsx": "react-jsx",
-		"moduleResolution": "node",
-		"resolveJsonModule": true,
-		"target": "ES2019",
+		"target": "ESNext",
+		"useDefineForClassFields": true,
+		"lib": ["DOM", "DOM.Iterable", "ESNext"],
+		"allowJs": false,
+		"skipLibCheck": true,
+		"esModuleInterop": false,
+		"allowSyntheticDefaultImports": true,
 		"strict": true,
-		"allowJs": true,
 		"forceConsistentCasingInFileNames": true,
-		"baseUrl": ".",
+		"module": "ESNext",
+		"moduleResolution": "Node",
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"noEmit": true,
+		"jsx": "react-jsx",
+		"experimentalDecorators": true,
 		"paths": {
-			"~/*": ["./app/*"],
-			"@components/*": ["./app/components/*"],
-			"@components": ["./app/components"],
-			"@contexts/*": ["./app/contexts/*"],
-			"@contexts": ["./app/contexts"],
-			"@styles/*": ["./app/styles/*"],
-			"@styles": ["./app/styles"],
-			"@public/*": ["public/*"],
-			"@public": ["public"],
+			//			"@components/*": ["./src/components/*"],
+			//			"@components": ["./src/components"],
+			//			"@contexts/*": ["./src/contexts/*"],
+			//			"@contexts": ["./src/contexts"],
+			//			"@styles/*": ["./src/styles/*"],
+			//			"@styles": ["./src/styles"],
 			"@nutritious/api-client/*": ["../../libs/api-client/src/*"],
 			"@nutritious/api-client": ["../../libs/api-client/src"],
 			"@nutritious/core/*": ["../../libs/core/src/*"],
 			"@nutritious/core": ["../../libs/core/src"]
-		},
-		"noEmit": true
-	}
+			//			"src/interfaces/*": ["../.././node_modules/@refinedev/core/src/interfaces/*"],
+			//			"src/interfaces": ["../.././node_modules/@refinedev/core/src/interfaces"]
+		}
+	},
+	"include": ["src", "vite.config.ts"],
+	"references": [
+		{
+			"path": "./tsconfig.node.json"
+		}
+	]
 }

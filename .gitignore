@@ -43,6 +43,7 @@ Thumbs.db
 .adminjs
 
 .env
+.env.*
 
 /libs/core/prisma/generated/
 /cloudbuild.yaml

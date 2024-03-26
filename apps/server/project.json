@@ -22,6 +22,11 @@
 						"glob": "**/*",
 						"input": "libs/core/prisma",
 						"output": "./prisma"
+					},
+					{
+						"glob": "**/*",
+						"input": "apps/admin/dist",
+						"output": "./admin"
 					}
 				],
 				"webpackConfig": "apps/server/webpack.config.js"

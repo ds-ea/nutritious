@@ -1,10 +1,10 @@
 import { fastifyHelmet } from '@fastify/helmet';
-import { fastifyHttpProxy } from '@fastify/http-proxy';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { Eta } from 'eta';
+import * as fs from 'fs';
 import { join } from 'path';
 
 import { ServerModule } from './app/server.module';
@@ -21,7 +21,7 @@ async function bootstrap(){
 	const fastify = adapter.getInstance();
 
 
-	const adminProxyTarget = process.env['ADMIN_URL'] ?? undefined;
+	/*const adminProxyTarget = process.env['ADMIN_URL'] ?? undefined;
 	if( adminProxyTarget )
 		fastify.register( fastifyHttpProxy, {
 			upstream: adminProxyTarget,
@@ -33,7 +33,7 @@ async function bootstrap(){
 	// required for passing non-json data to proxied adminjs
 	fastify.addContentTypeParser( '*', ( req, body, done ) => {
 		done( null, body );
-	} );
+	} );*/
 
 
 
@@ -85,6 +85,21 @@ async function bootstrap(){
 		root: join( __dirname, 'public' ),
 		prefix: '/public/',
 	} );
+
+	// server admin panel
+	app.useStaticAssets( {
+		root: join( __dirname, 'admin' ),
+		prefix: '/admin',
+		decorateReply: false,
+		redirect: false,
+		wildcard: false,
+	} );
+	// pseudo rewrite
+	fastify.get( '/admin/*', ( req, res ) => {
+		const stream = fs.readFileSync( join( __dirname, 'admin/index.html' ) );
+		res.type( 'text/html' ).send( stream );
+	} );
+
 
 
 	app.setViewEngine( {

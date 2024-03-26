@@ -24,7 +24,7 @@ function App(){
 
 
 	return (
-		<BrowserRouter>
+		<BrowserRouter basename={ 'admin' }>
 			<RefineKbarProvider>
 				<ColorModeContextProvider>
 					<AntdApp>

@@ -86,6 +86,17 @@ export const resources:Record<string, ResourceProps> = {
 			hide: true,
 		},
 	},
+	'study-contents': {
+		name: 'study-contents',
+		list: '/studies/show/:studyId',
+		create: '/studies/:studyId/contents/create',
+		edit: '/studies/:studyId/contents/edit/:id',
+		show: '/studies/:studyId/contents/show/:id',
+		meta: {
+			parent: 'studies',
+			hide: true,
+		},
+	},
 
 
 	system: {

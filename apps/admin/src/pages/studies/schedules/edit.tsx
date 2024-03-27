@@ -2,7 +2,7 @@ import type { Prisma, Schedule, Study } from '@nutritious/core';
 import { Edit, useForm } from '@refinedev/antd';
 import { HttpError, IResourceComponentsProps, useOne, useParsed } from '@refinedev/core';
 import { Form } from 'antd';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScheduleFormElements, SlotWithListId } from '../../../../src/components/schedule/ScheduleFormElements';
 
 
@@ -15,7 +15,13 @@ export const ScheduleEdit:React.FC<IResourceComponentsProps> = () => {
 			resource: 'studies',
 			id: studyId,
 		} );
-	const study = studyData?.data as Study;
+
+	const [ study, setStudy ] = useState<Study>();
+	useEffect( () => {
+		if( !studyData?.data )
+			return;
+		setStudy( studyData?.data );
+	}, [ studyData ] );
 
 
 	const {
@@ -56,13 +62,17 @@ export const ScheduleEdit:React.FC<IResourceComponentsProps> = () => {
 	return (
 		<Edit saveButtonProps={ saveButtonProps }
 			  contentProps={ { className: 'card-transparent' } }
+			  isLoading={ isLoadingStudy }
 		>
-			<Form { ...formProps }
-				  onFinish={ handleOnFinish }
-				  layout="vertical"
-			>
-				<ScheduleFormElements study={ study } formProps={ formProps } />
-			</Form>
+
+			{ study &&
+				<Form { ...formProps }
+					  onFinish={ handleOnFinish }
+					  layout="vertical"
+				>
+					<ScheduleFormElements study={ study } formProps={ formProps } />
+				</Form>
+			}
 		</Edit>
 	);
 };

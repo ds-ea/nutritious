@@ -1,4 +1,5 @@
 import { FormInputNecessity, FormInputType } from '../../study';
+import { ContentContainer } from '../content.types';
 
 
 export type FormInputTypes = typeof FormInputType[ keyof typeof FormInputType ];
@@ -35,8 +36,6 @@ export type FormInputConfigChoices = {
 export type FormInputRequiredLevels = typeof FormInputNecessity[ keyof typeof FormInputNecessity ];
 
 export type FormItemTypes = 'question' | 'content';
-export type FormContentFormats = 'plain' | 'rich' | 'html';
-
 
 export interface FormItem{
 	type:FormItemTypes;
@@ -70,12 +69,7 @@ export interface FormQuestion<
 
 export interface FormContent extends FormItem{
 	type:'content';
-	content:{
-		[type in FormContentFormats]?:{
-			data:string;
-			meta?:Record<string, string>;
-		}
-	};
+	content:ContentContainer;
 }
 
 export type FormSetup = {

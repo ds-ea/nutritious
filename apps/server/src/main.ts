@@ -74,7 +74,7 @@ async function bootstrap(){
 						defaultSrc: [ `'self'` ],
 						//				formAction: null, // currently important to allow redirect handling in OIDC flows
 						styleSrc: [ `'self'`, `'unsafe-inline'` ],
-						imgSrc: [ `'self'`, 'data:', 'validator.swagger.io' ],
+						imgSrc: [ `'self'`, 'data:', 'validator.swagger.io', '*' ],
 						scriptSrc: [ `'self'`, `https: 'unsafe-inline'` ],
 					},
 				},

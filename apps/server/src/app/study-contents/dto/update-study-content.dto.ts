@@ -1,4 +1,4 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateStudyContentDto } from './create-study-content.dto';
+import type { Prisma } from '@nutritious/core';
 
-export class UpdateStudyContentDto extends PartialType(CreateStudyContentDto) {}
+
+export type UpdateStudyContentDto = Prisma.StudyContentUncheckedUpdateInput;

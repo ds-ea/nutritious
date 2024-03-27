@@ -72,7 +72,6 @@ export const ScheduleFormElements:React.FC<{
 	study:Study,
 	isCreate?:boolean
 }> = ( { study, isCreate, formProps } ) => {
-
 	let createCount = 0;
 
 	const startOfWeek = formProps?.form?.getFieldValue( [ 'weekSetup', 'startOfWeek' ] );
@@ -106,7 +105,6 @@ export const ScheduleFormElements:React.FC<{
 			resource: 'study-forms',
 			filters: [ { field: 'studyId', operator: 'eq', value: study?.id } ],
 		} );
-
 	const [ formMap, setFormMap ] = useState<Record<string, StudyForm>>();
 	useEffect( () => {
 		setFormMap( availableForms?.data?.reduce( (
@@ -117,22 +115,33 @@ export const ScheduleFormElements:React.FC<{
 			, {} as Record<string, StudyForm> ) );
 	}, [ availableForms ] );
 
+	const { data: availableContents, isLoading: isLoadingContents } =
+		useList<StudyContent>( {
+			resource: 'study-contents',
+			filters: [ { field: 'studyId', operator: 'eq', value: study?.id } ],
+		} );
+	const [ contentMap, setContentMap ] = useState<Record<string, StudyContent>>();
+	useEffect( () => {
+		setContentMap( availableContents?.data?.reduce( (
+				map, content ) => (
+				map[content.id] = content,
+					map
+			)
+			, {} as Record<string, StudyContent> ) );
+	}, [ availableContents ] );
 
-	/*const { data: availableForms, isLoading: isLoadingForms } =
-		useList<StudyForm>( {
-			resource: 'study-forms',
-			filters: [ { field: 'studyId', operator: 'eq', value: study.id } ],
-		} );*/
 
 
 	const updateTimeline = () => {
 
-		const daySetup:Schedule['daySetup'] = formProps?.form?.getFieldValue( 'daySetup' );
-		const slots:SlotWithListId[] = formProps?.form?.getFieldValue( 'slots' ) ?? [];
+		const daySetup:Schedule['daySetup'] = formProps.form?.getFieldValue( 'daySetup' );
+		const slots:SlotWithListId[] = formProps.form?.getFieldValue( 'slots' );
 
+		if( !slots?.length )
+			return;
 
 		const { dayStart, allDaySlots, timelineItems, uniqueSlotChecks }
-			= parseSchedule( daySetup, slots, createCount, formMap, editSlot );
+			= parseSchedule( daySetup, slots, createCount, formMap, contentMap, editSlot );
 
 		setDayStart( dayStart );
 		setAllDaySlots( allDaySlots );
@@ -141,8 +150,9 @@ export const ScheduleFormElements:React.FC<{
 	};
 
 	useEffect( () => {
-		updateTimeline();
-	}, [ formProps ] );
+		// TODO: this timeout is a workaround for the formProps not being available during init in some situations
+		setTimeout( () => updateTimeline(), 100 );
+	}, [ study, formProps, formMap, contentMap ] );
 	//	updateTimeline();
 
 
@@ -352,7 +362,7 @@ export const ScheduleFormElements:React.FC<{
 								<List.Item
 									/*actions={ [ <a key="list-loadmore-edit">edit</a>, <a key="list-loadmore-more">more</a> ] }*/
 								>
-									<SlotItemContent slot={ slot } onEdit={ editSlot } contentMap={ undefined } formMap={ formMap } />
+									<SlotItemContent slot={ slot } onEdit={ editSlot } contentMap={ contentMap } formMap={ formMap } />
 								</List.Item>
 							) }
 						/>

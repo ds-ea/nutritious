@@ -1,4 +1,4 @@
-import type { Prisma, Study, StudyForm } from '@nutritious/core';
+import { Prisma, Study, StudyContent, StudyForm } from '@nutritious/core';
 import { Show } from '@refinedev/antd';
 import { IResourceComponentsProps, useList, useOne, useParsed, useShow } from '@refinedev/core';
 import { Card, Col, Descriptions, Divider, List, Row, Space, Timeline } from 'antd';
@@ -49,12 +49,24 @@ export const ScheduleShow:React.FC<IResourceComponentsProps> = () => {
 	const [ formMap, setFormMap ] = useState<Record<string, StudyForm>>();
 	useEffect( () => {
 		setFormMap( availableForms?.data?.reduce( (
-				map, form ) => (
-				map[form.id] = form,
-					map
-			)
+				map, form ) => ( map[form.id] = form, map )
 			, {} as Record<string, StudyForm> ) );
 	}, [ availableForms ] );
+
+	const { data: availableContents, isLoading: isLoadingContents } =
+		useList<StudyContent>( {
+			resource: 'study-contents',
+			filters: [ { field: 'studyId', operator: 'eq', value: study?.id } ],
+		} );
+	const [ contentMap, setContentMap ] = useState<Record<string, StudyContent>>();
+	useEffect( () => {
+		setContentMap( availableContents?.data?.reduce( (
+				map, content ) => (
+				map[content.id] = content,
+					map
+			)
+			, {} as Record<string, StudyContent> ) );
+	}, [ availableContents ] );
 
 
 	useEffect( () => {
@@ -62,13 +74,13 @@ export const ScheduleShow:React.FC<IResourceComponentsProps> = () => {
 			return;
 
 		const { dayStart, allDaySlots, timelineItems, uniqueSlotChecks }
-			= parseSchedule( schedule.daySetup, schedule.slots );
+			= parseSchedule( schedule.daySetup, schedule.slots, 0, formMap, contentMap );
 
 		setDayStart( dayStart );
 		setAllDaySlots( allDaySlots );
 		setTimeline( timelineItems );
 
-	}, [ schedule ] );
+	}, [ schedule, formMap, contentMap ] );
 
 
 	return (
@@ -120,7 +132,7 @@ export const ScheduleShow:React.FC<IResourceComponentsProps> = () => {
 								split={ false }
 								renderItem={ ( slot:SlotWithListId ) => (
 									<List.Item key={ slot._listId }>
-										<SlotItemContent slot={ slot } contentMap={ undefined } formMap={ formMap } />
+										<SlotItemContent slot={ slot } contentMap={ contentMap } formMap={ formMap } />
 									</List.Item>
 								) }
 							/>

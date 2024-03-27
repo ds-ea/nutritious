@@ -9,6 +9,7 @@ import { Header } from '../components';
 import Login from '../pages/auth/login';
 import { PageEdit, PagesCreate, PageShow, PagesList } from '../pages/pages';
 import { StudiesCreate, StudiesList, StudyEdit, StudyShow } from '../pages/studies';
+import { ContentCreate, ContentEdit, ContentShow } from '../pages/studies/contents';
 import { FormCreate, FormEdit, FormShow } from '../pages/studies/forms';
 import { GroupCreate, GroupEdit, GroupShow } from '../pages/studies/groups';
 import { ScheduleEdit, SchedulesCreate, ScheduleShow } from '../pages/studies/schedules';
@@ -69,6 +70,13 @@ const primaryRoutes:RouteObject[] = [
 					{ path: 'create', element: <FormCreate /> },
 					{ path: 'show/:id', element: <FormShow /> },
 					{ path: 'edit/:id', element: <FormEdit /> },
+				],
+			},
+			{
+				path: ':studyId/contents', children: [
+					{ path: 'create', element: <ContentCreate /> },
+					{ path: 'show/:id', element: <ContentShow /> },
+					{ path: 'edit/:id', element: <ContentEdit /> },
 				],
 			},
 

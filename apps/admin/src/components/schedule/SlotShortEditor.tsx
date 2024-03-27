@@ -133,12 +133,11 @@ export const SlotShortEditor:React.FC<Props> = ( {
 			filters: [ { field: 'studyId', operator: 'eq', value: study.id } ],
 		} );
 
-	const availableContents:StudyContent[] = [];
-	/*const { data: availableContents, isLoading: isLoadingContents } =
-		useList<Schedule>( {
-			resource: 'study-forms',contents
+	const { data: availableContents, isLoading: isLoadingContents } =
+		useList<StudyContent>( {
+			resource: 'study-contents',
 			filters: [ { field: 'studyId', operator: 'eq', value: study.id } ],
-		} );*/
+		} );
 
 
 
@@ -309,7 +308,7 @@ export const SlotShortEditor:React.FC<Props> = ( {
 											/*rules={ [ { required: true, message: 'Please set the reference' } ] }*/
 												   style={ { flexGrow: 1 } }
 										>
-											<StepReferencePicker type={ stepTypeMap[key] } forms={ availableForms?.data } contents={ availableContents } />
+											<StepReferencePicker type={ stepTypeMap[key] } forms={ availableForms?.data } contents={ availableContents?.data } />
 											{/*<Input />*/ }
 										</Form.Item>
 

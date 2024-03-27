@@ -91,7 +91,9 @@ model Page {
   name  String
   alias String @unique
 
-  body String?
+  body    String?
+  /// ContentContainer
+  content Json?
 
   layout          String?
   metaDescription String?
@@ -366,8 +368,10 @@ model StudyContent {
   name  String
   notes String?
 
-  title        String
-  body         String
+  title   String?
+  /// ContentContainer
+  content Json?
+
   translations String?
 }
 

@@ -79,7 +79,6 @@ export default function( api:AdminClient, clearAuth:() => void ):AuthBindings{
 		},
 
 		getPermissions: async () => {
-			console.log( 'get perms' );
 		},
 
 		getIdentity: async () => {

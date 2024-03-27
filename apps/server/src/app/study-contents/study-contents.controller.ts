@@ -16,13 +16,13 @@ export class StudyContentsController{
 	}
 
 	@Get()
-	async findMany( @CrudQuery() crudQuery:CrudQueryData ){
+	async findMany( @CrudQuery( { injectNotDeleted: false } ) crudQuery:CrudQueryData ){
 		const matches = await this.studyContentsService.findMany( { crudQuery } );
 		return matches;
 	}
 
 	@Get( ':id' )
-	async findOne( @Param( 'id' ) id:string, @CrudQuery() crudQuery:CrudQueryData ){
+	async findOne( @Param( 'id' ) id:string, @CrudQuery( { injectNotDeleted: false } ) crudQuery:CrudQueryData ){
 		const match = await this.studyContentsService.findOne( id, { crudQuery } );
 		return match;
 	}
@@ -31,14 +31,14 @@ export class StudyContentsController{
 	async update(
 		@Param( 'id' ) id:string,
 		@Body() updateStudyContentDto:UpdateStudyContentDto,
-		@CrudQuery() crudQuery:CrudQueryData,
+		@CrudQuery( { injectNotDeleted: false } ) crudQuery:CrudQueryData,
 	){
 		const updated = await this.studyContentsService.update( id, updateStudyContentDto, { crudQuery } );
 		return updated;
 	}
 
 	@Delete( ':id' )
-	async remove( @Param( 'id' ) id:string, @CrudQuery() crudQuery:CrudQueryData ){
+	async remove( @Param( 'id' ) id:string, @CrudQuery( { injectNotDeleted: false } ) crudQuery:CrudQueryData ){
 		return this.studyContentsService.remove( id, { crudQuery } );
 	}
 }

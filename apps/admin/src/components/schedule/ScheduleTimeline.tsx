@@ -1,4 +1,4 @@
-import type { Schedule, Slot, StudyForm } from '@nutritious/core';
+import type { Schedule, Slot, StudyContent, StudyForm } from '@nutritious/core';
 import { TimeLineItemProps } from 'antd/lib/timeline/TimelineItem';
 import React from 'react';
 import { minutesToTime, SlotItemContent, SlotWithListId } from './ScheduleFormElements';
@@ -9,6 +9,7 @@ export const parseSchedule = (
 	plainSlots:Slot[] | SlotWithListId[],
 	createCount:number = 0,
 	formMap?:Record<string, StudyForm> | undefined,
+	contentMap?:Record<string, StudyContent> | undefined,
 	onEditSlot?:( slot:SlotWithListId ) => void,
 ) => {
 	const items:{ item:TimeLineItemProps, time:number, type:'spacer' | 'slot' | 'boundary' | 'plain' }[] = [];
@@ -82,9 +83,9 @@ export const parseSchedule = (
 			};
 
 			if( onEditSlot )
-				item.item.children = <SlotItemContent slot={ slot } onEdit={ onEditSlot } contentMap={ undefined } formMap={ formMap } />;
+				item.item.children = <SlotItemContent slot={ slot } onEdit={ onEditSlot } contentMap={ contentMap } formMap={ formMap } />;
 			else
-				item.item.children = <SlotItemContent slot={ slot } formMap={ formMap } contentMap={ undefined } />;
+				item.item.children = <SlotItemContent slot={ slot } contentMap={ contentMap } formMap={ formMap } />;
 
 			items.push( item );
 

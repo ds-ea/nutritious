@@ -49,10 +49,12 @@ export const GroupEdit:React.FC<IResourceComponentsProps> = () => {
 
 
 	return (
-		<Edit saveButtonProps={ saveButtonProps }>
+		<Edit saveButtonProps={ saveButtonProps }
+			  contentProps={ { className: 'card-transparent' } }
+		>
 			<Form { ...formProps } onFinish={ handleOnFinish } layout="vertical">
 
-				<GroupFormElements study={ study } />
+				<GroupFormElements study={ study } formProps={ formProps } />
 
 			</Form>
 		</Edit>

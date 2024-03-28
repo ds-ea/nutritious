@@ -1,13 +1,19 @@
-import type { Group, Participant, Prisma, Schedule, Study } from '@nutritious/core';
-import { Show, TextField } from '@refinedev/antd';
+import { Group, Schedule, Study, xorEncryptDecrypt } from '@nutritious/core';
+import { Show } from '@refinedev/antd';
 import { IResourceComponentsProps, useOne, useParsed, useShow } from '@refinedev/core';
-import { Alert, Button, Card, Col, QRCode, Row, Space, Statistic, Typography } from 'antd';
-import React from 'react';
+import { Alert, Button, Card, Col, Descriptions, Divider, Empty, QRCode, Row, Space, Statistic, Typography } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { DetailsHeader } from '../../../components/header/DetailsHeader';
 
 
 const { Title } = Typography;
 
 
+
+function getShortenedDomain( url:string ){
+	const [ scheme, domain ] = url.split( '://' );
+	return ( scheme === 'https' ? '1' : '0' ) + domain;
+}
 
 export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 	const { id: groupId, params } = useParsed<{ studyId?:string }>();
@@ -33,10 +39,32 @@ export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 	const { data: groupData, status, isLoading } = queryResult;
 	const group = groupData?.data;
 
-	const qrcValue = group?.regKey && group?.regPass
-					 ? group.regKey + ':' + group.regPass
-					 : undefined;
+	const domain = import.meta.env['VITE_API_URL'];
 
+	const [ includeDomain, setIncludeDomain ] = useState<boolean>( true );
+	const [ qrcValue, setQrcValue ] = useState<string | null>( null );
+
+	useEffect( () => {
+		let code:string | null = null;
+
+		const qrKey = import.meta.env['VITE_QR_CODE_HASH'];
+		const qrSalt = 'asdoufawejasdifya0w3y-r8werfwe7gbR&#_(*&H#Q0u';
+
+		if( group?.regKey && group?.regPass ){
+			const crypt = true;
+			code = [
+				'0' + ( crypt ? 'x' : '' ),
+				...[
+					group.regKey,
+					group.regPass,
+					getShortenedDomain( domain ),
+				].map( v => crypt ? xorEncryptDecrypt( v, qrKey, qrSalt ) : v ),
+			].join( '█' );
+		}
+
+		setQrcValue( code );
+
+	}, [ group, includeDomain ] );
 
 	// get participants
 	/*const { tableProps: groupTableProps } =
@@ -83,79 +111,86 @@ export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 	};
 
 	return (
-		<>
+		<Show isLoading={ isLoading } contentProps={ { className: 'card-transparent' } }>
+			<Space direction="vertical" className={ 'stretch' } size={ 'middle' }>
 
-			<Show isLoading={ isLoading }>
-				<Title level={ 5 }>Study</Title>
-				<TextField value={ study?.name } />
+				<Card>
+					<DetailsHeader study={ study! } group={ group } />
+					<Divider />
 
-				<Title level={ 5 }>Id</Title>
-				<TextField value={ group?.id } />
-				{/*<Title level={ 5 }>Created At</Title>
-			<DateField value={ record?.createdAt } />
-			<Title level={ 5 }>Updated At</Title>
-			<DateField value={ record?.updatedAt } />*/ }
-				<Title level={ 5 }>State</Title>
-				<TextField value={ group?.state } />
-				<Title level={ 5 }>Name</Title>
-				<TextField value={ group?.name } />
+					{ group &&
+						<Descriptions bordered={ true } column={ 4 } size={ 'small' }>
 
-				<Title level={ 5 }>Schedule</Title>
-				<TextField value={ group?.schedule?.name || 'unassigned' } />
-			</Show>
+							<Descriptions.Item label={ 'Schedule' } span={ 4 } labelStyle={ { width: 140 } }>
+								{ group.schedule?.name }
+							</Descriptions.Item>
 
-			<Row gutter={ [ 20, 20 ] } style={ { marginBlockStart: 20 } }>
-				<Col xs={ 24 } lg={ { span: 6, order: 2 } }>
-					<Card
-						title={ 'Signup Info' }
-						className={ 'group-signup-card' }
-						extra={ qrcValue ? (
-							<Space>
-								download
-								<Button type="default" onClick={ downloadQRCodePNG }>PNG</Button>
-								<Button type="default" onClick={ downloadQRCodeSVG }>SVG</Button>
-							</Space>
-						) : undefined }
-					>
+							{ group.notes &&
+								<Descriptions.Item label={ 'Notes' } span={ 4 } labelStyle={ { width: 140 } }>
+									{ group.notes }
+								</Descriptions.Item>
+							}
+						</Descriptions>
+					}
 
-						{ qrcValue && group ? ( <>
-							<Space direction={ 'vertical' } size={ 20 } style={ { width: '100%' } }>
-								<div id="signupQRCode">
-									<QRCode
-										type={ 'canvas' } style={ { display: 'none' } }
-										bgColor={ '#fff' }
-										size={ 800 }
-										errorLevel={ 'Q' }
-										value={ qrcValue }
-									/>
-									<QRCode
-										type={ 'svg' }
-										size={ '100%' as any }
-										errorLevel={ 'Q' }
-										value={ qrcValue }
-									/>
-								</div>
+				</Card>
 
-								<Row gutter={ [ 40, 20 ] } wrap={ true } className={ 'signup-credentials-wrap' }>
-									<Col xs={ 24 } md={ 12 }>
-										<Statistic title="Key" value={ group.regKey! } />
-									</Col>
-									<Col xs={ 24 } md={ 12 }>
-										<Statistic title="Password" value={ group.regPass! } />
-									</Col>
-								</Row>
-							</Space>
-						</> ) : ( <>
-							<Alert type={ 'warning' } message={ 'Signup Key and or Password are missing.' } />
-						</> ) }
 
-					</Card>
-				</Col>
+				<Row gutter={ [ 20, 20 ] } style={ { marginBlockStart: 20 } }>
+					<Col xs={ 24 } lg={ { span: 6, order: 2 } }>
+						<Card
+							title={ 'Signup Info' }
+							className={ 'group-signup-card' }
+							extra={ qrcValue ? (
+								<Space>
+									download
+									<Button type="default" onClick={ downloadQRCodePNG }>PNG</Button>
+									<Button type="default" onClick={ downloadQRCodeSVG }>SVG</Button>
+								</Space>
+							) : undefined }
+						>
 
-				<Col xs={ 24 } lg={ 18 }>
+							{ qrcValue && group ? ( <>
+								<Space direction={ 'vertical' } size={ 20 } style={ { width: '100%' } }>
+									<div id="signupQRCode">
+										<QRCode
+											type={ 'canvas' } style={ { display: 'none' } }
+											bgColor={ '#fff' }
+											size={ 800 }
+											errorLevel={ 'Q' }
+											value={ qrcValue }
+										/>
+										<QRCode
+											type={ 'svg' }
+											size={ '100%' as any }
+											errorLevel={ 'Q' }
+											value={ qrcValue }
+										/>
+									</div>
+									{ qrcValue }
+									<Row gutter={ [ 40, 20 ] } wrap={ true } className={ 'signup-credentials-wrap' }>
+										<Col xs={ 24 } md={ 12 }>
+											<Statistic title="Key" value={ group.regKey! } />
+										</Col>
+										<Col xs={ 24 } md={ 12 }>
+											<Statistic title="Password" value={ group.regPass! } />
+										</Col>
+										<Col xs={ 24 }>
+											<Statistic title="Domain" value={ domain } />
+										</Col>
+									</Row>
+								</Space>
+							</> ) : ( <>
+								<Alert type={ 'warning' } message={ 'Signup Key and or Password are missing.' } />
+							</> ) }
 
-					<Card title={ 'Participants' }>
-						{/*
+						</Card>
+					</Col>
+
+					<Col xs={ 24 } lg={ 18 }>
+						<Card title={ 'Participants' }>
+							<Empty description={ 'no registered participants' } />
+							{/*
 						<Table { ...groupTableProps } rowKey="id">
 							<Table.Column dataIndex="name" title="Name" />
 							<Table.Column
@@ -183,13 +218,13 @@ export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 							/>
 						</Table>
 						*/ }
-					</Card>
+						</Card>
 
-				</Col>
-			</Row>
+					</Col>
+				</Row>
 
-
-		</>
+			</Space>
+		</Show>
 	);
 };
 export default GroupShow;

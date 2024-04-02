@@ -22,6 +22,7 @@ export default function PagesList(){
 }
 */
 import React from 'react';
+import { StateColumnRenderer } from '../../components/list/StateColumn';
 
 
 export const PagesList:React.FC<IResourceComponentsProps> = () => {
@@ -40,7 +41,7 @@ export const PagesList:React.FC<IResourceComponentsProps> = () => {
 				<Table.Column dataIndex="name" title="Name" />
 				<Table.Column dataIndex="alias" title="Alias" />
 				<Table.Column dataIndex="nav" title="Menu" />
-				<Table.Column dataIndex="state" title="State" width={ 1 } />
+				<Table.Column dataIndex="state" title="State" width={ 1 } render={ StateColumnRenderer } />
 				<Table.Column
 					title="Actions"
 					dataIndex="actions"

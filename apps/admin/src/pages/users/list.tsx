@@ -3,6 +3,7 @@ import { EditButton, EmailField, List, ShowButton, useTable } from '@refinedev/a
 import { IResourceComponentsProps, useNavigation } from '@refinedev/core';
 import { Space, Table } from 'antd';
 import React from 'react';
+import { StateColumnRenderer } from '../../components/list/StateColumn';
 
 /*
 import { AntdInferencer } from '@refinedev/inferencer/antd';
@@ -56,7 +57,7 @@ export const UserList:React.FC<IResourceComponentsProps> = () => {
 						render={(value: any) => <DateField value={value} />}
 					/>*/ }
 
-				<Table.Column dataIndex="state" title="State" width={ 1 } />
+				<Table.Column dataIndex="state" title="State" width={ 1 } render={ StateColumnRenderer } />
 				<Table.Column
 					title="Actions"
 					dataIndex="actions"

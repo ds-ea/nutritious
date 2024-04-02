@@ -3,6 +3,7 @@ import { CreateButton, EditButton, Show, ShowButton, TextField, useTable } from 
 import { IResourceComponentsProps, useParsed, useShow } from '@refinedev/core';
 import { Card, Col, Divider, Row, Space, Table, Typography } from 'antd';
 import React from 'react';
+import { StateColumnRenderer } from '../../components/list/StateColumn';
 
 
 const { Title } = Typography;
@@ -124,7 +125,9 @@ export const StudyShow:React.FC<IResourceComponentsProps> = () => {
 						<Table { ...groupTableProps } rowKey="id">
 							{/*<Table.Column dataIndex="id" title="Id" />*/ }
 							<Table.Column dataIndex="name" title="Name" />
-							<Table.Column dataIndex="state" title="State" width={ 1 } />
+							<Table.Column dataIndex={ [ 'signupPeriod', 'state' ] } title="Registration" width={ 1 } render={ StateColumnRenderer } />
+							<Table.Column dataIndex={ [ 'responsePeriod', 'state' ] } title="Response" width={ 1 } render={ StateColumnRenderer } />
+							<Table.Column dataIndex="state" title="State" width={ 1 } render={ StateColumnRenderer } />
 							<Table.Column
 								title="Actions"
 								dataIndex="actions"
@@ -163,7 +166,7 @@ export const StudyShow:React.FC<IResourceComponentsProps> = () => {
 						<Table { ...schedulesTableProps } rowKey="id">
 							{/*<Table.Column dataIndex="id" title="Id" />*/ }
 							<Table.Column dataIndex="name" title="Name" />
-							<Table.Column dataIndex="state" title="State" width={ 1 } />
+							<Table.Column dataIndex="state" title="State" width={ 1 } render={ StateColumnRenderer } />
 							<Table.Column
 								title="Actions"
 								dataIndex="actions"
@@ -202,7 +205,7 @@ export const StudyShow:React.FC<IResourceComponentsProps> = () => {
 						<Table { ...formsTableProps } rowKey="id">
 							{/*<Table.Column dataIndex="id" title="Id" />*/ }
 							<Table.Column dataIndex="name" title="Name" />
-							<Table.Column dataIndex="state" title="State" width={ 1 } />
+							<Table.Column dataIndex="state" title="State" width={ 1 } render={ StateColumnRenderer } />
 							<Table.Column
 								title="Actions"
 								dataIndex="actions"
@@ -241,7 +244,7 @@ export const StudyShow:React.FC<IResourceComponentsProps> = () => {
 						<Table { ...contentsTableProps } rowKey="id">
 							{/*<Table.Column dataIndex="id" title="Id" />*/ }
 							<Table.Column dataIndex="name" title="Name" />
-							<Table.Column dataIndex="state" title="State" width={ 1 } />
+							<Table.Column dataIndex="state" title="State" width={ 1 } render={ StateColumnRenderer } />
 							<Table.Column
 								title="Actions"
 								dataIndex="actions"

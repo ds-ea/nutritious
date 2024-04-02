@@ -3,6 +3,7 @@ import { EditButton, List, ShowButton, useTable } from '@refinedev/antd';
 import { IResourceComponentsProps } from '@refinedev/core';
 import { Space, Table } from 'antd';
 import React from 'react';
+import { StateColumnRenderer } from '../../components/list/StateColumn';
 
 
 export const StudiesList:React.FC<IResourceComponentsProps> = () => {
@@ -22,7 +23,9 @@ export const StudiesList:React.FC<IResourceComponentsProps> = () => {
 				<Table.Column dataIndex="name" title="Name" />
 				<Table.Column dataIndex="alias" title="Alias" />
 				<Table.Column dataIndex="nav" title="Menu" />
-				<Table.Column dataIndex="state" title="State" width={ 1 } />
+				<Table.Column dataIndex={ [ 'signupPeriod', 'state' ] } title="Registration" width={ 1 } render={ StateColumnRenderer } />
+				<Table.Column dataIndex={ [ 'responsePeriod', 'state' ] } title="Response" width={ 1 } render={ StateColumnRenderer } />
+				<Table.Column dataIndex="state" title="State" width={ 1 } render={ StateColumnRenderer } />
 				<Table.Column
 					title="Actions"
 					dataIndex="actions"

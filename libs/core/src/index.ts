@@ -1,3 +1,6 @@
+export * from './lib/entity';
 export * from './lib/study';
-export type * from './lib/types';
+export * from './lib/utils/shorten-to-unicode';
+export * from './lib/utils/xor-encrypt-decrypt';
+export type * from './types';
 export type { Prisma, Group, Page, Participant, Study, StudyForm, Schedule, Slot, Step, StudyContent, User } from '@prisma/client';

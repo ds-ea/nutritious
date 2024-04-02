@@ -4,7 +4,6 @@ export enum StudyStepType{
 	'BlsFood' = 'bls-food-entry',
 }
 
-
 export enum FormInputType{
 	Slider = 'slider',
 	Text = 'text',

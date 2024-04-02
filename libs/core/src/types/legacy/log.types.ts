@@ -1,4 +1,4 @@
-import { LegacyLogFood } from '../../../../prisma/generated/client-legacy';
+import type { LegacyLogFood } from '../../../legacy';
 
 
 export enum MealType{

@@ -1,4 +1,4 @@
-import { FormInputNecessity, FormInputType } from '../../study';
+import { FormInputNecessity, FormInputType } from '../../lib/study';
 import { ContentContainer } from '../content.types';
 
 

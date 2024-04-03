@@ -1,29 +1,44 @@
 import { Injectable } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
 import { formatISO } from 'date-fns';
-import { concat, defer, EMPTY, forkJoin, from, Observable, of } from 'rxjs';
-import { delay, map, switchMap, tap } from 'rxjs/operators';
+import { BehaviorSubject, concat, EMPTY, forkJoin, from, Observable, of } from 'rxjs';
+import { map, switchMap, tap } from 'rxjs/operators';
 import { LogEntry } from '../../interfaces/log.interface';
 import { Study, StudyDTO } from '../../interfaces/study.interface';
-import { User } from '../../interfaces/user.interfaces';
 import { ApiService } from '../core/api.service';
 import { CoreService } from '../core/core.service';
 
 
 @Injectable( {
-	             providedIn: 'root',
-             } )
+	providedIn: 'root',
+} )
 export class StudyService{
 
+	public studies$ = new BehaviorSubject<StudyService['studies']>( undefined );
+	public studies:Study[] | undefined;
+
+	public preferences$ = new BehaviorSubject<StudyService['preferences']>( undefined );
+	public preferences:unknown | undefined;
+
+	public study$ = new BehaviorSubject<StudyService['study']>( undefined );
 	public study:StudyDTO | undefined;
 
 	constructor(
 		private api:ApiService,
 		private core:CoreService,
 	){
-		this.core.logout$.subscribe(()=>{
-			this.study = undefined;
-		})
+		this.study$.subscribe( study => this.study = study );
+		this.studies$.subscribe( studies => this.studies = studies );
+		this.preferences$.subscribe( preferences => this.preferences = preferences );
+
+		this.core.logout$.subscribe( () => {
+			this.studies$.next( undefined );
+			this.preferences$.next( undefined );
+			this.study$.next( undefined );
+
+			Preferences.set( { key: 'studies', value: JSON.stringify( undefined ) } );
+			Preferences.set( { key: 'study.prefs', value: JSON.stringify( undefined ) } );
+		} );
 	}
 
 
@@ -57,23 +72,28 @@ export class StudyService{
 						Preferences.set( { key: 'study', value: JSON.stringify( study ) } );
 					} ),
 				),
-		).pipe( tap( study => this.core.study$.next(study.study) ));
+		).pipe( tap( study => this.study$.next( study.study as any ) ) );
 	}
 
 	public async restoreStudy():Promise<any>{
-		const { value: studyRaw } = await Preferences.get( { key: 'study' } );
+		const { value: studiesRaw } = await Preferences.get( { key: 'studies' } );
+		const { value: preferencesRaw } = await Preferences.get( { key: 'study.prefs' } );
 
-		let study:StudyDTO | undefined;
+		let studies:Study[] | undefined;
+		let preferences:unknown | undefined;
+
 		try{
-			study = studyRaw ? JSON.parse( studyRaw ) : undefined;
+			studies = studiesRaw ? JSON.parse( studiesRaw ) : undefined;
+			preferences = preferencesRaw ? JSON.parse( preferencesRaw ) : undefined;
 		}catch( e ){
-			console.error( 'error parsing stored study', e );
+			console.error( 'error parsing stored study data', e );
 		}
 
-		if( !study )
+		if( !studies )
 			return undefined;
 
-		this.study = study;
+		this.studies$.next( studies );
+		this.studies$.next( studies );
 
 		return this.study;
 	}
@@ -83,48 +103,48 @@ export class StudyService{
 	 * submit log entry and return information what was and what has note yet been submitted
 	 * @param log
 	 */
-	public submitLog( log:LogEntry ):Observable<{submitted:LogEntry, pending:LogEntry}>{
+	public submitLog( log:LogEntry ):Observable<{ submitted:LogEntry, pending:LogEntry }>{
 		let requests:Observable<any>[] = [];
 
-		let submitted:LogEntry = {date: log.date};
-		let pending:LogEntry = {...log};
+		let submitted:LogEntry = { date: log.date };
+		let pending:LogEntry = { ...log };
 
 		if( log.meal || log.food ){
 			const mealData = {
 				date: log.meal?.date,
 				meal_type: log.meal?.meal,
 				people: log.meal?.attend,
-				data: log.food?.map( mi => ({k: mi.foodKey, q: mi.quantity}) ),
+				data: log.food?.map( mi => ( { k: mi.foodKey, q: mi.quantity } ) ),
 			};
 
 			requests.push(
-				this.api.post('foodstudy/food', mealData)
+				this.api.post( 'foodstudy/food', mealData )
 					.pipe( tap( done => {
 						submitted.meal = log.meal;
 						submitted.food = log.food;
 						delete pending.meal;
 						delete pending.food;
-					}))
+					} ) ),
 			);
 		}
 
 		if( log.answers ){
 			let answers:Record<string, any> = {};
-			for( const [groupID, groupAnswers] of Object.entries(log.answers) ){
-				for( const [k,v] of Object.entries(groupAnswers) ){
+			for( const [ groupID, groupAnswers ] of Object.entries( log.answers ) ){
+				for( const [ k, v ] of Object.entries( groupAnswers ) ){
 					answers[k] = v;
 				}
 			}
 
 			requests.push(
-				this.api.post('foodstudy/log', { data: answers })
+				this.api.post( 'foodstudy/log', { data: answers } )
 					.pipe( tap( done => {
 						submitted.answers = log.answers;
 						delete pending.answers;
 
 						const answered = { date: formatISO( new Date() ) };
 						Preferences.set( { key: 'questions-last-answer', value: JSON.stringify( answered ) } );
-					}))
+					} ) ),
 			);
 		}
 
@@ -134,7 +154,7 @@ export class StudyService{
 		return forkJoin( requests )
 			.pipe(
 				map( done => {
-					return {submitted, pending}
+					return { submitted, pending };
 				} ) );
 	}
 

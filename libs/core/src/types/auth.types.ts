@@ -1,4 +1,8 @@
-import type { Participant, User } from '@prisma/client';
+import { Participant, User } from '@prisma/client';
+
+
+export type SafeUser = Pick<User, 'id' | 'name' | 'settings'>;
+export type SafeParticipant = Pick<Participant, 'id' | 'name' | 'settings' | 'lang' | 'timeZone'>;
 
 
 export type AuthUserCredentials = {
@@ -18,23 +22,13 @@ export type AuthLoginPayload = {
 };
 
 export type AuthUserInfo =
-	{
-		user:{
-			id:User['id'],
-			name:User['name']
-		},
-	}
-	|
-	{
-		participant:{
-			id:Participant['id'],
-			name:Participant['name'],
-			settings?:Participant['settings']
-			lang?:Participant['lang']
-			timeZone?:Participant['timeZone']
-		},
-	};
+	| { user:SafeUser }
+	| { participant:SafeParticipant };
 
-export type AuthLoginResponse = {
-	access_token?:string;
-} & AuthUserInfo;
+export type AuthLoginResponse =
+	{ access_token?:string; }
+	& AuthUserInfo
+	;
+
+
+

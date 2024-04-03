@@ -54,6 +54,7 @@
 	"USER.AUTH.STOP_SCAN_BTN": "abbrechen",
 	"USER.AUTH.STUDY_CODE_LBL": "Passwort",
 	"USER.AUTH.STUDY_KEY_LBL": "Schlüssel",
+	"USER.AUTH.DOMAIN_LBL": "Domain",
 	"USER.LOGOUT_CONFIRM": "Hierdurch werden alle gespeicherten Daten gelöscht, und Sie können ohne Eingabe Ihrer Zugangsdaten nicht erneut teilnehmen.",
 	"USER.SIGNUP.CODE_VALID_CONFIRM_PARTICIPATION": "Der angegebene Code ist gültig. Bitte bestätigen Sie, dass Sie an der folgenden Studie teilnehmen möchten.",
 	"USER.SIGNUP.CONFIRM_AND_SUBMIT_SIGNUP_BTN": "Ja - Zugang freischalten",
@@ -64,6 +65,6 @@
 	"USER.SIGNUP.CREDS_PASS_LBL": "Passwort",
 	"USER.SIGNUP.NO_CREDENTIALS_ERR": "Bei der Registrierung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut oder wenden Sie sich an den Support.",
 	"USER.SIGNUP.NO_MATCHING_STUDY_AVAILABLE_ERR": "Es ist keine entsprechende Studie verfügbar.",
-	"USER.SIGNUP.PARTICIPANT_ID_HINT": "Falls Sie eine Teilnehmerkennung erhalten haben, tragen Sie diese bitte hier ein.",
-	"USER.SIGNUP.PARTICIPANT_ID_LBL": "Teilnehmerkennung"
+	"USER.SIGNUP.PARTICIPANT_BADGE_HINT": "Falls Sie eine Teilnehmerkennung erhalten haben, tragen Sie diese bitte hier ein.",
+	"USER.SIGNUP.PARTICIPANT_BADGE_LBL": "Teilnehmerkennung"
 }

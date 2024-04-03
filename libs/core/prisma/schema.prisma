@@ -202,14 +202,14 @@ model GroupMember {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  studyId String? @db.ObjectId
-  study   Study?  @relation(fields: [studyId], references: [id])
+  studyId String @db.ObjectId
+  study   Study  @relation(fields: [studyId], references: [id])
 
-  groupId String? @db.ObjectId
-  group   Group?  @relation(fields: [groupId], references: [id])
+  groupId String @db.ObjectId
+  group   Group  @relation(fields: [groupId], references: [id])
 
-  participantId String?      @db.ObjectId
-  participant   Participant? @relation(fields: [participantId], references: [id])
+  participantId String      @db.ObjectId
+  participant   Participant @relation(fields: [participantId], references: [id])
 
   badge String?
   notes String?

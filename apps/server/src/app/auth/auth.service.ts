@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import type { Prisma } from '@nutritious/core';
+import type { AuthCredentials, AuthLoginResponse, AuthUserInfo, Prisma } from '@nutritious/core';
 import { Participant, User } from '@prisma/client';
 import * as argon2 from 'argon2';
 import * as bcrypt from 'bcrypt';
 import dayjs from 'dayjs';
-import { AuthCredentials, AuthLoginResponse, AuthUserInfo } from '../../../../../libs/core/src/lib/types/auth.types';
+import { Sanitize } from '../../../../../libs/core/src/lib/data/sanitize';
 import { PrismaService } from '../core/services/db/prisma.service';
 
 
@@ -103,21 +103,8 @@ export class AuthService{
 
 		const userInfo:AuthUserInfo =
 			'user' in authorized
-			? {
-					user: {
-						id: authorized.user.id,
-						name: authorized.user.name,
-					},
-				}
-			: {
-					participant: {
-						id: authorized.participant.id,
-						name: authorized.participant.name,
-						settings: authorized.participant.settings,
-						lang: authorized.participant.lang,
-						timeZone: authorized.participant.timeZone,
-					},
-				};
+			? { user: Sanitize.safeUser( authorized.user ) }
+			: { participant: Sanitize.safeParticipant( authorized.participant ) };
 
 		const exp = dayjs().add( 30, 'minutes' ).unix();
 

@@ -4,7 +4,7 @@ import type { LegacyLog, LegacyLogFood, LegacyStudy, LegacyUser, Prisma as Legac
 import { hash } from 'argon2';
 import dayjs from 'dayjs';
 import generatePassword from 'omgopass';
-import { PickByType, StudyCatalog, StudyCatalogQuestionGroup } from '../../../../../libs/core/src/lib/types/legacy';
+import { PickByType, StudyCatalog, StudyCatalogQuestionGroup } from '../../../../../libs/core/src/types/legacy';
 import { PrismaLegacyService } from '../core/services/db/prisma-legacy.service';
 
 
@@ -68,8 +68,8 @@ export class LegacyStudyService{
 						group[property] = true;
 					}else{
 						delete group[property];
-						if( `${ property }-time` in group )
-							delete group[<keyof StudyCatalogQuestionGroup> `${ property }-time`];
+						if( `${ String( property ) }-time` in group )
+							delete group[<keyof StudyCatalogQuestionGroup> `${ String( property ) }-time`];
 					}
 				};
 
@@ -123,13 +123,14 @@ export class LegacyStudyService{
 		if( studyId )
 			await this.requireStudyAccess( studyId, user.id );
 
+		const logData = data.data.data ?? {};
 
 		const result =
 			await this.prisma.legacyLog.create( {
 				data: {
 					user: user.id,
 					study: studyId,
-					data: data.data?.data!,
+					data: logData,
 				},
 			} );
 
@@ -170,7 +171,7 @@ export class LegacyStudyService{
 		return study;
 	}
 
-	public async studySignup( key:string, regPass:string, signup?:boolean, participantIdentifier?:LegacyUser['fs_participant'] ){
+	public async studySignup( key:string, regPass:string, signup?:boolean, personalIdentifier?:LegacyUser['fs_participant'] ){
 
 		const study = await this.getStudyForSignup( key, regPass );
 
@@ -178,7 +179,7 @@ export class LegacyStudyService{
 		if( !signup )
 			return { study: publicStudy };
 
-		const { username, password } = await this.createParticipant( study.id, participantIdentifier );
+		const { username, password } = await this.createParticipant( study.id, personalIdentifier );
 
 		return {
 			credentials: { username, password },
@@ -186,7 +187,7 @@ export class LegacyStudyService{
 		};
 	}
 
-	private async createParticipant( studyId:LegacyStudy['id'], participantIdentifier?:LegacyUser['fs_participant'] | undefined ){
+	private async createParticipant( studyId:LegacyStudy['id'], personalIdentifier?:LegacyUser['fs_participant'] | undefined ){
 
 		await this.prisma.legacyStudy.update( { where: { id: studyId }, data: { user_count: { increment: 1 } } } );
 		const study = await this.prisma.legacyStudy.findUniqueOrThrow( { where: { id: studyId } } );
@@ -202,7 +203,7 @@ export class LegacyStudyService{
 			username,
 			password: hashedPass,
 			fs_study: studyId,
-			fs_participant: participantIdentifier,
+			fs_participant: personalIdentifier,
 			role_id: 2,
 		};
 

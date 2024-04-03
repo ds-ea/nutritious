@@ -2,9 +2,11 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
+import { EntityState } from '@nutritious/core';
 import { FastifyRequest } from 'fastify';
 import { IS_PUBLIC_KEY } from '../core/decorators/public.decorator';
 import { PrismaService } from '../core/services/db/prisma.service';
+import { AuthedRequest } from '../types/server.types';
 
 
 @Injectable()
@@ -25,7 +27,7 @@ export class AuthGuard implements CanActivate{
 		if( isPublic )
 			return true;
 
-		const request = context.switchToHttp().getRequest();
+		const request = context.switchToHttp().getRequest() as AuthedRequest;
 		const token = this.extractTokenFromHeader( request );
 		if( !token ){
 			throw new UnauthorizedException();
@@ -42,19 +44,29 @@ export class AuthGuard implements CanActivate{
 			if( !payload.exp || payload.exp < ( Date.now() / 1000 ) )
 				throw new UnauthorizedException();
 
+			const participantId = payload.sub?.participant;
 			const userId = payload.sub?.user;
-			const user = userId
-						 ? await this.prisma.user.findUnique( { where: { id: userId } } )
-						 : undefined;
 
-			if( user?.state !== 'ENABLED' )
+			let authed = false;
+
+			if( participantId ){
+				const participant = await this.prisma.participant.findUnique( { where: { id: participantId } } );
+				request.participant = participant || undefined;
+				authed = participant?.state === EntityState.Enabled;
+
+			}else if( userId ){
+				const user = await this.prisma.user.findUnique( { where: { id: userId } } );
+				request.user = user || undefined;
+				authed = user?.state === EntityState.Enabled;
+			}
+
+			if( !authed )
 				throw new UnauthorizedException();
-
-			request['user'] = user;
 
 		}catch{
 			throw new UnauthorizedException();
 		}
+
 		return true;
 	}
 

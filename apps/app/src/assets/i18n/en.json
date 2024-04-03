@@ -54,6 +54,7 @@
 	"USER.AUTH.STOP_SCAN_BTN": "cancel",
 	"USER.AUTH.STUDY_CODE_LBL": "Password",
 	"USER.AUTH.STUDY_KEY_LBL": "Key",
+	"USER.AUTH.DOMAIN_LBL": "Domain",
 	"USER.LOGOUT_CONFIRM": "This will remove all stored data, and you will not be able to participate again without entering your credentials.",
 	"USER.SIGNUP.CODE_VALID_CONFIRM_PARTICIPATION": "The provided code is valid. Please confirm that you want to participate in the following study.",
 	"USER.SIGNUP.CONFIRM_AND_SUBMIT_SIGNUP_BTN": "yes - activate login",
@@ -64,6 +65,6 @@
 	"USER.SIGNUP.CREDS_PASS_LBL": "Password",
 	"USER.SIGNUP.NO_CREDENTIALS_ERR": "An error occurred during registration. Please try again or contact support.",
 	"USER.SIGNUP.NO_MATCHING_STUDY_AVAILABLE_ERR": "No matching study is available.",
-	"USER.SIGNUP.PARTICIPANT_ID_HINT": "If you have been given a participant identifier, please enter it here.",
-	"USER.SIGNUP.PARTICIPANT_ID_LBL": "Personal identifier"
+	"USER.SIGNUP.PARTICIPANT_BADGE_HINT": "If you have been given a personal identifier, please enter it here.",
+	"USER.SIGNUP.PARTICIPANT_BADGE_LBL": "Personal identifier"
 }

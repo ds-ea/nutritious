@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { MenuController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
@@ -9,11 +9,11 @@ import { StudyService } from './study/study.service';
 
 
 @Component( {
-	            selector: 'app-root',
-	            template: `
+	selector: 'app-root',
+	template: `
 					<ion-app>
 						<ion-router-outlet id="main"></ion-router-outlet>
-						
+
 						<ion-menu side="end" menuId="first" contentId="main" class="nutri-main-menu" type="overlay">
 							<ion-content>
 								<ion-list lines="none">
@@ -42,8 +42,8 @@ import { StudyService } from './study/study.service';
 								</ion-list>
 							</ion-content>
 						</ion-menu>
-						
-						
+
+
 						<ion-header id="app-header" >
 							<ion-toolbar>
 								<ion-buttons slot="start">
@@ -51,22 +51,22 @@ import { StudyService } from './study/study.service';
 										<ion-img src="assets/icon/logo-outlined.svg" slot="icon-only"></ion-img>
 									</ion-button>
 								</ion-buttons>
-								
+
 								<ion-buttons slot="end">
 									<ion-menu-button autoHide="false" (click)="openMenu()"></ion-menu-button>
 								</ion-buttons>
 							</ion-toolbar>
 						</ion-header>
-						
-						
+
+
 					</ion-app>
 					<div class="scanner-ui">
 						<ng-template [cdkPortalOutlet]="core.scannerUIPortal"></ng-template>
 					</div>
 	            `,
-            } )
+} )
 export class AppComponent implements OnInit{
-	
+
 	constructor(
 		public core:CoreService,
 		public api:ApiService,
@@ -74,10 +74,10 @@ export class AppComponent implements OnInit{
 		private studyService:StudyService,
 		public config:ConfigService,
 		public translate:TranslateService,
-		private menu: MenuController
+		private menu:MenuController,
 	){
 	}
-	
+
 	public async ngOnInit(){
 		const user = await this.core.restoreAuth();
 		if( user ){
@@ -87,15 +87,15 @@ export class AppComponent implements OnInit{
 			this.router.navigate( [ '/login' ] );
 		}
 	}
-	
+
 	public logout(){
 		this.menu.close();
 		this.core.logout();
 	}
-	
+
 	public openMenu(){
 		this.menu.open();
 	}
-	
-	
+
+
 }

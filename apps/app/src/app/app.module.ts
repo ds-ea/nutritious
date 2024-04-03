@@ -14,6 +14,7 @@ import { IonicStorageModule } from '@ionic/storage-angular';
 import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { DateFnsModule } from 'ngx-date-fns';
+import { MarkdownModule } from 'ngx-markdown';
 import { EMPTY } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../environments/environment';
@@ -84,6 +85,7 @@ export function appInitializerFactory( injector:Injector, translate:TranslateSer
 				deps: [ HttpClient ],
 			},
 		} ),
+		MarkdownModule.forRoot(),
 		UserModule,
 	],
 	providers: [

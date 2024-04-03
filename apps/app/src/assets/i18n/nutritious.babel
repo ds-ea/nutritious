@@ -1193,7 +1193,7 @@
                                 </translations>
                             </concept_node>
                             <concept_node>
-                                <name>PARTICIPANT_ID_HINT</name>
+                                <name>PARTICIPANT_BADGE_HINT</name>
                                 <definition_loaded>false</definition_loaded>
                                 <description/>
                                 <comment/>
@@ -1210,7 +1210,7 @@
                                 </translations>
                             </concept_node>
                             <concept_node>
-                                <name>PARTICIPANT_ID_LBL</name>
+                                <name>PARTICIPANT_BADGE_LBL</name>
                                 <definition_loaded>false</definition_loaded>
                                 <description/>
                                 <comment/>

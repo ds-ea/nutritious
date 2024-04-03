@@ -7,10 +7,10 @@ import { CoreService } from '../../core/core.service';
 
 
 @Component( {
-	            selector: 'app-login',
-	            template: `
+	selector: 'app-login',
+	template: `
 					<ion-content class="content-centered">
-			
+
 						<mat-card>
 							<mat-card-title>{{ 'USER.AUTH.LOGIN_HEADING'|translate }}</mat-card-title>
 							<mat-card-content>
@@ -27,13 +27,19 @@ import { CoreService } from '../../core/core.service';
 											   formControlName="pass"
 											   [placeholder]="'USER.AUTH.LOGIN_PASS_LBL'|translate ">
 									</mat-form-field>
-									
+									<mat-form-field>
+										<mat-label>{{ 'USER.AUTH.DOMAIN_LBL'|translate }}</mat-label>
+										<input matInput type="text"
+											   formControlName="domain"
+											   [placeholder]="'USER.AUTH.DOMAIN_LBL'|translate ">
+									</mat-form-field>
+
 									<div class="content-actions">
 										<button type="submit" mat-flat-button color="primary" (click)="login()"
 												[disabled]="!loginForm.valid"
 										>{{'USER.AUTH.LOGIN_BTN' | translate}}</button>
 									</div>
-									
+
 								</form>
 							</mat-card-content>
 							<mat-card-footer>
@@ -42,13 +48,14 @@ import { CoreService } from '../../core/core.service';
 						</mat-card>
 					</ion-content>
 	            `,
-            } )
+} )
 export class LoginView implements OnInit{
 	public loginForm:UntypedFormGroup = new UntypedFormGroup( {
-		                                            login: new UntypedFormControl( '', Validators.required ),
-		                                            pass: new UntypedFormControl( '', Validators.required ),
-	                                            } );
-	
+		login: new UntypedFormControl( '', Validators.required ),
+		pass: new UntypedFormControl( '', Validators.required ),
+		domain: new UntypedFormControl( '' ),
+	} );
+
 	constructor(
 		public core:CoreService,
 		public loading:LoadingController,
@@ -56,35 +63,35 @@ export class LoginView implements OnInit{
 		public toaster:ToastController,
 		public translate:TranslateService,
 	){ }
-	
+
 	ngOnInit():void{
 	}
-	
+
 	public async login(){
 		if( !this.loginForm.valid )
 			return;
-		
+
 		const loader = await this.loading.create( { spinner: 'crescent' } );
 		loader.present();
-		
+
 		this.core.login( this.loginForm.get( 'login' )?.value, this.loginForm.get( 'pass' )?.value )
 			.subscribe( {
-				            next: user => {
-					            if( !user )
-						            throw new Error( 'no user data' );
-					
-					            loader.dismiss();
-					            this.router.navigate( [ '/study' ], { replaceUrl: true } );
-				            },
-				            error: err => {
-					            this.toaster.create( {
-						                                 color: 'danger',
-						                                 message: this.translate.instant( 'USER.AUTH.LOGIN_FAILED_ERR' ),
-						                                 duration: 3000,
-					                                 } ).then( toast => toast.present() );
-					            loader.dismiss();
-				            },
-			            } );
+				next: user => {
+					if( !user )
+						throw new Error( 'no user data' );
+
+					loader.dismiss();
+					this.router.navigate( [ '/study' ], { replaceUrl: true } );
+				},
+				error: err => {
+					this.toaster.create( {
+						color: 'danger',
+						message: this.translate.instant( 'USER.AUTH.LOGIN_FAILED_ERR' ),
+						duration: 3000,
+					} ).then( toast => toast.present() );
+					loader.dismiss();
+				},
+			} );
 	}
-	
+
 }

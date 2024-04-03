@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, Study } from '@nutritious/core';
+import { EntityState, Prisma, Study } from '@nutritious/core';
 import { CrudMethodOpts, PrismaCrudService } from 'nestjs-prisma-crud';
 import generatePassword from 'omgopass';
 import { PrismaService } from '../core/services/db/prisma.service';
@@ -40,8 +40,8 @@ export class StudiesService extends PrismaCrudService{
 
 	public override findMany( opts:CrudMethodOpts ){
 		opts.crudQuery = {
-			select: { only: [ 'id', 'name', 'state', 'signupPeriod', 'responsePeriod' ] },
-			where: { state: { not: 'DELETED' } },
+			//			select: { only: [ 'id', 'name', 'state', 'signupPeriod', 'responsePeriod' ] },
+			where: { state: { not: EntityState.Deleted } },
 		};
 		return super.findMany( opts );
 	}

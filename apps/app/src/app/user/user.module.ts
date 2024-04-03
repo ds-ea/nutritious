@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { MarkdownModule } from 'ngx-markdown';
 import { SharedModule } from '../core/shared.module';
 import { LoginView } from './login/login.view';
 import { RegistrationView } from './registration/registration.view';
@@ -14,6 +15,7 @@ import { UserRoutingModule } from './user-routing.module';
 	imports: [
 		SharedModule,
 		UserRoutingModule,
+		MarkdownModule.forChild(),
 	],
 	exports: [
 		LoginView,

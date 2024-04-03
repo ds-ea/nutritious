@@ -32,7 +32,9 @@
 				"webpackConfig": "apps/server/webpack.config.js"
 			},
 			"configurations": {
-				"development": {},
+				"development": {
+					"sourceMap": true
+				},
 				"production": {
 					"generatePackageJson": true
 				}

@@ -32,7 +32,10 @@
 				],
 				"styles": ["apps/app/src/theme/app.scss"],
 				"scripts": [],
-				"allowedCommonJsDependencies": ["fuzzysort", "localforage"]
+				"allowedCommonJsDependencies": ["fuzzysort", "localforage"],
+				"customWebpackConfig": {
+					"path": "apps/app/webpack.config.js"
+				}
 			},
 			"configurations": {
 				"production": {

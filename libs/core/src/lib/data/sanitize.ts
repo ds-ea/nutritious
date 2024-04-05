@@ -36,15 +36,15 @@ export function clean<
 
 export class Sanitize{
 
-	static publicStudy( study:Study ):PublicStudy{
+	static publicStudy( study:Study | PublicStudy ):PublicStudy{
 		return clean<PublicStudy>( study, { keep: [ 'id', 'name' ] } );
 	}
 
-	static safeUser( user:User ):SafeUser{
+	static safeUser( user:User | SafeUser ):SafeUser{
 		return clean( user, { keep: [ 'id', 'name' ] } );
 	}
 
-	static safeParticipant( participant:Participant ):SafeParticipant{
+	static safeParticipant( participant:Participant | SafeParticipant ):SafeParticipant{
 		return clean( participant, { keep: [ 'id', 'name', 'settings', 'lang', 'timeZone' ] } );
 	}
 

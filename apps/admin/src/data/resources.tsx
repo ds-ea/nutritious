@@ -50,6 +50,17 @@ export const resources:Record<string, ResourceProps> = {
 			hide: true,
 		},
 	},
+	'group-members': {
+		name: 'group-members',
+		list: '/studies/show/:studyId/group/show/:groupId',
+		//		create: '/studies/:studyId/groups/create',
+		edit: '/studies/:studyId/groups/members/:groupId/edit/:id',
+		show: '/studies/:studyId/groups/members/:groupId/show/:id',
+		meta: {
+			parent: 'gorups',
+			hide: true,
+		},
+	},
 
 	participants: {
 		name: 'participants',

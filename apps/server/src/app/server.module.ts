@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { BlsModule } from './bls/bls.module';
 import { CoreModule } from './core/core.module';
 import { PrismaService } from './core/services/db/prisma.service';
+import { GroupMembersModule } from './group-members/group-members.module';
 import { GroupsModule } from './groups/groups.module';
 import { LegacyMigrationsService } from './legacy-migrations.service';
 import { LegacyStudyModule } from './legacy-study/legacy-study.module';
@@ -36,6 +37,7 @@ import { UsersModule } from './users/users.module';
 		LegacyStudyModule,
 		UsersModule,
 		GroupsModule,
+		GroupMembersModule,
 		StudiesModule,
 		PagesModule,
 		BlsModule,

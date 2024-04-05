@@ -1,7 +1,7 @@
-import { Group, Schedule, Study, xorEncryptDecrypt } from '@nutritious/core';
-import { Show } from '@refinedev/antd';
+import { Group, Participant, Schedule, Study, xorEncryptDecrypt } from '@nutritious/core';
+import { EditButton, Show, ShowButton, useTable } from '@refinedev/antd';
 import { IResourceComponentsProps, useOne, useParsed, useShow } from '@refinedev/core';
-import { Alert, Button, Card, Col, Descriptions, Divider, Empty, QRCode, Row, Space, Statistic, Typography } from 'antd';
+import { Alert, Button, Card, Col, Descriptions, Divider, QRCode, Row, Space, Statistic, Table, Typography } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { DetailsHeader } from '../../../components/header/DetailsHeader';
 
@@ -67,18 +67,19 @@ export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 	}, [ group, includeDomain ] );
 
 	// get participants
-	/*const { tableProps: groupTableProps } =
+	const { tableProps: groupTableProps } =
 		useTable( {
 			syncWithLocation: true,
-			resource: 'groupmembers',
+			resource: 'group-members',
 			meta: {
 				fields: [ 'id', 'name', 'state' ],
-				operation: 'groupmembers',
+				operation: 'group-members',
 			},
+			pagination: { pageSize: 3 },
 			filters: {
 				permanent: [ { field: 'groupId', operator: 'eq', value: groupId } ],
 			},
-		} );*/
+		} );
 
 	const downloadQRCodePNG = () => {
 		const canvas = document.getElementById( 'signupQRCode' )?.querySelector<HTMLCanvasElement>( 'canvas' );
@@ -189,35 +190,37 @@ export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 
 					<Col xs={ 24 } lg={ 18 }>
 						<Card title={ 'Participants' }>
-							<Empty description={ 'no registered participants' } />
-							{/*
-						<Table { ...groupTableProps } rowKey="id">
-							<Table.Column dataIndex="name" title="Name" />
-							<Table.Column
-								title="Actions"
-								dataIndex="actions"
-								width={ 1 }
-								render={ ( _, participant:Participant ) => (
-									<Space>
-										<EditButton
-											hideText
-											size="small"
-											resource={ 'groups' }
-											recordItemId={ participant.id }
-											meta={ { studyId, groupId } }
-										/>
-										<ShowButton
-											hideText
-											size="small"
-											resource={ 'participants' }
-											recordItemId={ participant.id }
-											meta={ { studyId, groupId } }
-										/>
-									</Space>
-								) }
-							/>
-						</Table>
-						*/ }
+							{
+								<Table { ...groupTableProps } rowKey="id">
+									<Table.Column dataIndex="participantId" title="Participant" width={ 1 } />
+									<Table.Column dataIndex="badge" title="Badge" />
+									<Table.Column
+										title="Actions"
+										dataIndex="actions"
+										width={ 1 }
+										render={ ( _, participant:Participant ) => (
+											<Space>
+												<EditButton
+													disabled
+													hideText
+													size="small"
+													resource={ 'groups' }
+													recordItemId={ participant.id }
+													meta={ { studyId, groupId } }
+												/>
+												<ShowButton
+													disabled
+													hideText
+													size="small"
+													resource={ 'participants' }
+													recordItemId={ participant.id }
+													meta={ { studyId, groupId } }
+												/>
+											</Space>
+										) }
+									/>
+								</Table>
+							}
 						</Card>
 
 					</Col>

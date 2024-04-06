@@ -1,5 +1,5 @@
 import { Body, Controller, ForbiddenException, Get, NotFoundException, Param, Post, Req, UnprocessableEntityException } from '@nestjs/common';
-import { AssociatedStudies, SignupCheckPayload, SignupPayload } from '@nutritious/core';
+import { PreparedStudy, SignupCheckPayload, SignupPayload } from '@nutritious/core';
 import { FastifyRequest } from 'fastify';
 import { Public } from '../core/decorators/public.decorator';
 import { AuthedRequest } from '../types/server.types';
@@ -50,11 +50,11 @@ export class StudyController{
 
 
 	@Get( 'studies' )
-	public async getAssociatedStudies( @Req() req:AuthedRequest ):Promise<AssociatedStudies | undefined>{
+	public async getPreparedStudies( @Req() req:AuthedRequest ):Promise<PreparedStudy[] | undefined>{
 		if( !( 'participant' in req ) || !req.participant )
 			throw new ForbiddenException( 'you are not logged in' );
 
-		return this.studyService.getAssociatedStudies( req.participant.id );
+		return this.studyService.prepareStudies( req.participant.id );
 	}
 
 }

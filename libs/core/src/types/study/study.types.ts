@@ -1,4 +1,4 @@
-import { Group, GroupMember, Participant, Study } from '@prisma/client';
+import type { Group, GroupMember, Participant, Schedule, Slot, Step, Study, StudyContent, StudyForm } from '@prisma/client';
 
 
 export type PublicStudy = Pick<Study, 'id' | 'name'>;
@@ -31,8 +31,28 @@ export type SignupResponse = {
 }
 
 
+export type SafeSchedule = Pick<Schedule, 'id' | 'daySetup' | 'weekSetup'>;
 
-export type AssociatedStudies = {
-	study:PublicStudy,
-	badge:GroupMember['badge']
-}[];
+export type SafeStep = Pick<Step, 'id' | 'type' | 'ref'>;
+
+export type SafeSlot = Omit<Slot, 'createdAt' | 'updatedAt' | 'scheduleId' | 'schedule' | 'steps'>;
+export type PreparedSlot = SafeSlot & { steps?:SafeStep[] };
+
+export type PreparedSchedule = {
+	schedule:SafeSchedule;
+	slots:PreparedSlot[];
+	refs?:Partial<
+		& { form:SafeStudyForm[] }
+		& { content:SafeStudyContent[] }
+	>;
+
+}
+
+export type PreparedStudy = {
+	study:PublicStudy;
+	badge:GroupMember['badge'];
+	schedule?:PreparedSchedule;
+}
+
+export type SafeStudyForm = Pick<StudyForm, 'id' | 'translations' | 'intro' | 'title' | 'setup'>;
+export type SafeStudyContent = Pick<StudyContent, 'id' | 'translations' | 'title' | 'content'>;

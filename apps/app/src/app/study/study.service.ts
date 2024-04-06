@@ -3,8 +3,8 @@ import { Preferences } from '@capacitor/preferences';
 import { formatISO } from 'date-fns';
 import { BehaviorSubject, concat, EMPTY, forkJoin, from, Observable, of } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
+import { ParticipantAccount, PreparedStudy } from '../../../../../libs/core/src';
 import { LogEntry } from '../../interfaces/log.interface';
-import { Study, StudyDTO } from '../../interfaces/study.interface';
 import { ApiService } from '../core/api.service';
 import { CoreService } from '../core/core.service';
 
@@ -15,19 +15,17 @@ import { CoreService } from '../core/core.service';
 export class StudyService{
 
 	public studies$ = new BehaviorSubject<StudyService['studies']>( undefined );
-	public studies:Study[] | undefined;
+	public studies:PreparedStudy[] | undefined;
 
 	public preferences$ = new BehaviorSubject<StudyService['preferences']>( undefined );
 	public preferences:unknown | undefined;
 
 	public currentAccount:ParticipantAccount | undefined;
-	public study:StudyDTO | undefined;
 
 	constructor(
 		private api:ApiService,
 		private core:CoreService,
 	){
-		this.study$.subscribe( study => this.study = study );
 		this.studies$.subscribe( studies => this.studies = studies );
 		this.preferences$.subscribe( preferences => this.preferences = preferences );
 
@@ -43,7 +41,6 @@ export class StudyService{
 		this.core.logout$.subscribe( () => {
 			this.studies$.next( undefined );
 			this.preferences$.next( undefined );
-			this.study$.next( undefined );
 
 			Preferences.set( { key: 'studies', value: JSON.stringify( undefined ) } );
 			Preferences.set( { key: 'study.prefs', value: JSON.stringify( undefined ) } );
@@ -51,44 +48,55 @@ export class StudyService{
 	}
 
 
-	public getStudy():Observable<StudyDTO>{
+	// CONTINUE:
+	/*public getStudy():Observable<PublicStudy>{
+		//@ts-ignore
+		return undefined;
+
 		if( this.study )
 			return of( this.study );
 
-		return this.refreshStudy();
-	}
+		return this.refreshStudies();
+	}*/
 
-	public refreshStudy():Observable<StudyDTO>{
-		let stored:StudyDTO;
+	public refreshStudies():Observable<PreparedStudy[]>{
+		if( !this.currentAccount ){
+
+		}
+
+		let stored:PreparedStudy[];
+
 		return concat(
-			from( Preferences.get( { key: 'study' } ) )
-				.pipe( switchMap( studyRaw => {
+			from( Preferences.get( { key: 'studies' } ) )
+				.pipe( switchMap( studiesRaw => {
+					console.log( 'cached studies in refresh', studiesRaw );
 					try{
-						if( studyRaw?.value )
-							stored = JSON.parse( studyRaw.value );
+						if( studiesRaw?.value?.length )
+							stored = JSON.parse( studiesRaw.value );
 					}catch( e ){}
-					return stored ? of( stored ) : EMPTY;
+					return stored?.length ? of( stored ) : EMPTY;
 				} ) ),
 
 			!this.core.online$.value ? EMPTY :
-			this.api.get<StudyDTO>( 'foodstudy/study' )
+			this.api.get<PreparedStudy[]>( 'study/studies' )
 				.pipe(
-					tap( study => {
-						this.study = study;
-						if( study?.catalog?.version && stored?.catalog?.version === study?.catalog?.version )
-							return;
-
-						Preferences.set( { key: 'study', value: JSON.stringify( study ) } );
+					tap( studies => {
+						Preferences.set( { key: 'studies', value: JSON.stringify( studies ) } );
+						//						this.study = study;
+						//						if( study?.catalog?.version && stored?.catalog?.version === study?.catalog?.version )
+						//							return;
+						//
+						//						Preferences.set( { key: 'study', value: JSON.stringify( study ) } );
 					} ),
 				),
-		).pipe( tap( study => this.study$.next( study.study as any ) ) );
+		).pipe( tap( studies => this.studies$.next( studies ) ) );
 	}
 
-	public async restoreStudy():Promise<any>{
+	public async restoreStudy():Promise<void>{
 		const { value: studiesRaw } = await Preferences.get( { key: 'studies' } );
 		const { value: preferencesRaw } = await Preferences.get( { key: 'study.prefs' } );
 
-		let studies:Study[] | undefined;
+		let studies:PreparedStudy[] | undefined;
 		let preferences:unknown | undefined;
 
 		try{
@@ -102,9 +110,6 @@ export class StudyService{
 			return undefined;
 
 		this.studies$.next( studies );
-		this.studies$.next( studies );
-
-		return this.study;
 	}
 
 

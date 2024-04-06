@@ -1,6 +1,10 @@
-import type { PublicStudy, SafeParticipant, SafeUser } from '@nutritious/core';
-import type { Participant, Study, User } from '@prisma/client';
+import { Participant, Schedule, Slot, Step, Study, StudyContent, StudyForm, User } from '@prisma/client';
+import type { PublicStudy, SafeParticipant, SafeSchedule, SafeSlot, SafeStep, SafeStudyContent, SafeStudyForm, SafeUser } from '../../types';
 
+
+type a = keyof Schedule;
+type b = keyof SafeSchedule;
+type c = Exclude<a, b>;
 
 type CleanOptions<TClean, T> = {
 	keep?:Array<keyof TClean>,
@@ -9,18 +13,24 @@ type CleanOptions<TClean, T> = {
 }
 
 export function clean<
-	TClean extends Record<string, unknown>,
-	T extends TClean = TClean
+	TClean extends Record<PropertyKey, unknown>,
+	//	T extends Record<PropertyKey, unknown> = Record<PropertyKey, unknown>,
+	T extends TClean = TClean,
 >(
 	data:T,
-	opts:CleanOptions<TClean, T>,
+	//	opts:CleanOptions<TClean, T>,
+	opts:{
+		keep?:Array<keyof TClean>,
+		remove?:Array<keyof T>,
+		defaults?:boolean;
+	},
 ):TClean{
-	const clean = opts.keep ? {} as TClean : { ...data };
+	const clean = ( opts.keep ? {} : { ...data } ) as TClean;
 
 	if( opts.keep )
 		for( const key of opts.keep )
-			if( key in data && data[key] != null )
-				clean[key] = data[key];
+			if( key in data && data[key as keyof T] != null )
+				clean[key] = data[key as keyof T] as unknown as TClean[keyof TClean];
 
 	if( opts.remove )
 		for( const key of opts.remove )
@@ -30,14 +40,29 @@ export function clean<
 		for( const key of [ 'createdAt', 'updatedAt', 'state' ] )
 			delete clean[key as keyof TClean];
 
-	return clean as TClean;
+	return clean;
 };
 
 
 export class Sanitize{
 
+
 	static publicStudy( study:Study | PublicStudy ):PublicStudy{
 		return clean<PublicStudy>( study, { keep: [ 'id', 'name' ] } );
+	}
+
+	static safeSchedule( schedule:Schedule ):SafeSchedule{
+		return clean<SafeSchedule, Schedule>( schedule, { keep: [ 'id', 'daySetup', 'weekSetup' ], remove: [ 'createdAt' ] } );
+	}
+
+	static safeSlot( slot:Slot ):SafeSlot{
+		return clean<SafeSlot, Slot>( slot, {
+			remove: [ 'createdAt', 'updatedAt', 'scheduleId' ],
+		} );
+	}
+
+	static safeStep( step:Step ):SafeStep{
+		return clean( step, { keep: [ 'id', 'type', 'ref' ] } );
 	}
 
 	static safeUser( user:User | SafeUser ):SafeUser{
@@ -48,4 +73,11 @@ export class Sanitize{
 		return clean( participant, { keep: [ 'id', 'name', 'settings', 'lang', 'timeZone' ] } );
 	}
 
+	public static safeStudyContent( content:StudyContent ):SafeStudyContent{
+		return clean( content, { keep: [ 'id', 'title', 'content', 'translations' ] } );
+	}
+
+	public static safeStudyForm( form:StudyForm ):SafeStudyForm{
+		return clean( form, { keep: [ 'id', 'title', 'intro', 'setup', 'translations' ] } );
+	}
 }

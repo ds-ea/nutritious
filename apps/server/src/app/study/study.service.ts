@@ -1,14 +1,21 @@
 import { ConflictException, ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { AssociatedStudies, EntityState, type Group, GroupMember, type Participant, ParticipantCredentials, type Prisma, SignupCheckResponse, SignupResponse, Study, TimeFrame, type User } from '@nutritious/core';
+import { EntityState, type Group, type GroupMember, type Participant, type ParticipantCredentials, type PreparedSchedule, PreparedSlot, type PreparedStudy, type Prisma, SafeSlot, type Schedule, type SignupCheckResponse, type  SignupResponse, type Slot, type Step, type Study, StudyStepType, StudyStepTypes, type TimeFrame, type User } from '@nutritious/core';
 import { hash } from 'argon2';
 import dayjs from 'dayjs';
 import { nanoid } from 'nanoid';
 import generatePassword from 'omgopass';
+import { Nullable } from 'vitest';
 import { Sanitize } from '../../../../../libs/core/src/lib/data/sanitize';
 import { PrismaService } from '../core/services/db/prisma.service';
 
+
+type StepRefMap = {
+	[type:StudyStepTypes | string]:{
+		[ref:string]:unknown
+	}
+};
 
 @Injectable()
 export class StudyService{
@@ -190,7 +197,7 @@ export class StudyService{
 		return { participant, plainPassword };
 	}
 
-	public async getAssociatedStudies( participantId:Participant['id'] ):Promise<AssociatedStudies>{
+	public async prepareStudies( participantId:Participant['id'] ):Promise<PreparedStudy[]>{
 
 		const memberships = await this.prisma.groupMember.findMany( {
 			where: { participantId },
@@ -199,25 +206,91 @@ export class StudyService{
 		//		const groups = await this.prisma.group.findMany({where: {id: {in: memberships.map(m=>m.groupId)}}});
 		//		const studies = await this.prisma.study.findMany({where: {id: {in: memberships.map(m=>m.studyId)}}});
 
-		const associated:AssociatedStudies = [];
+		const studies:PreparedStudy[] = [];
 
 		for( const membership of memberships ){
-			console.log( membership );
-
 			if( membership.study.state !== EntityState.Enabled ||
 				membership.group.state !== EntityState.Enabled
 			)
 				continue;
 
-			associated.push( {
+			const schedule = await this.prepareSchedule( membership.group.scheduleId );
+
+
+			const prepared:PreparedStudy = {
 				study: Sanitize.publicStudy( membership.study ),
 				badge: membership.badge,
-			} );
+				schedule,
+			};
+
+			studies.push( prepared );
 
 		}
 
-		return associated;
+		return studies;
+	}
+
+	public prepareSlot( slot:Slot & { steps?:Step[] }, stepRefs:StepRefMap ):PreparedSlot{
+		const prepared:PreparedSlot = Sanitize.safeSlot( slot );
+
+		if( slot.steps ){
+			prepared.steps = slot.steps.map( Sanitize.safeStep );
+			for( const step of prepared.steps )
+				if( step.ref ){
+					if( !stepRefs[step.type] )
+						stepRefs[step.type] = {};
+
+					stepRefs[step.type][step.ref] = null;
+				}
+		}
+
+
+		return prepared;
+	}
+
+	public async prepareSchedule( scheduleId:Nullable<Schedule['id']> ):Promise<PreparedSchedule | undefined>{
+
+		if( !scheduleId )
+			return undefined;
+
+		const schedule = await this.prisma.schedule.findUnique( {
+			where: { id: scheduleId },
+		} );
+
+		if( !schedule )
+			return undefined;
+
+		const stepRefs:StepRefMap = {};
+
+		const slots:SafeSlot[] = await this.prisma.slot.findMany( { where: { scheduleId }, include: { steps: true } } )
+			.then( slots =>
+				slots.map( slot => this.prepareSlot( slot, stepRefs ),
+				) );
+
+
+		const prepared:PreparedSchedule = {
+			schedule: Sanitize.safeSchedule( schedule ),
+			slots,
+		};
+
+		if( Object.keys( stepRefs ).length ){
+			const preparedRefs:PreparedSchedule['refs'] = {};
+			for( const [ refType, refs ] of Object.entries( stepRefs ) ){
+				if( refType === StudyStepType.Form )
+					preparedRefs[refType] = await this.prisma.studyForm.findMany( { where: { id: { in: Object.keys( refs ) } } } )
+						.then( forms => forms.map( Sanitize.safeStudyForm ) );
+				else if( refType === StudyStepType.Content )
+					preparedRefs[refType] = await this.prisma.studyContent.findMany( { where: { id: { in: Object.keys( refs ) } } } )
+						.then( contents => contents.map( Sanitize.safeStudyContent ) );
+			}
+			prepared.refs = preparedRefs;
+		}
+
+		return prepared;
+
 	}
 
 
 }
+
+

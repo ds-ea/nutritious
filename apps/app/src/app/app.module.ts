@@ -24,6 +24,7 @@ import { AppComponent } from './app.component';
 import { ApiService } from './core/api.service';
 import { ConfigService } from './core/config.service';
 import { CoreService } from './core/core.service';
+import { StudyModule } from './study/study.module';
 import { UserModule } from './user/user.module';
 
 
@@ -87,6 +88,7 @@ export function appInitializerFactory( injector:Injector, translate:TranslateSer
 		} ),
 		MarkdownModule.forRoot(),
 		UserModule,
+		StudyModule,
 	],
 	providers: [
 		CoreService,

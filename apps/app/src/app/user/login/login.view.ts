@@ -9,45 +9,46 @@ import { CoreService } from '../../core/core.service';
 @Component( {
 	selector: 'app-login',
 	template: `
-					<ion-content class="content-centered">
+		<ion-content class="content-centered">
 
-						<mat-card>
-							<mat-card-title>{{ 'USER.AUTH.LOGIN_HEADING'|translate }}</mat-card-title>
-							<mat-card-content>
-								<form class="form-vertical" [formGroup]="loginForm">
-									<mat-form-field>
-										<mat-label>{{ 'USER.AUTH.LOGIN_USERNAME_LBL'|translate }}</mat-label>
-										<input matInput [placeholder]="'USER.AUTH.LOGIN_USERNAME_LBL'|translate"
-											   formControlName="login"
-										/>
-									</mat-form-field>
-									<mat-form-field>
-										<mat-label>{{ 'USER.AUTH.LOGIN_PASS_LBL'|translate }}</mat-label>
-										<input matInput type="password"
-											   formControlName="pass"
-											   [placeholder]="'USER.AUTH.LOGIN_PASS_LBL'|translate ">
-									</mat-form-field>
-									<mat-form-field>
-										<mat-label>{{ 'USER.AUTH.DOMAIN_LBL'|translate }}</mat-label>
-										<input matInput type="text"
-											   formControlName="domain"
-											   [placeholder]="'USER.AUTH.DOMAIN_LBL'|translate ">
-									</mat-form-field>
+			<mat-card>
+				<mat-card-title>{{ 'USER.AUTH.LOGIN_HEADING'|translate }}</mat-card-title>
+				<mat-card-content>
+					<form class="form-vertical" [formGroup]="loginForm">
+						<mat-form-field>
+							<mat-label>{{ 'USER.AUTH.LOGIN_USERNAME_LBL'|translate }}</mat-label>
+							<input matInput [placeholder]="'USER.AUTH.LOGIN_USERNAME_LBL'|translate"
+								   formControlName="login"
+							/>
+						</mat-form-field>
+						<mat-form-field>
+							<mat-label>{{ 'USER.AUTH.LOGIN_PASS_LBL'|translate }}</mat-label>
+							<input matInput type="password"
+								   formControlName="pass"
+								   [placeholder]="'USER.AUTH.LOGIN_PASS_LBL'|translate ">
+						</mat-form-field>
+						<mat-form-field>
+							<mat-label>{{ 'USER.AUTH.DOMAIN_LBL'|translate }}</mat-label>
+							<input matInput type="text"
+								   formControlName="domain"
+								   [placeholder]="'USER.AUTH.DOMAIN_LBL'|translate ">
+						</mat-form-field>
 
-									<div class="content-actions">
-										<button type="submit" mat-flat-button color="primary" (click)="login()"
-												[disabled]="!loginForm.valid"
-										>{{'USER.AUTH.LOGIN_BTN' | translate}}</button>
-									</div>
+						<div class="content-actions">
+							<button type="submit" mat-flat-button color="primary" (click)="login()"
+									[disabled]="!loginForm.valid"
+							>{{ 'USER.AUTH.LOGIN_BTN' | translate }}
+							</button>
+						</div>
 
-								</form>
-							</mat-card-content>
-							<mat-card-footer>
-								<a mat-flat-button color="accent" routerLink="/register" [replaceUrl]="true">{{ 'USER.AUTH.GOTO_REGISTRATION_BTN' | translate }}</a>
-							</mat-card-footer>
-						</mat-card>
-					</ion-content>
-	            `,
+					</form>
+				</mat-card-content>
+				<mat-card-footer>
+					<a mat-flat-button color="accent" routerLink="/register" [replaceUrl]="true">{{ 'USER.AUTH.GOTO_REGISTRATION_BTN' | translate }}</a>
+				</mat-card-footer>
+			</mat-card>
+		</ion-content>
+	`,
 } )
 export class LoginView implements OnInit{
 	public loginForm:UntypedFormGroup = new UntypedFormGroup( {

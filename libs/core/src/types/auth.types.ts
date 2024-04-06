@@ -4,6 +4,12 @@ import { Participant, User } from '@prisma/client';
 export type SafeUser = Pick<User, 'id' | 'name' | 'settings'>;
 export type SafeParticipant = Pick<Participant, 'id' | 'name' | 'settings' | 'lang' | 'timeZone'>;
 
+export type ParticipantAccount = {
+	host?:string;
+	hostName?:string;
+	participant:SafeParticipant;
+	token:string;
+};
 
 export type AuthUserCredentials = {
 	email:string;
@@ -26,7 +32,10 @@ export type AuthUserInfo =
 	| { participant:SafeParticipant };
 
 export type AuthLoginResponse =
-	{ access_token?:string; }
+	{
+		token?:string;
+		hostName?:string;
+	}
 	& AuthUserInfo
 	;
 

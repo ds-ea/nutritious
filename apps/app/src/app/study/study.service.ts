@@ -20,7 +20,7 @@ export class StudyService{
 	public preferences$ = new BehaviorSubject<StudyService['preferences']>( undefined );
 	public preferences:unknown | undefined;
 
-	public study$ = new BehaviorSubject<StudyService['study']>( undefined );
+	public currentAccount:ParticipantAccount | undefined;
 	public study:StudyDTO | undefined;
 
 	constructor(
@@ -30,6 +30,15 @@ export class StudyService{
 		this.study$.subscribe( study => this.study = study );
 		this.studies$.subscribe( studies => this.studies = studies );
 		this.preferences$.subscribe( preferences => this.preferences = preferences );
+
+		this.core.account$.subscribe( account => {
+			// act when active account has changed
+			if( account?.participant.id == this.currentAccount?.participant.id && account?.host == this.currentAccount?.host )
+				return;
+
+			this.currentAccount = account;
+			//			this.refreshStudies();
+		} );
 
 		this.core.logout$.subscribe( () => {
 			this.studies$.next( undefined );

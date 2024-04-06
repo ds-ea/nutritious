@@ -375,7 +375,7 @@ export class RegistrationView implements OnInit, OnDestroy{
 		const loader = await this.loading.create( { spinner: 'crescent' } );
 		loader.present();
 
-		this.core.login( this.loginForm.get( 'login' )?.value, this.loginForm.get( 'pass' )?.value )
+		this.core.login( this.loginForm.get( 'login' )?.value, this.loginForm.get( 'pass' )?.value, this.apiURLBase )
 			.subscribe( {
 				next: user => {
 					if( !user )

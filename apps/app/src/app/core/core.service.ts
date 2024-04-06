@@ -4,11 +4,11 @@ import { Router } from '@angular/router';
 import { Preferences } from '@capacitor/preferences';
 import { AlertController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
-import { BehaviorSubject, fromEvent, Observable } from 'rxjs';
-import { map, switchMap, tap } from 'rxjs/operators';
-import { AssociatedStudies, AuthLoginResponse, SafeParticipant, SignupCheckResponse, SignupResponse } from '../../../../../libs/core/src';
-import { User } from '../../interfaces/user.interfaces';
+import { BehaviorSubject, fromEvent, Observable, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
+import { AuthLoginResponse, ParticipantAccount, SignupCheckResponse, SignupResponse } from '../../../../../libs/core/src';
 import { ApiService } from './api.service';
+import { CoreState } from './types';
 
 
 @Injectable( {
@@ -16,16 +16,20 @@ import { ApiService } from './api.service';
 } )
 export class CoreService{
 
-	public user$ = new BehaviorSubject<CoreService['user']>( undefined );
-	public user:SafeParticipant | undefined;
+	public state$ = new BehaviorSubject<CoreState | undefined>( undefined );
+	public accounts$ = new BehaviorSubject<CoreService['accounts']>( undefined );
+	public accounts:ParticipantAccount[] | undefined;
+
+	public account$ = new BehaviorSubject<CoreService['account']>( undefined );
+	public account:ParticipantAccount | undefined;
 
 	public scannerUIPortal:Portal<any> | undefined;
 
 	public online$:BehaviorSubject<boolean>;
+	public logout$ = new EventEmitter<any>();
 
 	public currentLocale:string = 'de-DE';
 
-	public logout$ = new EventEmitter<any>();
 
 	constructor(
 		//		private storage:Storage,
@@ -34,7 +38,8 @@ export class CoreService{
 		public translate:TranslateService,
 		public router:Router,
 	){
-		this.user$.subscribe( user => this.user = user );
+		this.accounts$.subscribe( accounts => this.accounts = accounts );
+		this.account$.subscribe( account => this.account = account );
 
 		this.online$ = new BehaviorSubject<boolean>( navigator.onLine );
 		fromEvent( window, 'online' ).pipe( map( () => this.online$.next( true ) ) );
@@ -51,51 +56,83 @@ export class CoreService{
 
 
 	public async restoreAuth():Promise<any>{
-		const { value: userRaw } = await Preferences.get( { key: 'user' } );
-		const { value: token } = await Preferences.get( { key: 'auth.token' } );
+		const { value: accountsRaw } = await Preferences.get( { key: 'accounts' } );
+		const { value: stateRaw } = await Preferences.get( { key: 'state' } );
 
-		let user:SafeParticipant | undefined;
+		let accounts:ParticipantAccount[] | undefined;
+		let state:CoreState | undefined;
 		try{
-			user = userRaw ? JSON.parse( userRaw ) : undefined;
+			accounts = accountsRaw ? JSON.parse( accountsRaw ) : undefined;
+			state = stateRaw ? JSON.parse( stateRaw ) : undefined;
 		}catch( e ){
-			console.error( 'error parsing stored user', e );
+			console.error( 'error parsing stored account', e );
 		}
 
-		if( !user || !token )
+		if( !accounts?.length )
 			return undefined;
 
-		this.api.setToken( token );
-		this.user$.next( user );
+		const currentAccount = state?.participant ? accounts.find( ac => ac.participant.id == state?.participant ) : accounts[0];
+		if( !currentAccount )
+			return undefined;
 
-		return user;
+		state = Object.assign( state || {}, { participant: currentAccount.participant.id } as CoreState );
+
+		this.api.setToken( currentAccount.token );
+
+		this.accounts$.next( accounts );
+		this.account$.next( currentAccount );
+		this.state$.next( state );
+
+		return currentAccount;
 	}
 
 
-	public login( login:string, password:string ):Observable<User>{
-		return this.api.post<AuthLoginResponse>( 'auth/login', { participant: login, password } )
+	public login( login:string, password:string, domain?:string ):Observable<ParticipantAccount>{
+		return this.api.post<AuthLoginResponse>( 'auth/login', { participant: login, password }, {}, domain )
 			.pipe(
 				switchMap( loginResponse => {
-					const token = loginResponse?.access_token;
+					const token = loginResponse?.token;
 					if( !token )
 						throw new Error( 'ERR.NO_ACCESS_TOKEN' );
 
 					if( !( 'participant' in loginResponse ) || !loginResponse.participant )
 						throw new Error( 'ERR.NO_PARTICIPANT' );
 
-					Preferences.set( { key: 'auth.token', value: token } );
+					let accounts = this.accounts || [];
+
+					let account:ParticipantAccount = {
+						token,
+						host: domain,
+						hostName: loginResponse?.hostName,
+						participant: loginResponse.participant,
+					};
+
+					const existing = accounts.find( ac => ac.participant.id == loginResponse.participant.id );
+					if( existing )
+						account = Object.assign( existing, account );
+					else
+						accounts.push( account );
+
+					const state:CoreState = this.state$.value || {} as CoreState;
+					state.participant = loginResponse.participant.id;
+
+					Preferences.set( { key: 'accounts', value: JSON.stringify( accounts ) } );
+					Preferences.set( { key: 'state', value: JSON.stringify( state ) } );
+
 					this.api.setToken( token );
+					this.accounts$.next( accounts );
+					this.account$.next( account );
+					this.state$.next( state );
 
-					Preferences.set( { key: 'user', value: JSON.stringify( loginResponse.participant ) } );
-					this.user$.next( loginResponse.participant );
-
+					return of( account );
 					// fetch additional information about the participant
-					return this.api.get<AssociatedStudies>( 'study/studies' )
+					/*return this.api.get<AssociatedStudies>( 'study/studies' )
 						.pipe( tap( data => {
 							//							if( !( 'participant' in data ) || !data.participant )
 							//								throw new Error( 'ERR.NO_PARTICIPANT_DATA' );
 
 							//							Preferences.set( { key: 'user', value: JSON.stringify( data.participant ) } );
-						} ) );
+						} ) );*/
 				} ),
 			);
 	}
@@ -132,7 +169,8 @@ export class CoreService{
 		this.logout$.next( true );
 
 		this.api.setToken( undefined );
-		this.user$.next( undefined );
+		this.account$.next( undefined );
+		this.state$.next( undefined );
 
 		Preferences.clear();
 

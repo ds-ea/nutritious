@@ -109,7 +109,7 @@ export class AuthService{
 		const exp = dayjs().add( 30, 'minutes' ).unix();
 
 		return {
-			access_token: await this.jwtService.signAsync(
+			token: await this.jwtService.signAsync(
 				{ sub },
 				{
 					secret: this.config.get( 'JWT_SECRET' ),

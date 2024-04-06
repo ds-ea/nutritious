@@ -20,7 +20,7 @@ export class AuthController{
 
 		const authed = await this.auth.signIn( credentials );
 
-		if( !authed?.access_token )
+		if( !authed?.token )
 			throw new UnauthorizedException();
 
 		return authed;

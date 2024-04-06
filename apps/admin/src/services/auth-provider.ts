@@ -10,11 +10,11 @@ export default function( api:AdminClient, clearAuth:() => void ):AuthBindings{
 		login: async ( credentials:AuthUserCredentials ) => {
 			const response = await apiClient.auth.login( credentials );
 
-			if( response?.access_token
+			if( response?.token
 				&& ( 'user' in response )
 				&& response?.user
 			){
-				localStorage.setItem( 'auth.token', response.access_token );
+				localStorage.setItem( 'auth.token', response.token );
 				localStorage.setItem( 'auth.user', JSON.stringify( response.user ) );
 
 				return {

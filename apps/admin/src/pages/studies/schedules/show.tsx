@@ -1,4 +1,4 @@
-import { Prisma, Study, StudyContent, StudyForm } from '@nutritious/core';
+import { minutesToTime, Prisma, Study, StudyContent, StudyForm } from '@nutritious/core';
 import { Show } from '@refinedev/antd';
 import { IResourceComponentsProps, useList, useOne, useParsed, useShow } from '@refinedev/core';
 import { Card, Col, Descriptions, Divider, List, Row, Space, Timeline } from 'antd';
@@ -6,7 +6,7 @@ import { TimeLineItemProps } from 'antd/lib/timeline/TimelineItem';
 import React, { useEffect, useState } from 'react';
 import { WeekdayPicker } from '../../../components/form/WeekdayPicker';
 import { DetailsHeader } from '../../../components/header/DetailsHeader';
-import { minutesToTime, SlotItemContent, SlotWithListId } from '../../../components/schedule/ScheduleFormElements';
+import { SlotItemContent, SlotWithListId } from '../../../components/schedule/ScheduleFormElements';
 import { parseSchedule } from '../../../components/schedule/ScheduleTimeline';
 
 

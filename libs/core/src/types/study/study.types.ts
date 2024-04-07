@@ -1,4 +1,5 @@
 import type { Group, GroupMember, Participant, Schedule, Slot, Step, Study, StudyContent, StudyForm } from '@prisma/client';
+import { StudyStepTypes } from './step.types';
 
 
 export type PublicStudy = Pick<Study, 'id' | 'name'>;
@@ -33,7 +34,9 @@ export type SignupResponse = {
 
 export type SafeSchedule = Pick<Schedule, 'id' | 'daySetup' | 'weekSetup'>;
 
-export type SafeStep = Pick<Step, 'id' | 'type' | 'ref'>;
+export type SafeStep =
+	Pick<Step, 'id' | 'ref'>
+	& { type:StudyStepTypes };
 
 export type SafeSlot = Omit<Slot, 'createdAt' | 'updatedAt' | 'scheduleId' | 'schedule' | 'steps'>;
 export type PreparedSlot = SafeSlot & { steps?:SafeStep[] };

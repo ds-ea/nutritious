@@ -1,7 +1,7 @@
-import type { Schedule, Slot, StudyContent, StudyForm } from '@nutritious/core';
+import { minutesToTime, Schedule, Slot, StudyContent, StudyForm } from '@nutritious/core';
 import { TimeLineItemProps } from 'antd/lib/timeline/TimelineItem';
 import React from 'react';
-import { minutesToTime, SlotItemContent, SlotWithListId } from './ScheduleFormElements';
+import { SlotItemContent, SlotWithListId } from './ScheduleFormElements';
 
 
 export const parseSchedule = (

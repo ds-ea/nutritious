@@ -1,6 +1,6 @@
 import { ClockCircleOutlined, EditOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import { EmojiFoodBeverageOutlined, NewspaperOutlined, QuizOutlined } from '@mui/icons-material';
-import { Prisma, Schedule, Slot, Step, Study, StudyContent, StudyForm, StudyStepType } from '@nutritious/core';
+import { hoursToTime, Prisma, Schedule, Slot, Step, Study, StudyContent, StudyForm, StudyStepType } from '@nutritious/core';
 import { useList } from '@refinedev/core';
 import { Button, Card, Col, Descriptions, Divider, Form, FormProps, Input, List, Modal, Row, Select, Space, Tag, Timeline } from 'antd';
 import { TimeLineItemProps } from 'antd/lib/timeline/TimelineItem';
@@ -17,17 +17,6 @@ export type SlotUpdateDto = Partial<Slot> & { steps?:Partial<Step & { _remove?:b
 
 export type SlotWithListId<T extends SlotUpdateDto = SlotUpdateDto> = T & { _listId:string };
 
-
-export function hoursToTime( hours:number ):string{
-	return hours.toString().padStart( 2, '0' ) + ':00';
-}
-
-export function minutesToTime( minutes:number | null | undefined ):string{
-	if( minutes == null )
-		return '';
-
-	return `${ String( Math.floor( minutes / 60 ) ).padStart( 2, '0' ) }:${ String( minutes % 60 ).padStart( 2, '0' ) }`;
-}
 
 export function SlotItemContent( props:{
 	slot:SlotWithListId,

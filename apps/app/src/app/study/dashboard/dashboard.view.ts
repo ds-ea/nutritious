@@ -4,7 +4,7 @@ import { LoadingController } from '@ionic/angular';
 import dayjs from 'dayjs';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { minutesToTime, PreparedStudy, SafeSlot, StudyStepType, StudyStepTypes } from '../../../../../../libs/core/src';
+import { containsActionStep, containsOnlyContentSteps, minutesToTime, PreparedStudy, PublicStudy, SafeSlot } from '../../../../../../libs/core/src';
 import { StudyService } from '../study.service';
 
 
@@ -15,19 +15,13 @@ type TimelineItem = {
 } & DayAction;
 
 type DayAction = {
+	study?:PublicStudy;
 	slot?:SafeSlot;
 	title?:string;
 	state?:'upcoming' | 'todo' | 'done' | 'repeatable' | 'missed';
 	key?:SafeSlot['key'];
 }
 
-const actionStepTypes:StudyStepTypes[] = [
-	StudyStepType.BlsFood,
-	StudyStepType.Form,
-];
-const contentStepTypes:StudyStepTypes[] = [
-	StudyStepType.Content,
-];
 
 @Component( {
 	selector: 'app-dashboard',
@@ -62,11 +56,15 @@ const contentStepTypes:StudyStepTypes[] = [
 
 									@if (item.type === 'action' || item.type === 'content') {
 										<span class="actions">
-											<button mat-flat-button color="primary">
-												{{
-													item.type === 'action' ? 'log' : item.type === 'content' ? 'read' : ''
-												}}
-											</button>
+											@if (item.slot?.id) {
+												<button mat-flat-button color="primary"
+														[routerLink]="['slot', item.study!.id, item.slot!.id ]"
+												>
+													{{
+														item.type === 'action' ? 'log' : item.type === 'content' ? 'read' : ''
+													}}
+												</button>
+											}
 										</span>
 									}
 								</li>
@@ -82,9 +80,13 @@ const contentStepTypes:StudyStepTypes[] = [
 						<ul class="available-actions">
 							@for (action of availableActions; track action.slot) {
 								<li>
-									<button mat-flat-button color="accent">
-										{{ action.title || action.key }}
-									</button>
+									@if (action.slot?.id) {
+										<button mat-flat-button color="accent"
+												[routerLink]="['slot', action.study!.id,  action.slot!.id ]"
+										>
+											{{ action.title || action.key }}
+										</button>
+									}
 								</li>
 							}
 						</ul>
@@ -185,12 +187,14 @@ export class DashboardView implements OnInit{
 					time: startOfDay,
 					timeLabel: minutesToTime( startOfDay ),
 					title: 'Start of Day',
+					study: study.study,
 				} );
 				timelineItems.push( {
 					type: 'marker',
 					time: endOfDay,
 					timeLabel: minutesToTime( endOfDay ),
 					title: 'End of Day',
+					study: study.study,
 				} );
 
 
@@ -198,9 +202,8 @@ export class DashboardView implements OnInit{
 
 					allSlots.push( slot );
 
-					const isAction = slot.steps?.find( step => actionStepTypes.includes( step.type ) );
-					const isContent = slot.steps?.length && !( slot.steps?.find( step => !contentStepTypes.includes( step.type ) ) );
-
+					const isAction = containsActionStep( slot.steps );
+					const isContent = containsOnlyContentSteps( slot.steps );
 
 					if( slot.date ){
 						// TODO: implement "on date" functionality
@@ -212,6 +215,7 @@ export class DashboardView implements OnInit{
 
 						if( isAction )
 							allDayActions.push( {
+								study: study.study,
 								slot,
 								state: 'todo',
 								title: slot.name,
@@ -228,6 +232,7 @@ export class DashboardView implements OnInit{
 								time: startMinutes,
 								timeLabel: minutesToTime( startMinutes ),
 
+								study: study.study,
 								slot,
 								state: 'todo',
 								title: slot.name,
@@ -238,6 +243,7 @@ export class DashboardView implements OnInit{
 								type: 'content',
 								time: startMinutes,
 								timeLabel: minutesToTime( startMinutes ),
+								study: study.study,
 								slot,
 							} );
 
@@ -247,6 +253,7 @@ export class DashboardView implements OnInit{
 								time: startMinutes,
 								timeLabel: minutesToTime( startMinutes ),
 								title: slot.name || slot.key,
+								study: study.study,
 								slot,
 							} );
 						}

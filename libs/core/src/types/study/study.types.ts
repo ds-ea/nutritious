@@ -1,5 +1,7 @@
 import type { Group, GroupMember, Participant, Schedule, Slot, Step, Study, StudyContent, StudyForm } from '@prisma/client';
-import { StudyStepTypes } from './step.types';
+import { StudyStepType } from '../../lib/study';
+import { FormSetup } from './form.types';
+import { StepResponse, StudyStepTypes } from './step.types';
 
 
 export type PublicStudy = Pick<Study, 'id' | 'name'>;
@@ -38,18 +40,41 @@ export type SafeStep =
 	Pick<Step, 'id' | 'ref'>
 	& { type:StudyStepTypes };
 
-export type SafeSlot = Omit<Slot, 'createdAt' | 'updatedAt' | 'scheduleId' | 'schedule' | 'steps'>;
+//export type SafeSlot = Omit<Slot, 'createdAt' | 'updatedAt' | 'scheduleId' | 'schedule' | 'steps'>;
+export type SafeSlot = Pick<Slot,
+	'id' |
+	'key' |
+	'name' |
+	'translations' |
+	'obligatory' |
+	'event' |
+	'date' |
+	'availability' |
+	'frequency' |
+	'reminders' |
+	'dependsOn'>;
+
+
 export type PreparedSlot = SafeSlot & { steps?:SafeStep[] };
 
 export type PreparedSchedule = {
 	schedule:SafeSchedule;
 	slots:PreparedSlot[];
 	refs?:Partial<
-		& { form:SafeStudyForm[] }
-		& { content:SafeStudyContent[] }
+		& { [StudyStepType.Form]:SafeStudyForm[] }
+		& { [StudyStepType.Content]:SafeStudyContent[] }
+		& { [type:string]:{ id:string }[] }
 	>;
-
 }
+
+export type MatchedSlot = {
+	prepared:PreparedSlot;
+	refs:{
+		[StudyStepType.Form]?:Record<SafeStudyForm['id'], SafeStudyForm>,
+		[StudyStepType.Content]?:Record<SafeStudyContent['id'], SafeStudyContent>,
+	} & { [type:string]:Record<string, unknown> };
+}
+
 
 export type PreparedStudy = {
 	study:PublicStudy;
@@ -57,5 +82,13 @@ export type PreparedStudy = {
 	schedule?:PreparedSchedule;
 }
 
-export type SafeStudyForm = Pick<StudyForm, 'id' | 'translations' | 'intro' | 'title' | 'setup'>;
+export type SafeStudyForm = Pick<StudyForm, 'id' | 'translations' | 'intro' | 'title'>
+	& { setup:FormSetup };
+
 export type SafeStudyContent = Pick<StudyContent, 'id' | 'translations' | 'title' | 'content'>;
+
+
+
+export type SubmitResponsesPayload = {
+	responses:( StepResponse & { _study:Study['id'] } )[];
+}

@@ -41,7 +41,7 @@ export function clean<
 			delete clean[key as keyof TClean];
 
 	return clean;
-};
+}
 
 
 export class Sanitize{
@@ -62,7 +62,7 @@ export class Sanitize{
 	}
 
 	static safeStep( step:Step ):SafeStep{
-		return clean( step, { keep: [ 'id', 'type', 'ref' ] } );
+		return clean( step as unknown as SafeStep, { keep: [ 'id', 'type', 'ref' ] } );
 	}
 
 	static safeUser( user:User | SafeUser ):SafeUser{
@@ -78,6 +78,6 @@ export class Sanitize{
 	}
 
 	public static safeStudyForm( form:StudyForm ):SafeStudyForm{
-		return clean( form, { keep: [ 'id', 'title', 'intro', 'setup', 'translations' ] } );
+		return clean( form as unknown as SafeStudyForm, { keep: [ 'id', 'title', 'intro', 'setup', 'translations' ] } );
 	}
 }

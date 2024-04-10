@@ -72,7 +72,6 @@ export function appInitializerFactory( injector:Injector, translate:TranslateSer
 	imports: [
 		BrowserModule,
 		IonicModule.forRoot(),
-		AppRoutingModule,
 		BrowserAnimationsModule,
 		HttpClientModule,
 		PlatformModule,
@@ -89,6 +88,7 @@ export function appInitializerFactory( injector:Injector, translate:TranslateSer
 		MarkdownModule.forRoot(),
 		UserModule,
 		StudyModule,
+		AppRoutingModule,
 	],
 	providers: [
 		CoreService,

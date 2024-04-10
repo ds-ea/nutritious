@@ -1,11 +1,67 @@
-.form-vertical{
+@use '@angular/material' as mat;
+
+.form-vertical {
 	display: flex;
 	flex-direction: column;
 }
 
 
 input.mat-input-element,
-textarea.mat-input-element
-{
+textarea.mat-input-element {
 	//border-bottom: 1px solid ;
+}
+
+
+.study-form {
+	.question {
+		display: flex;
+		flex-direction: column;
+		justify-content: stretch;
+
+		margin-block: 2rem;
+		padding-block-start: 2rem;
+
+		+ .question {
+			border-block-start: 1px solid #eee;
+		}
+
+		> label {
+			font-size: 1.2rem;
+			margin-block-end: 1rem;
+		}
+
+		> .description {
+			margin-block-end: 1rem;
+		}
+
+		.form-control {
+			mat-form-field {
+				width: 100%;
+			}
+
+			mat-slider {
+				width: 100%;
+			}
+
+			.form-choice-checkboxes {
+				list-style-type: none;
+				padding: 0;
+				margin: 0;
+
+				display: grid;
+				grid-template-columns: 1fr;
+
+				@media only screen and (min-width: 450px) {
+
+					grid-template-columns: 1fr 1fr;
+				}
+			}
+		}
+
+		&.invalid.touched {
+			> label {
+				color: mat.get-theme-color($light-theme, warn, text);
+			}
+		}
+	}
 }

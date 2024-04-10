@@ -44,7 +44,7 @@ export interface FormItem{
 
 // @formatter:off
 // prettier-ignore
-type InputRelatedConfig<T extends FormInputTypes>
+export type InputRelatedConfig<T extends FormInputTypes>
 	= T extends FormInputType.Slider  ? FormInputConfigSlider
 	: T extends FormInputType.Text  ? FormInputConfigText
 	: T extends FormInputType.Number  ? FormInputConfigNumber

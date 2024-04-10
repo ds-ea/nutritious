@@ -1,6 +1,5 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { MealItem } from '../../../../interfaces/log.interface';
-
+import { MealItem } from '../../../../../interfaces/log.interface';
 
 
 @Component( {

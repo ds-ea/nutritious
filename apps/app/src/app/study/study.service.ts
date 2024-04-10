@@ -3,7 +3,7 @@ import { Preferences } from '@capacitor/preferences';
 import { formatISO } from 'date-fns';
 import { BehaviorSubject, concat, EMPTY, forkJoin, from, Observable, of } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
-import { ParticipantAccount, PreparedStudy } from '../../../../../libs/core/src';
+import { MatchedSlot, ParticipantAccount, PreparedSlot, PreparedStudy, SafeSlot, SubmitResponsesPayload } from '../../../../../libs/core/src';
 import { LogEntry } from '../../interfaces/log.interface';
 import { ApiService } from '../core/api.service';
 import { CoreService } from '../core/core.service';
@@ -113,6 +113,12 @@ export class StudyService{
 	}
 
 
+
+	public submitResponses( responses:SubmitResponsesPayload ){
+		return this.api.post( 'study/responses', responses );
+	}
+
+
 	/**
 	 * submit log entry and return information what was and what has note yet been submitted
 	 * @param log
@@ -173,5 +179,54 @@ export class StudyService{
 	}
 
 
+
+	public async getSlot( slotId:SafeSlot['id'] ):Promise<MatchedSlot | undefined>{
+		if( !this.studies?.length )
+			return undefined;
+
+		let study:PreparedStudy | undefined;
+		let slot:PreparedSlot | undefined;
+		let refs:MatchedSlot['refs'] = {};
+
+		for( const preparedStudy of this.studies ){
+			if( !preparedStudy.schedule?.slots )
+				continue;
+
+			for( const scheduleSlot of preparedStudy.schedule.slots ){
+				if( scheduleSlot.id != slotId )
+					continue;
+
+				study = preparedStudy;
+				slot = scheduleSlot;
+			}
+
+			if( slot )
+				break;
+		}
+
+		if( !slot )
+			return undefined;
+
+		if( slot.steps?.length )
+			for( const step of slot.steps ){
+				if( !step.ref )
+					continue;
+
+				if( !study?.schedule?.refs || !( step.type in study.schedule.refs ) )
+					continue;
+
+				if( !( step.type in refs ) || !refs[step.type] )
+					refs[step.type] = {};
+
+				const typeRefs = refs[step.type]!;
+
+				const refData = study.schedule.refs[step.type]?.find( ref => ref.id == step.ref );
+				if( refData )
+					typeRefs[step.ref] = refData;
+
+			}
+
+		return { prepared: slot, refs };
+	}
 
 }

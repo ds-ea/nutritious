@@ -1,13 +1,12 @@
 import { ConflictException, ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { EntityState, type Group, type GroupMember, type Participant, type ParticipantCredentials, type PreparedSchedule, PreparedSlot, type PreparedStudy, type Prisma, SafeSlot, type Schedule, type SignupCheckResponse, type  SignupResponse, type Slot, type Step, type Study, StudyStepType, StudyStepTypes, type TimeFrame, type User } from '@nutritious/core';
+import { EntityState, type Group, type GroupMember, type Participant, type ParticipantCredentials, type PreparedSchedule, PreparedSlot, type PreparedStudy, type Prisma, SafeSlot, Sanitize, type Schedule, type SignupCheckResponse, type  SignupResponse, type Slot, type Step, type Study, StudyStepType, StudyStepTypes, SubmitResponsesPayload, type TimeFrame, type User } from '@nutritious/core';
 import { hash } from 'argon2';
 import dayjs from 'dayjs';
 import { nanoid } from 'nanoid';
 import generatePassword from 'omgopass';
 import { Nullable } from 'vitest';
-import { Sanitize } from '../../../../../libs/core/src/lib/data/sanitize';
 import { PrismaService } from '../core/services/db/prisma.service';
 
 
@@ -291,6 +290,26 @@ export class StudyService{
 	}
 
 
+	public async recordResponses( participantId:Participant['id'], payload:SubmitResponsesPayload ){
+
+		const data:Prisma.ResponseCreateManyInput[] = [];
+
+		for( const submittedResponse of payload.responses ){
+			const { _study: studyId, ...response } = submittedResponse;
+
+			data.push( {
+				stepId: response.step,
+				slotId: response.slot,
+				participantId,
+				data: response.data as Prisma.InputJsonValue,
+			} );
+		}
+
+		const created = await this.prisma.response.createMany( { data: data } );
+		console.log( 'crea', created );
+
+		return Promise.resolve( undefined );
+	}
 }
 
 

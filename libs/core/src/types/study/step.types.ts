@@ -11,6 +11,7 @@ export type StepResponse<T = unknown> = {
 	participant?:SafeParticipant['id'];
 
 	step:SafeStep['id'];
+	type:SafeStep['type'] | string;
 
 	slot:SafeSlot['id'];
 	slotKey?:SafeSlot['key'];

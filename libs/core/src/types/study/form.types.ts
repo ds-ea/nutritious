@@ -75,3 +75,8 @@ export interface FormContent extends FormItem{
 export type FormSetup = {
 	items:( FormQuestion | FormContent )[];
 }
+
+
+export type FormResponseData = {
+	answers:Record<string, unknown>;
+}

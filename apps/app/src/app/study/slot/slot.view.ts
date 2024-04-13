@@ -38,7 +38,6 @@ import { StepMealBlsComponent } from './steps/step-meal-bls.component';
 					/>
 
 					<footer class="view-footer">
-						progress: {{ (stepProgress | async) |json }}
 						<button mat-flat-button color="primary" (click)="completeStep()">
 							{{ (isContentOnly && lastStep ? ('LOG.SUMMARY.GOTO_DASHBOARD_BTN_' + rndBtnNum) : 'GENERIC.CONTINUE_BTN') | translate }}
 						</button>
@@ -90,7 +89,7 @@ export class SlotView implements OnInit, OnDestroy{
 
 
 	public responses:Record<string, StepResponse> = {};
-	public currentResponse:Record<PropertyKey, unknown> = {};
+	public currentResponse:Record<PropertyKey, unknown> | undefined = undefined;
 
 
 	public stepProgress = new BehaviorSubject<StepProgress | undefined>( undefined );
@@ -182,11 +181,18 @@ export class SlotView implements OnInit, OnDestroy{
 	}
 
 	public onStepComplete( event:StepCompleteEvent<unknown> ):void{
+		const step = event.stepId ? this.steps.find( s => s.id == event.stepId ) : undefined;
+		if( !step ){
+			// TODO: escalate
+			console.error( 'slot step completed, but no matching step found: ', { event, knownSteps: this.steps } );
+		}
 
 		const now = dayjs().toISOString();
 
 		this.responses[event.stepId] = {
 			step: event.stepId,
+			type: step?.type || 'unknown',
+
 			slot: this.slot!.prepared.id,
 
 			data: event.data,
@@ -194,8 +200,6 @@ export class SlotView implements OnInit, OnDestroy{
 			created: now,
 			updated: now,
 		};
-
-
 
 		this.stepIndex++;
 
@@ -217,14 +221,15 @@ export class SlotView implements OnInit, OnDestroy{
 
 	public async submit(){
 
-		await this.loader.present();
+		const submittableResponses = Object.values( this.responses ).filter( r => r.data != null );
 
-		if( !Object.values( this.responses ).length ){
+		if( !submittableResponses.length ){
 			this.router.navigateByUrl( '/study' );
 			return;
 		}
 
-		const responses = Object.values( this.responses )
+		await this.loader.present();
+		const responses = submittableResponses
 			.map(
 				response => ( { ...response, _study: this.study!.id } ),
 			);

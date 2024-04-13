@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, EventEmitter } from '@angular/core';
-import { SafeStudyForm } from '../../../../../../../libs/core/src';
+import { FormResponseData, SafeStudyForm } from '../../../../../../../libs/core/src';
 import { StudyFormSubmitResult } from '../../components/form/study-form.component';
 import { AbstractStepComponent, StepProgress } from './abstract-step.component';
 
@@ -17,12 +17,11 @@ import { AbstractStepComponent, StepProgress } from './abstract-step.component';
 
 	`,
 } )
-export class StepFormComponent extends AbstractStepComponent<SafeStudyForm, Record<string, unknown>>{
+export class StepFormComponent extends AbstractStepComponent<SafeStudyForm, FormResponseData>{
 
 	public triggerValidation = new EventEmitter<boolean>();
 
 	protected override _progress:StepProgress = { state: 'pending' };
-
 
 	public updateState( state:StepProgress ){
 		this.progress = { state: state.state };

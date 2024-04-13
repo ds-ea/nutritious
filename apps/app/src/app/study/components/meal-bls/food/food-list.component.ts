@@ -5,12 +5,21 @@ import { TranslateService } from '@ngx-translate/core';
 
 import Fuse from 'fuse.js';
 import * as fuzzysort from 'fuzzysort';
-import { ReplaySubject, Subject } from 'rxjs';
-import { catchError, debounceTime, takeUntil, tap } from 'rxjs/operators';
-import { FoodLibraryItem, MealItem } from '../../../../../interfaces/log.interface';
+import { lastValueFrom, ReplaySubject, Subject } from 'rxjs';
+import { catchError, debounceTime, takeUntil } from 'rxjs/operators';
+import { BLSMealItem } from '../../../../../../../../libs/core/src';
 import { FoodListMealItemEditorComponent } from './food-list-meal-item-editor.component';
 
 
+interface FoodLibraryItem{
+	//	id:BLSMealItem['foodId'];
+	key:BLSMealItem['blsKey'];
+
+	de?:string;
+	en?:string;
+
+	_fuzzy?:unknown;
+}
 
 @Component( {
 	selector: 'app-food-list',
@@ -19,7 +28,7 @@ import { FoodListMealItemEditorComponent } from './food-list-meal-item-editor.co
 		<ion-list class="meal-items">
 			<ion-item-sliding *ngFor="let item of mealItems" (click)="editFood(item, $event)">
 				<div class="meal-item">
-					<span class="name">{{ item._food?.[this.langKey] || item.foodKey }}</span>
+					<span class="name">{{ foodsDict[item.blsKey][this.langKey] || item.blsKey }}</span>
 					<span class="quantity">
 						<span class="value">{{ item.quantity }}</span>
 						<span class="unit">{{ item.unit || '' }}</span>
@@ -30,7 +39,7 @@ import { FoodListMealItemEditorComponent } from './food-list-meal-item-editor.co
 
 		<ion-skeleton-text animated *ngIf="busy"></ion-skeleton-text>
 
-		<div class="search" *ngIf="available?.length">
+		<div class="search" *ngIf="foods?.length">
 			<div class="results-anchor">
 				<div class="search-results" *ngIf="matches?.length">
 					<ion-list>
@@ -57,7 +66,7 @@ import { FoodListMealItemEditorComponent } from './food-list-meal-item-editor.co
 			></ion-searchbar>
 		</div>
 
-		<div class="alert" *ngIf="!busy && !available?.length">
+		<div class="alert" *ngIf="!busy && !foods?.length">
 			{{ 'LOG.MEAL.FOOD_LIBRARY_UNAVAILABLE_ERR' | translate }}
 		</div>
 
@@ -74,20 +83,21 @@ export class FoodListComponent implements OnInit, OnDestroy{
 	public busy = false;
 	public langKey:'de' | 'en' = 'en';
 
-	@Input() mealItems:MealItem[] = [];
-	@Output() mealItemsChange = new EventEmitter<MealItem[]>();
+	@Input() mealItems:BLSMealItem[] = [];
+	@Output() mealItemsChange = new EventEmitter<BLSMealItem[]>();
 
-	public available:FoodLibraryItem[] = [];
+	public foods:FoodLibraryItem[] = [];
+	public foodsDict:Record<BLSMealItem['blsKey'], FoodLibraryItem> = {};
+
 	public matches:FoodLibraryItem[] = [];
 
 	public fuse:Fuse<FoodLibraryItem> | undefined;
-	public fuzzyPrepared:any | undefined;
 
 	public searchTrigger = new Subject<any>();
 	public searchTerm = '';
 	public searchLimit = 50;
 
-	public selectedMealItem:MealItem | undefined;
+	public selectedMealItem:BLSMealItem | undefined;
 
 
 	constructor(
@@ -127,7 +137,7 @@ export class FoodListComponent implements OnInit, OnDestroy{
 			.pipe(
 				takeUntil( this._destroyed$ ),
 				debounceTime( 100 ),
-				tap( e => console.log( 'se', e ) ),
+				//				tap( e => console.log( 'se', e ) ),
 			)
 			.subscribe( () => this.search( this.searchTerm ) );
 
@@ -140,12 +150,12 @@ export class FoodListComponent implements OnInit, OnDestroy{
 	private async loadData(){
 		this.busy = true;
 		this.cdr.markForCheck();
-		const data = await this.http.get<FoodLibraryItem[]>( 'assets/data/food.json' )
+
+		const data = await lastValueFrom( this.http.get<FoodLibraryItem[]>( 'assets/data/food.json' )
 			.pipe( catchError( err => {
 				console.error( 'unable to load food library', err );
 				return [];
-			} ) )
-			.toPromise();
+			} ) ) );
 
 		if( !data ){
 			console.error( 'no food library data' );
@@ -164,9 +174,13 @@ export class FoodListComponent implements OnInit, OnDestroy{
 			shouldSort: true,
 		} );
 
-		this.fuzzyPrepared = data.forEach( item => item._fuzzy = fuzzysort.prepare( item[this.langKey] as any ) );
 
-		this.available = data ?? [];
+		this.foods = data ?? [];
+		for( const item of this.foods ){
+			item._fuzzy = fuzzysort.prepare( item[this.langKey] as any );
+			this.foodsDict[item.key] = item;
+		}
+
 		this.busy = false;
 		this.cdr.markForCheck();
 	}
@@ -187,7 +201,7 @@ export class FoodListComponent implements OnInit, OnDestroy{
 			const result = this.fuse?.search( <string> term );
 			this.matches = result?.slice( 0, this.searchLimit ).map( r => r.item ) || [];
 		}else{
-			const result = fuzzysort.go( term, this.available, { key: '_fuzzy' } );
+			const result = fuzzysort.go( term, this.foods, { key: '_fuzzy' } );
 			this.matches = result?.slice( 0, this.searchLimit ).map( r => r.obj );
 		}
 
@@ -196,17 +210,17 @@ export class FoodListComponent implements OnInit, OnDestroy{
 
 	public selectFood( food:FoodLibraryItem ){
 		this.resetSearch();
-		const item:MealItem = {
-			foodID: food.id,
-			foodKey: food.key,
-			quantity: undefined,
 
-			_food: food,
+		const item:BLSMealItem = {
+			//			foodId: food.id,
+			blsKey: food.key,
+			quantity: undefined,
 		};
+
 		this.mealItems.push( item );
 		this.mealItems.sort( ( a, b ) => {
-			const aName = a._food?.[this.langKey] || a.foodKey;
-			const bName = b._food?.[this.langKey] || b.foodKey;
+			const aName = this.foodsDict[a.blsKey]?.[this.langKey] || a.blsKey;
+			const bName = this.foodsDict[b.blsKey]?.[this.langKey] || b.blsKey;
 			return aName?.localeCompare( bName );
 		} );
 
@@ -215,7 +229,7 @@ export class FoodListComponent implements OnInit, OnDestroy{
 		this.mealItemsChange.next( this.mealItems );
 	}
 
-	public async editFood( item:MealItem, event?:Event ){
+	public async editFood( item:BLSMealItem, event?:Event ){
 		this.selectedMealItem = item;
 		let popover:HTMLIonPopoverElement;
 
@@ -240,11 +254,11 @@ export class FoodListComponent implements OnInit, OnDestroy{
 
 	}
 
-	public async removeFood( itemToRemove:MealItem ){
+	public async removeFood( itemToRemove:BLSMealItem ){
 		const alert = await this.alertController.create( {
 			message: this.translate.instant(
 				'LOG.MEAL.CONFIRM_REMOVE_MEAL_ITEM_MSG',
-				{ name: itemToRemove._food?.[this.langKey] || itemToRemove.foodKey },
+				{ name: this.foodsDict[itemToRemove.blsKey]?.[this.langKey] || itemToRemove.blsKey },
 			),
 			buttons: [ 'Cancel', 'OK' ],
 		} );

@@ -17,3 +17,19 @@ export enum FormInputNecessity{
 	Should = 'should',
 	Ignore = 'ignore'
 }
+
+
+
+export enum BLSMealType{
+	Breakfast = 'breakfast',
+	Lunch = 'lunch',
+	Dinner = 'dinner',
+	Snack = 'snack',
+}
+
+export enum BLSAttendanceOption{
+	Alone_Idle = 'alone_idle',
+	Alone_Busy = 'alone_busy',
+	Two = 'two',
+	More = 'more',
+}

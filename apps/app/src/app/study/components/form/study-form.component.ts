@@ -4,7 +4,7 @@ import { AlertController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { ReplaySubject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
-import { FormContent, FormInputType, FormQuestion, FormSetup, SafeStudyForm } from '../../../../../../../libs/core/src';
+import { FormContent, FormInputType, FormQuestion, FormResponseData, FormSetup, SafeStudyForm } from '../../../../../../../libs/core/src';
 import { StepProgress, StepProgressState } from '../../slot/steps/abstract-step.component';
 import { AbstractInput } from './inputs/abstract-input';
 import { BinaryInput } from './inputs/binary.input';
@@ -15,7 +15,7 @@ import { TextInput } from './inputs/text.input';
 
 
 export type StudyFormSubmitResult = {
-	data:Record<string, unknown>,
+	data:FormResponseData,
 	skippedOptionals:boolean
 };
 
@@ -100,7 +100,7 @@ export class StudyFormComponent implements OnInit, OnDestroy, OnChanges{
 	form:SafeStudyForm | undefined;
 
 	@Input()
-	data?:Record<string, unknown>;
+	data?:FormResponseData;
 
 	@Input()
 	triggerValidation?:EventEmitter<boolean>;
@@ -179,7 +179,7 @@ export class StudyFormComponent implements OnInit, OnDestroy, OnChanges{
 				validators.push( this._validateOptional.bind( this ) );
 
 			controls[question.key] = new FormControl(
-				this.data?.[question.key] ?? '',
+				this.data?.answers?.[question.key] ?? '',
 				{ validators },
 			);
 
@@ -312,7 +312,7 @@ export class StudyFormComponent implements OnInit, OnDestroy, OnChanges{
 			return;
 
 		this._submit.next( {
-			data: this.formGroup?.value,
+			data: { answers: this.formGroup?.value },
 			skippedOptionals: this.skippedOptionals,
 		} );
 	}

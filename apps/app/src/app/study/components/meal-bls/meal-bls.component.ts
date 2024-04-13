@@ -1,24 +1,33 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatSelectionListChange } from '@angular/material/list';
 import { ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
-import { addMinutes, formatISO, parseISO } from 'date-fns';
-import { Subject } from 'rxjs';
-import { AttendanceOption, LogEntry, MealItem, MealType } from '../../../../interfaces/log.interface';
+import { addMinutes, formatISO } from 'date-fns';
+import { ReplaySubject, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { BLSAttendanceOption, BLSMealItem, BLSMealType, MealBLSResponseData, SafeStudyForm } from '../../../../../../../libs/core/src';
 import { CoreService } from '../../../core/core.service';
+import { StepProgress } from '../../slot/steps/abstract-step.component';
+
+
+export type MealBLSSubmitResult = {
+	data:MealBLSResponseData,
+};
+
 
 
 @Component( {
 	selector: 'meal-bls',
+	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
-		<form [formGroup]="mealLogForm" (ngSubmit)="confirmStep()" autocomplete="off">
+		<form [formGroup]="mealForm" (ngSubmit)="submit" autocomplete="off">
 			<mat-accordion class="accordion-desc-right">
 
 				<mat-expansion-panel [expanded]="formStep === 0" (opened)="showControl(0)" hideToggle>
 					<mat-expansion-panel-header>
 						<mat-panel-title>{{ 'LOG.MEAL.DATE_LBL' | translate }}</mat-panel-title>
-						<mat-panel-description>{{ mealLogForm.get('date')?.value | dfnsParseIso | dfnsFormatRelativePure : now }}</mat-panel-description>
+						<mat-panel-description>{{ mealForm.get('date')?.value | dfnsParseIso | dfnsFormatRelativePure : now }}</mat-panel-description>
 					</mat-expansion-panel-header>
 					<ion-datetime formControlName="date"
 								  [max]="maxDate"
@@ -26,17 +35,17 @@ import { CoreService } from '../../../core/core.service';
 					></ion-datetime>
 
 					<div class="step-actions">
-						<button mat-flat-button color="accent" (click)="nextControl()">{{ 'GENERIC.CONFIRM_BTN' | translate }}</button>
+						<a mat-flat-button color="accent" (click)="nextControl()">{{ 'GENERIC.CONFIRM_BTN' | translate }}</a>
 					</div>
 				</mat-expansion-panel>
 
 				<mat-expansion-panel [expanded]="formStep === 1" (opened)="showControl(1)" hideToggle>
 					<mat-expansion-panel-header>
 						<mat-panel-title>{{ 'LOG.MEAL.MEAL_LBL' | translate }}</mat-panel-title>
-						<mat-panel-description *ngIf="mealLogForm.get( 'meal' )?.value">{{ ('ENUM.MEAL_TYPE.' + mealLogForm.get('meal')?.value) | uppercase | translate }}</mat-panel-description>
+						<mat-panel-description *ngIf="mealForm.get( 'meal' )?.value">{{ ('ENUM.MEAL_TYPE.' + mealForm.get('meal')?.value) | uppercase | translate }}</mat-panel-description>
 					</mat-expansion-panel-header>
 					<mat-selection-list [multiple]="false" (selectionChange)="selectMeal($event)">
-						<mat-list-option *ngFor="let mealType of mealTypes" [value]="mealType" [selected]="mealType === mealLogForm.get( 'meal' )?.value">
+						<mat-list-option *ngFor="let mealType of mealTypes" [value]="mealType" [selected]="mealType === mealForm.get( 'meal' )?.value">
 							{{ ('ENUM.MEAL_TYPE.' + mealType) | uppercase | translate }}
 						</mat-list-option>
 					</mat-selection-list>
@@ -48,7 +57,7 @@ import { CoreService } from '../../../core/core.service';
 						<mat-panel-description *ngIf="selectedAttendance">{{ ('ENUM.MEAL_ATTEND.' + selectedAttendance[0]) | uppercase | translate }}</mat-panel-description>
 					</mat-expansion-panel-header>
 					<mat-selection-list [multiple]="false" (selectionChange)="selectAttendance($event)">
-						<mat-list-option *ngFor="let attendOption of attendanceOptions" [value]="attendOption" [selected]="attendOption[1] === mealLogForm.get( 'attend' )?.value">
+						<mat-list-option *ngFor="let attendOption of attendanceOptions" [value]="attendOption" [selected]="attendOption[1] === mealForm.get( 'attend' )?.value">
 							{{ ('ENUM.MEAL_ATTEND.' + attendOption[0]) | uppercase | translate }}
 						</mat-list-option>
 					</mat-selection-list>
@@ -67,84 +76,85 @@ import { CoreService } from '../../../core/core.service';
 
 			</mat-accordion>
 
-			<footer class="log-footer">
+			<!--<footer class="log-footer">
 				<button mat-flat-button color="primary" [disabled]="mealLogForm.invalid || !mealItems.length"
 						type="submit"
 				>{{ 'GENERIC.CONTINUE_BTN' | translate }}
 				</button>
-			</footer>
+			</footer>-->
 		</form>
 
 	`,
-	styles: [],
-	changeDetection: ChangeDetectionStrategy.OnPush,
 } )
 export class MealBlsComponent implements OnInit{
+
+
+	private _destroyed$ = new ReplaySubject<boolean>( 1 );
+
+	@Input()
+	form:SafeStudyForm | undefined;
+
+	@Input()
+	data?:MealBLSResponseData;
+
+	@Input()
+	triggerValidation?:EventEmitter<boolean>;
+
+	@Output()
+	state = new EventEmitter<StepProgress>();
+
+	@Output( 'submit' )
+	_submit = new EventEmitter<MealBLSSubmitResult>();
+
+
+
 	public formStep = 0;
 
 	public now = new Date();
 	public maxDate = formatISO( addMinutes( new Date(), 20 ) );
 
-	public mealTypes = Object.values( MealType );
-	public attendanceOptions = Object.entries( AttendanceOption );
+	public mealTypes = Object.values( BLSMealType );
+	public attendanceOptions = Object.entries( BLSAttendanceOption );
 
-	public mealLogForm = new UntypedFormGroup( {
+	public mealForm = new UntypedFormGroup( {
 		date: new UntypedFormControl( '', Validators.required ),
 		meal: new UntypedFormControl( '', Validators.required ),
 		attend: new UntypedFormControl( '', Validators.required ),
 	} );
 
-	public mealItems:MealItem[] = [];
+	public mealItems:BLSMealItem[] = [];
 
 	public focusSearch = new Subject<any>();
 
+	public selectedAttendance:[ string, number ] | undefined;
 
-	@Input() log:LogEntry | undefined;
-	@Output() done = new EventEmitter<LogEntry | undefined>();
 
 	constructor(
 		public core:CoreService,
 		public translate:TranslateService,
 		public toastController:ToastController,
+		private cdr:ChangeDetectorRef,
 	){ }
 
-	public selectedAttendance:[ string, number ] | undefined;
 
 
 	ngOnInit():void{
 		const now = new Date();
-		this.mealLogForm.patchValue( {
+		this.mealForm.patchValue( {
 			date: formatISO( now ),
 			meal: '',
 			attend: undefined,
 		} );
+
+		this.triggerValidation
+			?.pipe( takeUntil( this._destroyed$ ) )
+			.subscribe( () => {
+				const allValid = this.validate();
+				if( allValid )
+					this.submit();
+			} );
+
 	}
-
-	public confirmStep(){
-		if( this.mealLogForm.invalid )
-			return;
-
-		if( !this.mealItems?.length )
-			return;
-
-		this.log!.meal = this.mealLogForm.getRawValue() as LogEntry['meal'];
-
-		const maxDate = addMinutes( new Date(), 20 );
-		if( parseISO( this.log!.meal!.date ) > maxDate ){
-			this.toastController.create( {
-				color: 'danger',
-				message: this.translate.instant( 'LOG.MEAL.FUTURE_DATE_ERROR' ),
-				duration: 3000,
-			} ).then( toast => toast.present() );
-			return;
-		}
-
-		this.log!.food = this.mealItems;
-
-		this.done.next( this.log );
-	}
-
-
 
 	public showControl( index:number ){
 		this.formStep = index;
@@ -158,7 +168,7 @@ export class MealBlsComponent implements OnInit{
 	}
 
 	public selectMeal( change:MatSelectionListChange ){
-		this.mealLogForm.patchValue( { meal: change.options[0]?.value } );
+		this.mealForm.patchValue( { meal: change.options[0]?.value } );
 		this.nextControl();
 	}
 
@@ -167,8 +177,40 @@ export class MealBlsComponent implements OnInit{
 		if( !this.selectedAttendance )
 			return;
 
-		this.mealLogForm.patchValue( { attend: this.selectedAttendance[1] } );
+		this.mealForm.patchValue( { attend: this.selectedAttendance[1] } );
 		this.nextControl();
+	}
+
+	private validate(){
+		if( !this.mealForm?.controls )
+			return;
+
+		for( const [ key, ctrl ] of Object.entries( this.mealForm?.controls ) ){
+			ctrl.markAllAsTouched();
+			ctrl.updateValueAndValidity( {} );
+		}
+
+		this.cdr.markForCheck();
+
+		if( !this.mealItems.length )
+			return;
+
+
+		return true;
+	}
+
+
+	public submit(){
+		if( !this.validate() )
+			return;
+
+
+		this._submit.next( {
+			data: {
+				meal: this.mealForm.value,
+				items: this.mealItems,
+			},
+		} );
 	}
 
 }

@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaCrudService } from 'nestjs-prisma-crud';
+import { JsxTranslatedCrudService } from '../core/services/jsx-translated-crud.service';
 
 
 @Injectable()
-export class StepsService extends PrismaCrudService{
+export class StepsService extends JsxTranslatedCrudService{
 	constructor(){
 		super( {
 			model: 'step',

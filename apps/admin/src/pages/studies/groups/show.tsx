@@ -75,7 +75,7 @@ export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 				fields: [ 'id', 'name', 'state' ],
 				operation: 'group-members',
 			},
-			pagination: { pageSize: 3 },
+			pagination: { pageSize: 10 },
 			filters: {
 				permanent: [ { field: 'groupId', operator: 'eq', value: groupId } ],
 			},

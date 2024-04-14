@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { EntityState, Prisma, Study } from '@nutritious/core';
-import { CrudMethodOpts, PrismaCrudService } from 'nestjs-prisma-crud';
+import { CrudMethodOpts } from 'nestjs-prisma-crud';
 import generatePassword from 'omgopass';
 import { PrismaService } from '../core/services/db/prisma.service';
+import { JsxTranslatedCrudService } from '../core/services/jsx-translated-crud.service';
 
 
 @Injectable()
-export class StudiesService extends PrismaCrudService{
+export class StudiesService extends JsxTranslatedCrudService{
 	constructor(
 		private prisma:PrismaService,
 	){

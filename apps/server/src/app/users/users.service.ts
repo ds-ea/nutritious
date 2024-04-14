@@ -2,14 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { User } from '@prisma/client';
 import { hash } from 'argon2';
-import { CrudMethodOpts, PrismaCrudService } from 'nestjs-prisma-crud';
+import { CrudMethodOpts } from 'nestjs-prisma-crud';
+import { JsxTranslatedCrudService } from '../core/services/jsx-translated-crud.service';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 
 @Injectable()
-export class UsersService extends PrismaCrudService{
+export class UsersService extends JsxTranslatedCrudService{
 	constructor(
 		private readonly config:ConfigService,
 	){

@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import type { Page } from '@nutritious/core';
-import { CrudMethodOpts, PrismaCrudService } from 'nestjs-prisma-crud';
+import { CrudMethodOpts } from 'nestjs-prisma-crud';
 import { PrismaService } from '../core/services/db/prisma.service';
+import { JsxTranslatedCrudService } from '../core/services/jsx-translated-crud.service';
 
 
 
@@ -14,7 +15,7 @@ export type NavElement = {
 
 
 @Injectable()
-export class PagesService extends PrismaCrudService{
+export class PagesService extends JsxTranslatedCrudService{
 
 	constructor( private readonly prisma:PrismaService ){
 		super( {

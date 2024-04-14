@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaCrudService } from 'nestjs-prisma-crud';
+import { JsxTranslatedCrudService } from '../core/services/jsx-translated-crud.service';
+
 
 @Injectable()
-export class BlsService extends PrismaCrudService {
-  constructor() {
-    super({
-      model: 'bls',
-      allowedJoins: [],
-      defaultJoins: [],
-    });
-  }
+export class BlsService extends JsxTranslatedCrudService{
+	constructor(){
+		super( {
+			model: 'bls',
+			allowedJoins: [],
+			defaultJoins: [],
+		} );
+	}
 }

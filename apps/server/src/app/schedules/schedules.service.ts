@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { type Prisma, Schedule, type Slot, type Step } from '@nutritious/core';
-import { CrudMethodOpts, PrismaCrudService } from 'nestjs-prisma-crud';
+import { CrudMethodOpts } from 'nestjs-prisma-crud';
 import { PrismaService } from '../core/services/db/prisma.service';
+import { JsxTranslatedCrudService } from '../core/services/jsx-translated-crud.service';
 
 
 @Injectable()
-export class SchedulesService extends PrismaCrudService{
+export class SchedulesService extends JsxTranslatedCrudService{
 	constructor(
 		private prisma:PrismaService,
 	){

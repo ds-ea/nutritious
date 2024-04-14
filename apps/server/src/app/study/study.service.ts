@@ -306,7 +306,6 @@ export class StudyService{
 		}
 
 		const created = await this.prisma.response.createMany( { data: data } );
-		console.log( 'crea', created );
 
 		return Promise.resolve( undefined );
 	}

@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 
 import { type GroupMember, type Prisma } from '@nutritious/core';
-import { CrudMethodOpts, PrismaCrudService } from 'nestjs-prisma-crud';
+import { CrudMethodOpts } from 'nestjs-prisma-crud';
 import { PrismaService } from '../core/services/db/prisma.service';
+import { JsxTranslatedCrudService } from '../core/services/jsx-translated-crud.service';
 
 
 @Injectable()
-export class GroupMembersService extends PrismaCrudService{
+export class GroupMembersService extends JsxTranslatedCrudService{
 	constructor(
 		private prisma:PrismaService,
 	){

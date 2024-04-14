@@ -1,0 +1,12 @@
+
+nutri-step-content {
+	.mdc-card {
+		min-width: 300px;
+		//max-width: 100%;
+		//padding: $gutter * 2;
+
+		@media only screen and (min-width: 500px) {
+			min-width: 450px;
+		}
+	}
+}

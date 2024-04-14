@@ -11,7 +11,10 @@
 @import "views/login_signup";
 @import "views/log";
 @import "views/study";
+@import "steps/content";
+
 @import "components/scanner";
+@import "components/markdown";
 
 html, body {
 	height: 100%;

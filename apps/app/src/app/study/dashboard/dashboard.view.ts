@@ -51,8 +51,8 @@ type DayAction = {
 							@for (item of timeline; track item.time) {
 								<li [ngClass]="item.type">
 									<span class="time">{{ item.timeLabel }}</span>
-									<span class="head"></span>
-									<span class="title">{{ item.title }}</span>
+									<span class="bullet"></span>
+									<span class="title" *ngIf="item.title">{{ item.title }}</span>
 
 									@if (item.type === 'action' || item.type === 'content') {
 										<span class="actions">

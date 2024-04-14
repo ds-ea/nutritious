@@ -26,6 +26,18 @@ export type MealBLSSubmitResult = {
 
 				<mat-expansion-panel [expanded]="formStep === 0" (opened)="showControl(0)" hideToggle>
 					<mat-expansion-panel-header>
+						<mat-panel-title>{{ 'LOG.MEAL.MEAL_LBL' | translate }}</mat-panel-title>
+						<mat-panel-description *ngIf="mealForm.get( 'meal' )?.value">{{ ('ENUM.MEAL_TYPE.' + mealForm.get('meal')?.value) | uppercase | translate }}</mat-panel-description>
+					</mat-expansion-panel-header>
+					<mat-selection-list [multiple]="false" (selectionChange)="selectMeal($event)">
+						<mat-list-option *ngFor="let mealType of mealTypes" [value]="mealType" [selected]="mealType === mealForm.get( 'meal' )?.value">
+							{{ ('ENUM.MEAL_TYPE.' + mealType) | uppercase | translate }}
+						</mat-list-option>
+					</mat-selection-list>
+				</mat-expansion-panel>
+
+				<mat-expansion-panel [expanded]="formStep === 1" (opened)="showControl(1)" hideToggle>
+					<mat-expansion-panel-header>
 						<mat-panel-title>{{ 'LOG.MEAL.DATE_LBL' | translate }}</mat-panel-title>
 						<mat-panel-description>{{ mealForm.get('date')?.value | dfnsParseIso | dfnsFormatRelativePure : now }}</mat-panel-description>
 					</mat-expansion-panel-header>
@@ -37,18 +49,6 @@ export type MealBLSSubmitResult = {
 					<div class="step-actions">
 						<a mat-flat-button color="accent" (click)="nextControl()">{{ 'GENERIC.CONFIRM_BTN' | translate }}</a>
 					</div>
-				</mat-expansion-panel>
-
-				<mat-expansion-panel [expanded]="formStep === 1" (opened)="showControl(1)" hideToggle>
-					<mat-expansion-panel-header>
-						<mat-panel-title>{{ 'LOG.MEAL.MEAL_LBL' | translate }}</mat-panel-title>
-						<mat-panel-description *ngIf="mealForm.get( 'meal' )?.value">{{ ('ENUM.MEAL_TYPE.' + mealForm.get('meal')?.value) | uppercase | translate }}</mat-panel-description>
-					</mat-expansion-panel-header>
-					<mat-selection-list [multiple]="false" (selectionChange)="selectMeal($event)">
-						<mat-list-option *ngFor="let mealType of mealTypes" [value]="mealType" [selected]="mealType === mealForm.get( 'meal' )?.value">
-							{{ ('ENUM.MEAL_TYPE.' + mealType) | uppercase | translate }}
-						</mat-list-option>
-					</mat-selection-list>
 				</mat-expansion-panel>
 
 				<mat-expansion-panel [expanded]="formStep === 2" (opened)="showControl(2)" hideToggle>

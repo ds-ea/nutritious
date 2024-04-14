@@ -1,7 +1,129 @@
-app-dashboard{
-	.mat-card{
+app-dashboard {
+	.mat-card {
 		width: $grid-width-minor;
 		max-width: 100%;
 		margin-bottom: $gutter *2;
+
+	}
+
+	.mat-mdc-card-subtitle {
+		padding: $gutter;
+	}
+
+
+	.timeline {
+		--timline-trail-color: #{color(light)};
+		--timeline-bullet-size: 10px;
+		--timline-trail-width: 2px;
+
+		list-style-type: none;
+		margin: 0;
+		padding: $gutter;
+
+
+		li {
+			position: relative;
+
+			display: grid;
+			grid-template-columns: 60px auto 1fr;
+			grid-gap: 0 $gutter;
+
+			padding-inline-end: $gutter;
+
+			+ li:not(:last-child) {
+				padding-block: 10px;
+			}
+
+			&::before {
+				content: '';
+				position: absolute;
+				grid-column: 2;
+				height: 100%;
+				width: 1px;
+				z-index: 1;
+
+				border-right: var(--timline-trail-width) solid var(--timline-trail-color);
+				margin-inline-start: calc((var(--timeline-bullet-size) * .5) - 1px - (var(--timline-trail-width) * .5));
+			}
+
+			.time {
+				grid-column: 1;
+				display: flex;
+				justify-content: flex-end;
+			}
+
+			.bullet {
+				grid-column: 2;
+
+				display: flex;
+				justify-content: center;
+
+				position: relative;
+				z-index: 2;
+
+				&::before {
+					content: '';
+					display: block;
+
+					border-radius: 50%;
+					width: var(--timeline-bullet-size, 10px);
+					height: var(--timeline-bullet-size, 10px);
+
+					margin-block-start: 0.3rem;
+
+					background-color: color(secondary);
+				}
+
+			}
+
+			.title {
+				grid-column: 3;
+			}
+
+			.actions {
+				grid-column: 3;
+
+				display: flex;
+				flex-direction: column;
+			}
+
+			.title + .actions {
+				margin-block-start: $gutter * .5;
+			}
+
+			&.trail {
+				height: 5px;
+			}
+
+			&.boundary {
+				.time {
+					color: var(--timline-trail-color);
+				}
+
+				.bullet {
+					&::before {
+						background-color: var(--timline-trail-color);
+					}
+				}
+			}
+		}
+	}
+
+
+	.available-actions {
+		list-style-type: none;
+		margin: 0;
+		padding: 0;
+
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		grid-gap: $gutter;
+
+		li {
+			display: flex;
+			flex-direction: column;
+		}
 	}
 }
+
+

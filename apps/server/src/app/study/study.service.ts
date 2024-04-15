@@ -292,20 +292,40 @@ export class StudyService{
 
 	public async recordResponses( participantId:Participant['id'], payload:SubmitResponsesPayload ){
 
-		const data:Prisma.ResponseCreateManyInput[] = [];
+		const studyIds = payload.responses
+			.map( r => r._study )
+			.filter( ( v, i, a ) => a.indexOf( v ) == i );
+
+		const participantGroups = await this.prisma.groupMember.findMany( {
+			where: {
+				participantId,
+				studyId: { in: studyIds },
+			},
+		} );
+		const groupStudyMap = participantGroups.reduce( ( map, group ) =>
+			(
+				map[group.studyId] = group.groupId    ,
+					map
+			), {} as { [studyId:string]:string } );
+
+		const data:Prisma.StudyResponseCreateManyInput[] = [];
 
 		for( const submittedResponse of payload.responses ){
 			const { _study: studyId, ...response } = submittedResponse;
+			const groupId = groupStudyMap[studyId];
 
 			data.push( {
+				studyId,
+				groupId,
 				stepId: response.step,
 				slotId: response.slot,
 				participantId,
+				type: response.type,
 				data: response.data as Prisma.InputJsonValue,
 			} );
 		}
 
-		const created = await this.prisma.response.createMany( { data: data } );
+		const created = await this.prisma.studyResponse.createMany( { data: data } );
 
 		return Promise.resolve( undefined );
 	}

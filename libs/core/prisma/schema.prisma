@@ -142,6 +142,7 @@ model Participant {
 
   AuthToken   AuthToken[]
   GroupMember GroupMember[]
+  responses   StudyResponse[]
 }
 
 model Study {
@@ -213,6 +214,8 @@ model GroupMember {
 
   badge String?
   notes String?
+
+  responses StudyResponse[]
 
   @@unique([groupId, participantId])
   @@index([participantId])
@@ -375,16 +378,22 @@ model StudyContent {
   translations String?
 }
 
-model Response {
+model StudyResponse {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  stepId        String  @db.ObjectId
-  slotId        String  @db.ObjectId
-  slotKey       String?
-  participantId String  @db.ObjectId
+  studyId String  @db.ObjectId
+  groupId String? @db.ObjectId
+  stepId  String  @db.ObjectId
+  slotId  String  @db.ObjectId
+  slotKey String?
 
+  participantId String       @db.ObjectId
+  participant   Participant? @relation(fields: [participantId], references: [id])
+  member        GroupMember? @relation(fields: [groupId, participantId], references: [groupId, participantId])
+
+  type String
   data Json
 
   @@index([participantId, slotKey])

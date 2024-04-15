@@ -1,9 +1,9 @@
 import { CrudMethodOpts, PrismaCrudService } from 'nestjs-prisma-crud';
 
 
-export class JsxTranslatedCrudService extends PrismaCrudService{
+export class JsxTranslatedCrudService<TBase> extends PrismaCrudService{
 
-	public override findMany( opts:CrudMethodOpts ):Promise<{ data:unknown; totalRecords:number; pageCount:number; page:number; pageSize:number; orderBy:unknown[] }>{
+	public override findMany<T extends TBase = TBase>( opts:CrudMethodOpts ):Promise<{ data:T[]; totalRecords:number; pageCount:number; page:number; pageSize:number; orderBy:unknown[] }>{
 		return super.findMany( opts ).then( results => ( {
 			data: results.data,
 			total: results.totalRecords,

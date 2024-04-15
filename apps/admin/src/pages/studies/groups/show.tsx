@@ -1,9 +1,11 @@
-import { Group, Participant, Schedule, Study, xorEncryptDecrypt } from '@nutritious/core';
+import { ExportableResponse, Group, Participant, Schedule, Study, xorEncryptDecrypt } from '@nutritious/core';
 import { EditButton, Show, ShowButton, useTable } from '@refinedev/antd';
-import { IResourceComponentsProps, useOne, useParsed, useShow } from '@refinedev/core';
+import { IResourceComponentsProps, useExport, useOne, useParsed, useShow } from '@refinedev/core';
 import { Alert, Button, Card, Col, Descriptions, Divider, QRCode, Row, Space, Statistic, Table, Typography } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { DetailsHeader } from '../../../components/header/DetailsHeader';
+import { ExportButton } from '../../../components/header/ExportButton';
+import { responseExportOptions } from '../../../services/exporter';
 
 
 const { Title } = Typography;
@@ -38,6 +40,17 @@ export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 
 	const { data: groupData, status, isLoading } = queryResult;
 	const group = groupData?.data;
+
+	const [ exportSettings, setExportSettings ] = useState<ReturnType<typeof responseExportOptions>>();
+	useEffect( () => {
+		if( group )
+			setExportSettings( responseExportOptions( { group } ) );
+	}, [ group ] );
+
+	const { triggerExport, isLoading: exportPending } = useExport<ExportableResponse>(
+		exportSettings,
+	);
+
 
 	const domain = import.meta.env['VITE_API_URL'];
 
@@ -112,7 +125,17 @@ export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 	};
 
 	return (
-		<Show isLoading={ isLoading } contentProps={ { className: 'card-transparent' } }>
+		<Show isLoading={ isLoading || exportPending }
+			  contentProps={ { className: 'card-transparent' } }
+			  headerButtons={ ( { defaultButtons } ) => (
+				  <>
+
+					  <ExportButton triggerExport={ triggerExport } exportContext={ 'group' } />
+					  <Space direction="vertical"></Space>
+					  { defaultButtons }
+				  </>
+			  ) }
+		>
 			<Space direction="vertical" className={ 'stretch' } size={ 'middle' }>
 
 				<Card>

@@ -110,6 +110,19 @@ export const resources:Record<string, ResourceProps> = {
 	},
 
 
+	responses: {
+		name: 'responses',
+		list: '/studies/:studyId/responses',
+		//		create: '/studies/:studyId/responses/create',
+		//		edit: '/studies/:studyId/responses/edit/:id',
+		show: '/studies/:studyId/responses/show/:id',
+		meta: {
+			parent: 'studies',
+			hide: true,
+		},
+	},
+
+
 	system: {
 		name: 'system',
 		meta: {

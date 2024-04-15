@@ -7,7 +7,7 @@ import { JsxTranslatedCrudService } from '../core/services/jsx-translated-crud.s
 
 
 @Injectable()
-export class StudiesService extends JsxTranslatedCrudService{
+export class StudiesService extends JsxTranslatedCrudService<Study>{
 	constructor(
 		private prisma:PrismaService,
 	){
@@ -39,12 +39,12 @@ export class StudiesService extends JsxTranslatedCrudService{
 		return this.findOne( record.id, opts );
 	}
 
-	public override findMany( opts:CrudMethodOpts ){
+	public override findMany<T extends Study = Study>( opts:CrudMethodOpts ){
 		opts.crudQuery = {
 			//			select: { only: [ 'id', 'name', 'state', 'signupPeriod', 'responsePeriod' ] },
 			where: { state: { not: EntityState.Deleted } },
 		};
-		return super.findMany( opts );
+		return super.findMany<T>( opts );
 	}
 
 

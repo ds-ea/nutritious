@@ -6,7 +6,7 @@ import { JsxTranslatedCrudService } from '../core/services/jsx-translated-crud.s
 
 
 @Injectable()
-export class SchedulesService extends JsxTranslatedCrudService{
+export class SchedulesService extends JsxTranslatedCrudService<Schedule>{
 	constructor(
 		private prisma:PrismaService,
 	){

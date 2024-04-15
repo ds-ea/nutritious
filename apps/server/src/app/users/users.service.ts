@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { User } from '@prisma/client';
+import type { User } from '@nutritious/core';
 import { hash } from 'argon2';
 import { CrudMethodOpts } from 'nestjs-prisma-crud';
 import { JsxTranslatedCrudService } from '../core/services/jsx-translated-crud.service';
@@ -10,7 +10,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 
 @Injectable()
-export class UsersService extends JsxTranslatedCrudService{
+export class UsersService extends JsxTranslatedCrudService<User>{
 	constructor(
 		private readonly config:ConfigService,
 	){

@@ -7,7 +7,7 @@ import { JsxTranslatedCrudService } from '../core/services/jsx-translated-crud.s
 
 
 @Injectable()
-export class GroupsService extends JsxTranslatedCrudService{
+export class GroupsService extends JsxTranslatedCrudService<Group>{
 	constructor(
 		private prisma:PrismaService,
 	){

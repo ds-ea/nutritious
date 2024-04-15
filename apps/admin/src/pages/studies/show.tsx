@@ -1,9 +1,11 @@
-import type { Group, Schedule, Study, StudyContent, StudyForm } from '@nutritious/core';
+import { ExportableResponse, Group, Schedule, Study, StudyContent, StudyForm } from '@nutritious/core';
 import { CreateButton, EditButton, Show, ShowButton, TextField, useTable } from '@refinedev/antd';
-import { IResourceComponentsProps, useParsed, useShow } from '@refinedev/core';
+import { IResourceComponentsProps, useExport, useParsed, useShow } from '@refinedev/core';
 import { Card, Col, Divider, Row, Space, Table, Typography } from 'antd';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { ExportButton } from '../../components/header/ExportButton';
 import { StateColumnRenderer } from '../../components/list/StateColumn';
+import { responseExportOptions } from '../../services/exporter';
 
 
 const { Title } = Typography;
@@ -20,6 +22,13 @@ export const StudyShow:React.FC<IResourceComponentsProps> = () => {
 	} );
 	const { data, isLoading } = queryResult;
 	const study = data?.data;
+
+	const [ exportSettings, setExportSettings ] = useState<ReturnType<typeof responseExportOptions>>();
+	useEffect( () => {
+		if( study )
+			setExportSettings( responseExportOptions( { study } ) );
+	}, [ study ] );
+	const { triggerExport, isLoading: exportPending } = useExport<ExportableResponse>( exportSettings );
 
 	// get groups
 	const { tableProps: groupTableProps, setFilters } = useTable( {
@@ -95,7 +104,16 @@ export const StudyShow:React.FC<IResourceComponentsProps> = () => {
 
 	return (
 		<>
-			<Show isLoading={ isLoading }>
+			<Show isLoading={ isLoading || exportPending }
+				  headerButtons={ ( { defaultButtons } ) => (
+					  <>
+
+						  <ExportButton triggerExport={ triggerExport } exportContext={ 'study' } />
+						  <Space direction="vertical"></Space>
+						  { defaultButtons }
+					  </>
+				  ) }
+			>
 				<Title level={ 5 }>Id</Title>
 				<TextField value={ study?.id } />
 				{/*<Title level={ 5 }>Created At</Title>

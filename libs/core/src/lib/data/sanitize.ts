@@ -1,4 +1,5 @@
 import { Participant, Schedule, Slot, Step, Study, StudyContent, StudyForm, User } from '@prisma/client';
+import { ExportableMember, GroupMember } from '../../index';
 import type { PublicStudy, SafeParticipant, SafeSchedule, SafeSlot, SafeStep, SafeStudyContent, SafeStudyForm, SafeUser } from '../../types';
 
 
@@ -79,5 +80,9 @@ export class Sanitize{
 
 	public static safeStudyForm( form:StudyForm ):SafeStudyForm{
 		return clean( form as unknown as SafeStudyForm, { keep: [ 'id', 'title', 'intro', 'setup', 'translations' ] } );
+	}
+
+	public static exportableMember( member:GroupMember | ExportableMember ):ExportableMember{
+		return clean( member, { keep: [ 'badge' ] } );
 	}
 }

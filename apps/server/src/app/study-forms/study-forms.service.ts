@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma, Study } from '@nutritious/core';
+import type { Prisma, Study, StudyForm } from '@nutritious/core';
 import { CrudMethodOpts } from 'nestjs-prisma-crud';
 import { PrismaService } from '../core/services/db/prisma.service';
 import { JsxTranslatedCrudService } from '../core/services/jsx-translated-crud.service';
 
 
 @Injectable()
-export class StudyFormsService extends JsxTranslatedCrudService{
+export class StudyFormsService extends JsxTranslatedCrudService<StudyForm>{
 	constructor(
 		private prisma:PrismaService,
 	){

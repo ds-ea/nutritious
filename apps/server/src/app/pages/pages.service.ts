@@ -15,7 +15,7 @@ export type NavElement = {
 
 
 @Injectable()
-export class PagesService extends JsxTranslatedCrudService{
+export class PagesService extends JsxTranslatedCrudService<Page>{
 
 	constructor( private readonly prisma:PrismaService ){
 		super( {
@@ -27,11 +27,11 @@ export class PagesService extends JsxTranslatedCrudService{
 
 
 
-	public override findMany( opts:CrudMethodOpts ){
+	public override findMany<T extends Page = Page>( opts:CrudMethodOpts ){
 		opts.crudQuery = {
 			select: { only: [ 'id', 'alias', 'name', 'state' ] },
 		};
-		return super.findMany( opts );
+		return super.findMany<T>( opts );
 	}
 
 

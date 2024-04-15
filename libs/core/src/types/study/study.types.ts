@@ -1,4 +1,4 @@
-import type { Group, GroupMember, Participant, Schedule, Slot, Step, Study, StudyContent, StudyForm } from '@prisma/client';
+import type { Group, GroupMember, Participant, Schedule, Slot, Step, Study, StudyContent, StudyForm, StudyResponse } from '@prisma/client';
 import { StudyStepType } from '../../lib/study';
 import { FormSetup } from './form.types';
 import { StepResponse, StudyStepTypes } from './step.types';
@@ -92,3 +92,7 @@ export type SafeStudyContent = Pick<StudyContent, 'id' | 'translations' | 'title
 export type SubmitResponsesPayload = {
 	responses:( StepResponse & { _study:Study['id'] } )[];
 }
+
+
+export type ExportableMember = Pick<GroupMember, 'badge'>;
+export type ExportableResponse = StudyResponse & { member:ExportableMember };

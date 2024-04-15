@@ -17,6 +17,7 @@ import { LegacyStudyModule } from './legacy-study/legacy-study.module';
 import { PagesModule } from './pages/pages.module';
 import { PagesService } from './pages/pages.service';
 import { ParticipantsModule } from './participants/participants.module';
+import { ResponsesModule } from './responses/responses.module';
 import { SchedulesModule } from './schedules/schedules.module';
 import { SlotsModule } from './slots/slots.module';
 import { StepsModule } from './steps/steps.module';
@@ -42,6 +43,7 @@ import { UsersModule } from './users/users.module';
 		PagesModule,
 		BlsModule,
 		ParticipantsModule,
+		ResponsesModule,
 		SchedulesModule,
 		StudyContentsModule,
 		StudyFormsModule,

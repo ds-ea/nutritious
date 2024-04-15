@@ -27,10 +27,10 @@ export type MealBLSSubmitResult = {
 				<mat-expansion-panel [expanded]="formStep === 0" (opened)="showControl(0)" hideToggle>
 					<mat-expansion-panel-header>
 						<mat-panel-title>{{ 'LOG.MEAL.MEAL_LBL' | translate }}</mat-panel-title>
-						<mat-panel-description *ngIf="mealForm.get( 'meal' )?.value">{{ ('ENUM.MEAL_TYPE.' + mealForm.get('meal')?.value) | uppercase | translate }}</mat-panel-description>
+						<mat-panel-description *ngIf="mealForm.get( 'type' )?.value">{{ ('ENUM.MEAL_TYPE.' + mealForm.get('type')?.value) | uppercase | translate }}</mat-panel-description>
 					</mat-expansion-panel-header>
 					<mat-selection-list [multiple]="false" (selectionChange)="selectMeal($event)">
-						<mat-list-option *ngFor="let mealType of mealTypes" [value]="mealType" [selected]="mealType === mealForm.get( 'meal' )?.value">
+						<mat-list-option *ngFor="let mealType of mealTypes" [value]="mealType" [selected]="mealType === mealForm.get( 'type' )?.value">
 							{{ ('ENUM.MEAL_TYPE.' + mealType) | uppercase | translate }}
 						</mat-list-option>
 					</mat-selection-list>
@@ -118,7 +118,7 @@ export class MealBlsComponent implements OnInit{
 
 	public mealForm = new UntypedFormGroup( {
 		date: new UntypedFormControl( '', Validators.required ),
-		meal: new UntypedFormControl( '', Validators.required ),
+		type: new UntypedFormControl( '', Validators.required ),
 		attend: new UntypedFormControl( '', Validators.required ),
 	} );
 
@@ -168,7 +168,7 @@ export class MealBlsComponent implements OnInit{
 	}
 
 	public selectMeal( change:MatSelectionListChange ){
-		this.mealForm.patchValue( { meal: change.options[0]?.value } );
+		this.mealForm.patchValue( { type: change.options[0]?.value } );
 		this.nextControl();
 	}
 

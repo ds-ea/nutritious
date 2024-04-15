@@ -1,6 +1,7 @@
-import { Body, Controller, ForbiddenException, Get, NotFoundException, Param, Post, Req, UnprocessableEntityException } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Post, Req, UnprocessableEntityException } from '@nestjs/common';
 import { PreparedStudy, SignupCheckPayload, SignupPayload, SubmitResponsesPayload } from '@nutritious/core';
 import { FastifyRequest } from 'fastify';
+import { ParticipantAccess } from '../core/decorators/participant-access.decorator';
 import { Public } from '../core/decorators/public.decorator';
 import { AuthedRequest } from '../types/server.types';
 import { StudyService } from './study.service';
@@ -13,7 +14,8 @@ export class StudyController{
 		private readonly studyService:StudyService,
 	){}
 
-	@Get( 'study' )
+	// TODO: these are probably obsolete
+	/*@Get( 'study' )
 	public async getDefaultStudy( @Req() req:AuthedRequest ){
 
 		throw new NotFoundException( 'no study assigned' );
@@ -29,7 +31,7 @@ export class StudyController{
 			throw new NotFoundException( 'no such study' );
 
 		return data;
-	}
+	}*/
 
 
 	@Public()
@@ -49,6 +51,7 @@ export class StudyController{
 
 
 
+	@ParticipantAccess()
 	@Get( 'studies' )
 	public async getPreparedStudies( @Req() req:AuthedRequest ):Promise<PreparedStudy[] | undefined>{
 		if( !( 'participant' in req ) || !req.participant )
@@ -57,6 +60,7 @@ export class StudyController{
 		return this.studyService.prepareStudies( req.participant.id );
 	}
 
+	@ParticipantAccess()
 	@Post( 'responses' )
 	public async submitResponses( @Req() req:AuthedRequest, @Body() data:SubmitResponsesPayload ){
 		if( !( 'participant' in req ) || !req.participant )

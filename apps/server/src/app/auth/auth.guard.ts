@@ -1,9 +1,10 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { EntityState } from '@nutritious/core';
 import { FastifyRequest } from 'fastify';
+import { ALLOW_PARTICIPANT_ACCESS_KEY } from '../core/decorators/participant-access.decorator';
 import { IS_PUBLIC_KEY } from '../core/decorators/public.decorator';
 import { PrismaService } from '../core/services/db/prisma.service';
 import { AuthedRequest } from '../types/server.types';
@@ -19,11 +20,7 @@ export class AuthGuard implements CanActivate{
 	){}
 
 	async canActivate( context:ExecutionContext ):Promise<boolean>{
-		const isPublic = this.reflector.getAllAndOverride<boolean>( IS_PUBLIC_KEY, [
-			context.getHandler(),
-			context.getClass(),
-		] );
-
+		const isPublic = this.reflector.getAllAndOverride<boolean>( IS_PUBLIC_KEY, [ context.getHandler(), context.getClass() ] );
 		if( isPublic )
 			return true;
 
@@ -65,6 +62,13 @@ export class AuthGuard implements CanActivate{
 
 		}catch{
 			throw new UnauthorizedException();
+		}
+
+
+		if( !request.user ){
+			const allowParticipantAccess = this.reflector.getAllAndOverride<boolean>( ALLOW_PARTICIPANT_ACCESS_KEY, [ context.getHandler(), context.getClass() ] );
+			if( !allowParticipantAccess )
+				throw new ForbiddenException( 'needs user level access' );
 		}
 
 		return true;

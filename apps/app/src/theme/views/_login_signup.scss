@@ -17,6 +17,11 @@ app-login {
 
 app-registration {
 
+	.scan-qr-button-wrapper {
+		display: flex;
+		flex-direction: column;
+	}
+
 	.mat-card {
 		max-width: $grid-width-minor;
 	}

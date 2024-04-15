@@ -76,6 +76,13 @@ $light-theme: mat.define-light-theme((
 	justify-content: center;
 }
 
+.view-content {
+	.mat-mdc-card-header {
+		padding-block-end: $gutter;
+	}
+
+}
+
 .mat-button-base, .mat-mdc-button-base {
 	&.invalid {
 		//opacity: .8;

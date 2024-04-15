@@ -24,7 +24,9 @@ enum SignupStep{
 		<ion-content class="content-centered" [ngClass]="['step-'+step]">
 			<div class="">
 				<mat-card>
-					<mat-card-title>{{ 'USER.AUTH.REGISTER_HEADING'|translate }}</mat-card-title>
+					<mat-card-header>
+						<mat-card-title>{{ 'USER.AUTH.REGISTER_HEADING'|translate }}</mat-card-title>
+					</mat-card-header>
 
 					<ng-container [ngSwitch]="step">
 
@@ -32,7 +34,7 @@ enum SignupStep{
 							<mat-card-content>
 								<form class="form-vertical" [formGroup]="registrationForm" (submit)="studyCheck()" autocomplete="off">
 
-									<div class="">
+									<div class="scan-qr-button-wrapper">
 										<a mat-flat-button color="primary" (click)="startScan()"
 										   class="ScanCodeButton"
 										   [class.mat-button-disabled]="!canScan"
@@ -41,6 +43,7 @@ enum SignupStep{
 											{{ 'USER.AUTH.SCAN_SIGNUP_QRCODE_BTN' | translate }}
 										</a>
 									</div>
+
 									<mat-form-field>
 										<mat-label>{{ 'USER.AUTH.STUDY_KEY_LBL'|translate }}</mat-label>
 										<input matInput formControlName="key" [placeholder]="'USER.AUTH.STUDY_KEY_LBL'|translate ">
@@ -220,7 +223,7 @@ export class RegistrationView implements OnInit, OnDestroy{
 	}
 
 	ngOnInit():void{
-		console.log( 'setwindow', window );
+		// DEV: take this out
 		//@ts-ignore
 		window['nutriManualQRCode'] = ( code:string ) => {
 			this.processCode( code );

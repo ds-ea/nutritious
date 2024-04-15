@@ -112,8 +112,6 @@ export class SlotView implements OnInit, OnDestroy{
 
 	ngOnInit(){
 		this.route.paramMap.subscribe( params => {
-			console.log( 'slot view route params', params );
-
 			const studyId = params.get( 'studyId' );
 			const slotId = params.get( 'slotId' );
 			if( studyId && slotId )

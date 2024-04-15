@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { LoadingController } from '@ionic/angular';
 import dayjs from 'dayjs';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable, ReplaySubject } from 'rxjs';
+import { takeUntil, tap } from 'rxjs/operators';
 import { containsActionStep, containsOnlyContentSteps, minutesToTime, PreparedStudy, PublicStudy, SafeSlot } from '../../../../../../libs/core/src';
+import { CoreService } from '../../core/core.service';
 import { StudyService } from '../study.service';
 
 
@@ -33,10 +34,12 @@ type DayAction = {
 				@if (false) {
 					@for (study of studies; track study.study.id) {
 						<mat-card>
-							<mat-card-subtitle>{{ 'STUDY.CURRENT_STUDY_MSG' | translate }}</mat-card-subtitle>
-							<mat-card-title>
-								<h1>{{ study.study.name }}</h1>
-							</mat-card-title>
+							<mat-card-header>
+								<mat-card-subtitle>{{ 'STUDY.CURRENT_STUDY_MSG' | translate }}</mat-card-subtitle>
+								<mat-card-title>
+									<h1>{{ study.study.name }}</h1>
+								</mat-card-title>
+							</mat-card-header>
 
 						</mat-card>
 					}
@@ -44,7 +47,9 @@ type DayAction = {
 
 				@if (timeline.length) {
 					<mat-card>
-						<mat-card-subtitle>{{ 'STUDY.DAY_SCHEDULE_LBL' | translate }}</mat-card-subtitle>
+						<mat-card-header>
+							<mat-card-subtitle>{{ 'STUDY.DAY_SCHEDULE_LBL' | translate }}</mat-card-subtitle>
+						</mat-card-header>
 
 						<ul class="timeline">
 							<li class="trail"></li>
@@ -107,7 +112,9 @@ type DayAction = {
 	styles: [],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 } )
-export class DashboardView implements OnInit{
+export class DashboardView implements OnInit, OnDestroy{
+	private _destroyed$ = new ReplaySubject<boolean>( 1 );
+
 	public busy = false;
 	private loader!:HTMLIonLoadingElement;
 
@@ -119,6 +126,7 @@ export class DashboardView implements OnInit{
 	public availableActions:DayAction[] = [];
 
 	constructor(
+		private core:CoreService,
 		private studyService:StudyService,
 		public loading:LoadingController,
 		public router:Router,
@@ -129,14 +137,32 @@ export class DashboardView implements OnInit{
 
 	async ngOnInit(){
 		this.loader = await this.loading.create( { spinner: 'crescent' } );
-		this.refreshStudy()
-			.subscribe( () => {
-				// check if can add new entry
-				//				this.router.navigate(['/log/new'])
+
+		this.core.account$
+			.pipe( takeUntil( this._destroyed$ ) )
+			.subscribe( account => {
+				if( !account ){
+					this.studies = undefined;
+					this.slots = undefined;
+				}
+
+				this.cdr.markForCheck();
+
+				// refresh studies when logged in
+				if( account )
+					this.refreshStudies().subscribe( () => {
+
+					} );
+
 			} );
 	}
 
-	public refreshStudy():Observable<PreparedStudy[]>{
+	public ngOnDestroy():void{
+		this._destroyed$.next( true );
+		this._destroyed$.unsubscribe();
+	}
+
+	public refreshStudies():Observable<PreparedStudy[]>{
 		this.busy = true;
 		this.loader.present();
 		this.cdr.markForCheck();

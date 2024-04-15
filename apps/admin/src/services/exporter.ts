@@ -52,8 +52,7 @@ export function responseExportOptions<T>( context:{ group:Group | undefined } | 
 
 		mapData: item => ( {
 			participant: item.member.badge ?? item.participantId,
-			created: item.createdAt,
-			updated: item.updatedAt,
+			date: item.createdAt,
 			slot: item.slotKey,
 			type: item.type,
 			group: item.groupId,

@@ -31,16 +31,15 @@ export class StudyService{
 
 		this.core.account$.subscribe( account => {
 			// act when active account has changed
-			if( account?.participant.id == this.currentAccount?.participant.id && account?.host == this.currentAccount?.host )
-				return;
+			//			if( account?.participant.id == this.currentAccount?.participant.id && account?.host == this.currentAccount?.host ){}
 
 			this.currentAccount = account;
-			//			this.refreshStudies();
 		} );
 
 		this.core.logout$.subscribe( () => {
 			this.studies$.next( undefined );
 			this.preferences$.next( undefined );
+			this.currentAccount = undefined;
 
 			Preferences.set( { key: 'studies', value: JSON.stringify( undefined ) } );
 			Preferences.set( { key: 'study.prefs', value: JSON.stringify( undefined ) } );
@@ -60,16 +59,14 @@ export class StudyService{
 	}*/
 
 	public refreshStudies():Observable<PreparedStudy[]>{
-		if( !this.currentAccount ){
-
-		}
+		if( !this.currentAccount )
+			throw new Error( 'not logged in' );
 
 		let stored:PreparedStudy[];
 
 		return concat(
 			from( Preferences.get( { key: 'studies' } ) )
 				.pipe( switchMap( studiesRaw => {
-					console.log( 'cached studies in refresh', studiesRaw );
 					try{
 						if( studiesRaw?.value?.length )
 							stored = JSON.parse( studiesRaw.value );

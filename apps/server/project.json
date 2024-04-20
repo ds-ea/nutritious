@@ -27,6 +27,11 @@
 						"glob": "**/*",
 						"input": "apps/admin/dist",
 						"output": "./admin"
+					},
+					{
+						"glob": "**/*",
+						"input": "dist/apps/app",
+						"output": "./app"
 					}
 				],
 				"webpackConfig": "apps/server/webpack.config.js"

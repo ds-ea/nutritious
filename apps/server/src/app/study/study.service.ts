@@ -1,7 +1,7 @@
 import { ConflictException, ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { EntityState, type Group, type GroupMember, type Participant, type ParticipantCredentials, type PreparedSchedule, PreparedSlot, type PreparedStudy, type Prisma, SafeSlot, Sanitize, type Schedule, type SignupCheckResponse, type  SignupResponse, type Slot, type Step, type Study, StudyStepType, StudyStepTypes, SubmitResponsesPayload, type TimeFrame, type User } from '@nutritious/core';
+import { EntityState, type Group, type GroupMember, type Participant, type ParticipantCredentials, type PreparedSchedule, PreparedSlot, type PreparedStudy, type Prisma, SafeSlot, Sanitize, type Schedule, type SignupCheckResponse, type  SignupResponse, type Slot, type Step, StepResponse, type Study, StudyStepType, StudyStepTypes, SubmitResponsesPayload, type TimeFrame, type User } from '@nutritious/core';
 import { hash } from 'argon2';
 import dayjs from 'dayjs';
 import { nanoid } from 'nanoid';
@@ -310,6 +310,7 @@ export class StudyService{
 
 		const data:Prisma.StudyResponseCreateManyInput[] = [];
 
+		const recordedUids:StepResponse['uid'][] = [];
 		for( const submittedResponse of payload.responses ){
 			const { _study: studyId, ...response } = submittedResponse;
 			const groupId = groupStudyMap[studyId];
@@ -321,13 +322,16 @@ export class StudyService{
 				slotId: response.slot,
 				participantId,
 				type: response.type,
+				uid: response.uid,
 				data: response.data as Prisma.InputJsonValue,
 			} );
+
+			recordedUids.push( response.uid );
 		}
 
 		const created = await this.prisma.studyResponse.createMany( { data: data } );
 
-		return Promise.resolve( undefined );
+		return Promise.resolve( { success: recordedUids } );
 	}
 }
 

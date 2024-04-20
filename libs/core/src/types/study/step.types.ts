@@ -7,8 +7,10 @@ export type StudyStepTypes = typeof StudyStepType[ keyof typeof StudyStepType ];
 
 
 
-export type StepResponse<T = unknown> = {
+export type StepResponse<TData = unknown, TMeta = unknown> = {
 	participant?:SafeParticipant['id'];
+
+	uid:string;
 
 	step:SafeStep['id'];
 	type:SafeStep['type'] | string;
@@ -18,6 +20,8 @@ export type StepResponse<T = unknown> = {
 
 	created:Date | string;
 	updated:Date | string;
+	forDay:string;
 
-	data:T;
+	meta?:TMeta;
+	data:TData
 };

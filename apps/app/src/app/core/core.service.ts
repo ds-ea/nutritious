@@ -32,7 +32,6 @@ export class CoreService{
 
 
 	constructor(
-		//		private storage:Storage,
 		private api:ApiService,
 		public alertController:AlertController,
 		public translate:TranslateService,

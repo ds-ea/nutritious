@@ -107,21 +107,23 @@ export class LogView implements OnInit, OnDestroy{
 		this.busy = true;
 		this.cdr.markForCheck();
 
-		this.studyService.submitLog( this.log )
-			.subscribe(
-				{
-					next: logged => {
-						this.busy = false;
+		throw new Error( 'not anymore' );
+		/*		this.studyService.submitLog( this.log )
+					.subscribe(
+						{
+							next: logged => {
+								this.busy = false;
 
-						// keeping track of what was submitted and what we still need to do
-						this.log = logged.pending;
-						this.submitted = Object.assign( this.submitted || {}, logged.submitted );
-						this.cdr.markForCheck();
-					},
-					complete: () => {
-						this.nextStep();
-					},
-				} );
+								// keeping track of what was submitted and what we still need to do
+								this.log = logged.pending;
+								this.submitted = Object.assign( this.submitted || {}, logged.submitted );
+								this.cdr.markForCheck();
+							},
+							complete: () => {
+								this.nextStep();
+							},
+						} )*/
+		;
 
 	}
 

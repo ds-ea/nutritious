@@ -1,5 +1,6 @@
 import type { Group, GroupMember, Participant, Schedule, Slot, Step, Study, StudyContent, StudyForm, StudyResponse } from '@prisma/client';
-import { StudyStepType } from '../../lib/study';
+import { Dayjs } from 'dayjs';
+import { ResponseLogState, StudyStepType } from '../../lib/study';
 import { FormSetup } from './form.types';
 import { StepResponse, StudyStepTypes } from './step.types';
 
@@ -88,11 +89,35 @@ export type SafeStudyForm = Pick<StudyForm, 'id' | 'translations' | 'intro' | 't
 export type SafeStudyContent = Pick<StudyContent, 'id' | 'translations' | 'title' | 'content'>;
 
 
-
+export type StepResponseWithStudyId = StepResponse & { _study:Study['id'] };
 export type SubmitResponsesPayload = {
-	responses:( StepResponse & { _study:Study['id'] } )[];
+	responses:StepResponseWithStudyId[];
 }
 
 
 export type ExportableMember = Pick<GroupMember, 'badge'>;
 export type ExportableResponse = StudyResponse & { member:ExportableMember };
+
+export type ResponseLogStates = `${ ResponseLogState }`;
+
+export type ResponseLogEntry<TMeta = unknown> = {
+	study:PublicStudy['id'];
+	uid:StepResponse['uid'];
+
+	date:Date | Dayjs | string;
+	forDay:StepResponse['forDay'];
+
+	slot:SafeSlot['id'];
+	state:ResponseLogStates;
+
+	/** for future use, contains data that will be retained for use by components */
+	meta?:TMeta;
+
+	/** usually removed once sent to the API */
+	response?:StepResponse;
+}
+
+export type ResponseLog = {
+	study:PublicStudy['id'];
+	entries:ResponseLogEntry[];
+}

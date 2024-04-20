@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Type } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoadingController } from '@ionic/angular';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
+import { nanoid } from 'nanoid';
 import { BehaviorSubject, ReplaySubject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
-import { containsOnlyContentSteps, MatchedSlot, PublicStudy, SafeSlot, SafeStep, StepResponse, StudyStepType } from '../../../../../../libs/core/src';
+import { takeUntil, tap } from 'rxjs/operators';
+import { containsOnlyContentSteps, MatchedSlot, PreparedSlot, PublicStudy, SafeSlot, SafeStep, StepResponse, StudyStepType } from '../../../../../../libs/core/src';
 import { StudyService } from '../study.service';
 import { AbstractStepComponent, StepCompleteEvent, StepProgress } from './steps/abstract-step.component';
 import { StepContentComponent } from './steps/step-content.component';
@@ -180,12 +181,14 @@ export class SlotView implements OnInit, OnDestroy{
 
 	public onStepComplete( event:StepCompleteEvent<unknown> ):void{
 		const step = event.stepId ? this.steps.find( s => s.id == event.stepId ) : undefined;
-		if( !step ){
+		if( !step || !this.slot?.prepared ){
 			// TODO: escalate
-			console.error( 'slot step completed, but no matching step found: ', { event, knownSteps: this.steps } );
+			console.error( 'slot step completed, but no matching step found: ', { event, knownSteps: this.steps, slot: this.slot } );
 		}
 
-		const now = dayjs().toISOString();
+		const nowDay = dayjs();
+		const now = nowDay.toISOString();
+		const forDay = this.getIntendedDay( this.slot!.prepared, step!, nowDay );
 
 		this.responses[event.stepId] = {
 			step: event.stepId,
@@ -193,8 +196,10 @@ export class SlotView implements OnInit, OnDestroy{
 
 			slot: this.slot!.prepared.id,
 
+			uid: nanoid(),
 			data: event.data,
 
+			forDay,
 			created: now,
 			updated: now,
 		};
@@ -219,21 +224,15 @@ export class SlotView implements OnInit, OnDestroy{
 
 	public async submit(){
 
-		const submittableResponses = Object.values( this.responses ).filter( r => r.data != null );
-
-		if( !submittableResponses.length ){
-			this.router.navigateByUrl( '/study' );
-			return;
-		}
+		const responses = Object.values( this.responses ).map(
+			response => ( { ...response, _study: this.study!.id } ),
+		);
 
 		await this.loader.present();
-		const responses = submittableResponses
-			.map(
-				response => ( { ...response, _study: this.study!.id } ),
-			);
-
 		this.studyService.submitResponses( { responses } )
-			.pipe( takeUntil( this._destroyed$ ) )
+			.pipe( takeUntil( this._destroyed$ ),
+				tap( t => console.log( t ) ),
+			)
 			.subscribe( {
 				complete: () => {
 					this.loader.dismiss();
@@ -245,6 +244,17 @@ export class SlotView implements OnInit, OnDestroy{
 
 	}
 
+
+
+	private getIntendedDay( slot:PreparedSlot, step:SafeStep, date?:Dayjs ):string{
+		if( !date )
+			date = dayjs();
+
+		// TODO: implement respecting the user's schedule and grace data
+
+
+		return date.format( 'YYYY-MM-DD' );
+	}
 
 
 }

@@ -32,18 +32,20 @@
 				],
 				"styles": ["apps/app/src/theme/app.scss"],
 				"scripts": [],
-				"allowedCommonJsDependencies": ["fuzzysort", "localforage"],
+				"allowedCommonJsDependencies": ["fuzzysort", "localforage", "dayjs"],
 				"customWebpackConfig": {
 					"path": "apps/app/webpack.config.js"
 				}
 			},
 			"configurations": {
 				"production": {
+					"baseHref": "/app/",
+					"deployUrl": "/app/",
 					"budgets": [
 						{
 							"type": "initial",
 							"maximumWarning": "500kb",
-							"maximumError": "1mb"
+							"maximumError": "3mb"
 						},
 						{
 							"type": "anyComponentStyle",
@@ -73,11 +75,11 @@
 		"serve": {
 			"executor": "@nx/angular:dev-server",
 			"configurations": {
-				"production": {
-					"buildTarget": "app:build:production"
-				},
 				"development": {
 					"buildTarget": "app:build:development"
+				},
+				"production": {
+					"buildTarget": "app:build:production"
 				}
 			},
 			"defaultConfiguration": "development"

@@ -57,7 +57,7 @@ export const GroupCreate:React.FC<IResourceComponentsProps> = () => {
 				  layout="vertical"
 				  onFinish={ handleOnFinish }
 			>
-				<GroupFormElements study={ study } isCreate={ true } />
+				<GroupFormElements study={ study } isCreate={ true } formProps={ formProps } />
 
 			</Form>
 		</Create>

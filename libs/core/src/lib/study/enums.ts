@@ -4,6 +4,18 @@ export enum StudyStepType{
 	'BlsFood' = 'bls-food-entry',
 }
 
+export enum ResponseLogState{
+	/** use did not complete this step */
+	Incomplete = 'incomplete',
+	/** pending sync */
+	Pending = 'pending',
+
+	/** local only, will not be synced (should be treated same as done) */
+	Local = 'local',
+	/** done and synced */
+	Done = 'done',
+}
+
 export enum FormInputType{
 	Slider = 'slider',
 	Text = 'text',

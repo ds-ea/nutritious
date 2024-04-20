@@ -10,12 +10,14 @@ import { Preferences } from '@capacitor/preferences';
 import { SplashScreen } from '@capacitor/splash-screen';
 
 import { IonicModule, IonicRouteStrategy, Platform } from '@ionic/angular';
+import { Drivers } from '@ionic/storage';
 import { IonicStorageModule } from '@ionic/storage-angular';
 import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import CordovaSQLiteDriver from 'localforage-cordovasqlitedriver';
 import { DateFnsModule } from 'ngx-date-fns';
 import { MarkdownModule } from 'ngx-markdown';
-import { EMPTY } from 'rxjs';
+import { EMPTY, lastValueFrom } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../environments/environment';
 
@@ -49,7 +51,7 @@ export function appInitializerFactory( injector:Injector, translate:TranslateSer
 		if( !langToSet ){
 			console.warn( 'no language to initialize' );
 		}else{
-			await translate.use( langToSet ).pipe(
+			await lastValueFrom( translate.use( langToSet ).pipe(
 				tap( () => {
 					console.info( `Successfully initialized '${ langToSet }' language.'` );
 				} ),
@@ -57,7 +59,7 @@ export function appInitializerFactory( injector:Injector, translate:TranslateSer
 					console.error( `Problem with '${ langToSet }' language initialization.'` );
 					return EMPTY;
 				} ),
-			).toPromise();
+			) );
 		}
 
 		await SplashScreen.hide();
@@ -72,10 +74,14 @@ export function appInitializerFactory( injector:Injector, translate:TranslateSer
 	imports: [
 		BrowserModule,
 		IonicModule.forRoot(),
+		IonicStorageModule.forRoot( {
+			name: 'nutri',
+			driverOrder: [ CordovaSQLiteDriver._driver, Drivers.IndexedDB ],
+		} ),
+
 		BrowserAnimationsModule,
 		HttpClientModule,
 		PlatformModule,
-		IonicStorageModule,
 		DateFnsModule.forRoot(),
 		PortalModule,
 		TranslateModule.forRoot( {

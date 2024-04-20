@@ -75,7 +75,8 @@ async function bootstrap(){
 						//				formAction: null, // currently important to allow redirect handling in OIDC flows
 						styleSrc: [ `'self'`, `'unsafe-inline'` ],
 						imgSrc: [ `'self'`, 'data:', 'validator.swagger.io', '*' ],
-						scriptSrc: [ `'self'`, `https: 'unsafe-inline'` ],
+						scriptSrc: [ `'self'`, `https: 'unsafe-inline'`, `'unsafe-inline'` ],
+						scriptSrcAttr: [ `'self'`, `'unsafe-inline'` ],
 					},
 				},
 	} );
@@ -91,12 +92,26 @@ async function bootstrap(){
 		root: join( __dirname, 'admin' ),
 		prefix: '/admin',
 		decorateReply: false,
-		redirect: false,
+		redirect: true,
 		wildcard: false,
 	} );
 	// pseudo rewrite
 	fastify.get( '/admin/*', ( req, res ) => {
 		const stream = fs.readFileSync( join( __dirname, 'admin/index.html' ) );
+		res.type( 'text/html' ).send( stream );
+	} );
+
+	// straight app serving
+	app.useStaticAssets( {
+		root: join( __dirname, 'app' ),
+		prefix: '/app',
+		decorateReply: false,
+		redirect: true,
+		wildcard: false,
+	} );
+	// pseudo rewrite
+	fastify.get( '/app/*', ( req, res ) => {
+		const stream = fs.readFileSync( join( __dirname, 'app/index.html' ) );
 		res.type( 'text/html' ).send( stream );
 	} );
 

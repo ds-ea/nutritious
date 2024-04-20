@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { Router } from '@angular/router';
 import { LoadingController } from '@ionic/angular';
 import dayjs from 'dayjs';
-import { Observable, ReplaySubject } from 'rxjs';
+import { finalize, Observable, ReplaySubject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { containsActionStep, containsOnlyContentSteps, minutesToTime, PreparedStudy, PublicStudy, SafeSlot } from '../../../../../../libs/core/src';
 import { CoreService } from '../../core/core.service';
@@ -171,9 +171,9 @@ export class DashboardView implements OnInit, OnDestroy{
 			.pipe(
 				tap( studies => {
 					this.studies = studies;
-
 					this.processSchedule();
-
+				} ),
+				finalize( () => {
 					this.busy = false;
 					this.cdr.markForCheck();
 					this.loader.dismiss();

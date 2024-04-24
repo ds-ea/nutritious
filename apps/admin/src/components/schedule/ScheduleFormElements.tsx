@@ -1,6 +1,6 @@
 import { ClockCircleOutlined, EditOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import { EmojiFoodBeverageOutlined, NewspaperOutlined, QuizOutlined } from '@mui/icons-material';
-import { hoursToTime, Prisma, Schedule, Slot, Step, Study, StudyContent, StudyForm, StudyStepType } from '@nutritious/core';
+import { hoursToTime, Prisma, Schedule, ScheduleCustomizability, Slot, Step, Study, StudyContent, StudyForm, StudyStepType } from '@nutritious/core';
 import { useList } from '@refinedev/core';
 import { Button, Card, Col, Descriptions, Divider, Form, FormProps, Input, List, Modal, Row, Select, Space, Tag, Timeline } from 'antd';
 import { TimeLineItemProps } from 'antd/lib/timeline/TimelineItem';
@@ -15,14 +15,14 @@ import { SlotShortEditor } from './SlotShortEditor';
 
 export type SlotUpdateDto = Partial<Slot> & { steps?:Partial<Step & { _remove?:boolean, _listId?:string }>[] };
 
-export type SlotWithListId<T extends SlotUpdateDto = SlotUpdateDto> = T & { _listId:string };
+export type SlotWithListData<T extends SlotUpdateDto = SlotUpdateDto> = T & { _listId:string, _onlyOnDays?:string[] };
 
 
 export function SlotItemContent( props:{
-	slot:SlotWithListId,
+	slot:SlotWithListData,
 	formMap:Record<string, StudyForm> | undefined,
 	contentMap:Record<string, StudyContent> | undefined
-	onEdit?:( slot:SlotWithListId ) => void,
+	onEdit?:( slot:SlotWithListData ) => void,
 } ){
 	const { slot } = props;
 	return <Space direction={ 'vertical' }>
@@ -33,6 +33,9 @@ export function SlotItemContent( props:{
 						onClick={ () => props.onEdit?.( slot ) }
 				/>
 			}
+
+			{ slot._onlyOnDays && <small>{ slot._onlyOnDays.join( ', ' ) }</small> }
+
 		</Space>
 		<ol>
 			{ slot.steps?.map( step => (
@@ -85,7 +88,7 @@ export const ScheduleFormElements:React.FC<{
 	];
 
 
-	const [ allDaySlots, setAllDaySlots ] = useState<SlotWithListId[]>( [] );
+	const [ allDaySlots, setAllDaySlots ] = useState<SlotWithListData[]>( [] );
 	const [ dayStart, setDayStart ] = useState<number>( formProps?.form?.getFieldValue( 'daySetup' )?.[0].start ?? 0 );
 	const [ timeline, setTimeline ] = useState<TimeLineItemProps[]>( [] );
 
@@ -124,7 +127,7 @@ export const ScheduleFormElements:React.FC<{
 	const updateTimeline = () => {
 
 		const daySetup:Schedule['daySetup'] = formProps.form?.getFieldValue( 'daySetup' );
-		const slots:SlotWithListId[] = formProps.form?.getFieldValue( 'slots' );
+		const slots:SlotWithListData[] = formProps.form?.getFieldValue( 'slots' );
 
 		if( !slots?.length )
 			return;
@@ -146,11 +149,11 @@ export const ScheduleFormElements:React.FC<{
 
 
 
-	let [ selectedSlot, setSelectedSlot ] = useState<SlotWithListId | undefined | null>();
+	let [ selectedSlot, setSelectedSlot ] = useState<SlotWithListData | undefined | null>();
 	const [ isNewSlot, setIsNewSlot ] = useState( false );
 	const [ submitSlotForm, callSubmitSlotForm ] = useState( 0 );
 
-	const [ uniqueSlotChecks, setUniqueSlotChecks ] = useState<( Pick<SlotWithListId, 'key' | 'name' | '_listId'> & { time?:number } )[]>( [] );
+	const [ uniqueSlotChecks, setUniqueSlotChecks ] = useState<( Pick<SlotWithListData, 'key' | 'name' | '_listId'> & { time?:number } )[]>( [] );
 
 
 
@@ -158,8 +161,8 @@ export const ScheduleFormElements:React.FC<{
 		setSelectedSlot( null );
 	};
 
-	const confirmSlotChanges = ( data:SlotWithListId<SlotUpdateDto> ) => {
-		const slotsValue:( SlotWithListId<SlotUpdateDto> )[] = formProps?.form?.getFieldValue( 'slots' ) ?? [];
+	const confirmSlotChanges = ( data:SlotWithListData<SlotUpdateDto> ) => {
+		const slotsValue:( SlotWithListData<SlotUpdateDto> )[] = formProps?.form?.getFieldValue( 'slots' ) ?? [];
 
 		// patch slot
 		const existing = slotsValue.find( slot => ( slot._listId || slot.id ) === ( selectedSlot?._listId || selectedSlot?.id ) );
@@ -179,7 +182,7 @@ export const ScheduleFormElements:React.FC<{
 		const slot:typeof selectedSlot = {
 			key: '',
 			name: '',
-			availability: { allDay: false } as SlotWithListId['availability'],
+			availability: { allDay: false } as SlotWithListData['availability'],
 			steps: [ { _listId: 'new_' + Date.now() } ],
 			_listId: 'new_' + ++createCount,
 		};
@@ -187,7 +190,7 @@ export const ScheduleFormElements:React.FC<{
 		setSelectedSlot( slot );
 	};
 
-	const editSlot = ( slot:SlotWithListId ) => {
+	const editSlot = ( slot:SlotWithListData ) => {
 		setIsNewSlot( false );
 		setSelectedSlot( slot );
 	};
@@ -203,6 +206,7 @@ export const ScheduleFormElements:React.FC<{
 			  ? <></>
 			  : <SlotShortEditor slot={ selectedSlot }
 								 study={ study }
+								 startOfWeek={ startOfWeek }
 								 dayStart={ dayStart }
 								 isCreate={ isNewSlot }
 								 onFinish={ confirmSlotChanges }
@@ -237,6 +241,21 @@ export const ScheduleFormElements:React.FC<{
 							<Input.TextArea
 								autoSize={ true } style={ { minHeight: 50 } }
 							/>
+						</Form.Item>
+					</Col>
+				</Row>
+
+				<Row>
+					<Col>
+						<Form.Item label={ 'Participant Customizability' } name={ 'customizable' } extra={ 'the extend to which participants are allowed to adjust the schedule' }>
+							<Select
+								allowClear
+								placeholder={ 'not customizable' }
+								options={ [
+									{ label: 'Day Start and End', value: ScheduleCustomizability.DayStartEnd },
+									{ label: 'Time of individual slots', value: ScheduleCustomizability.SlotsOnly },
+									{ label: 'Day Start/End and Time of Slots', value: ScheduleCustomizability.All },
+								] } />
 						</Form.Item>
 					</Col>
 				</Row>
@@ -347,7 +366,7 @@ export const ScheduleFormElements:React.FC<{
 						<List
 							dataSource={ allDaySlots }
 							split={ false }
-							renderItem={ ( slot:SlotWithListId ) => (
+							renderItem={ ( slot:SlotWithListData ) => (
 								<List.Item
 									/*actions={ [ <a key="list-loadmore-edit">edit</a>, <a key="list-loadmore-more">more</a> ] }*/
 								>

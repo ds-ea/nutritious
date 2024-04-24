@@ -32,7 +32,7 @@
 				],
 				"styles": ["apps/app/src/theme/app.scss"],
 				"scripts": [],
-				"allowedCommonJsDependencies": ["fuzzysort", "localforage", "dayjs"],
+				"allowedCommonJsDependencies": ["fuzzysort", "localforage", "localforage-cordovasqlitedriver", "dayjs"],
 				"customWebpackConfig": {
 					"path": "apps/app/webpack.config.js"
 				}

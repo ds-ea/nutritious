@@ -47,11 +47,10 @@ export type SafeSlot = Pick<Slot,
 	'key' |
 	'name' |
 	'translations' |
-	'obligatory' |
 	'event' |
 	'date' |
 	'availability' |
-	'frequency' |
+	'constraints' |
 	'reminders' |
 	'dependsOn'>;
 
@@ -120,4 +119,7 @@ export type ResponseLogEntry<TMeta = unknown> = {
 export type ResponseLog = {
 	study:PublicStudy['id'];
 	entries:ResponseLogEntry[];
+	dayIndex:{
+		[forDay:string]:ResponseLogEntry['uid'][];
+	};
 }

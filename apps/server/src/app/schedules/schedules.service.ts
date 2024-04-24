@@ -22,7 +22,7 @@ export class SchedulesService extends JsxTranslatedCrudService<Schedule>{
 		return this.findOne( record.id, opts );
 	}
 
-	public override async update( scheduleId:Schedule['id'], data:Prisma.ScheduleUpdateInput, opts:CrudMethodOpts ){
+	public override async update( scheduleId:Schedule['id'], data:Prisma.ScheduleUncheckedUpdateInput, opts:CrudMethodOpts ){
 
 		const slots = data.slots;
 		if( data.slots )
@@ -40,10 +40,11 @@ export class SchedulesService extends JsxTranslatedCrudService<Schedule>{
 			const stepUpdates:Prisma.StepUpdateArgs[] = [];
 			const stepRemoves:Step['id'][] = [];
 
-			for( const slotData of slots ){
+			// NOTE: typing is not correct (regarding nested values)
+			for( const slotData of slots as Prisma.SlotUncheckedCreateInput[] ){
 				slotData.scheduleId = scheduleId;
 
-				const steps = slotData.steps;
+				const steps = slotData.steps as Prisma.StepUncheckedCreateInput[];
 				delete slotData.steps;
 
 				let slot:Slot | undefined;
@@ -52,6 +53,11 @@ export class SchedulesService extends JsxTranslatedCrudService<Schedule>{
 					const { id, ...withoutId } = slotData as typeof slotData;
 					delete withoutId['createdAt'];
 					delete withoutId['updatedAt'];
+
+					if( withoutId.availability && !withoutId.availability.days )
+						withoutId.availability.days = [];
+
+					withoutId.availability = { set: withoutId.availability };
 
 					slot = await this.prisma.slot.update( {
 						where: { id: slotData.id },

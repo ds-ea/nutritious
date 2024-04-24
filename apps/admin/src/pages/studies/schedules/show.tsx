@@ -6,7 +6,7 @@ import { TimeLineItemProps } from 'antd/lib/timeline/TimelineItem';
 import React, { useEffect, useState } from 'react';
 import { WeekdayPicker } from '../../../components/form/WeekdayPicker';
 import { DetailsHeader } from '../../../components/header/DetailsHeader';
-import { SlotItemContent, SlotWithListId } from '../../../components/schedule/ScheduleFormElements';
+import { SlotItemContent, SlotWithListData } from '../../../components/schedule/ScheduleFormElements';
 import { parseSchedule } from '../../../components/schedule/ScheduleTimeline';
 
 
@@ -36,7 +36,7 @@ export const ScheduleShow:React.FC<IResourceComponentsProps> = () => {
 	const schedule = scheduleData?.data;
 
 
-	const [ allDaySlots, setAllDaySlots ] = useState<SlotWithListId[]>( [] );
+	const [ allDaySlots, setAllDaySlots ] = useState<SlotWithListData[]>( [] );
 	const [ dayStart, setDayStart ] = useState<number>( schedule?.daySetup?.[0].start ?? 0 );
 	const [ timeline, setTimeline ] = useState<TimeLineItemProps[]>( [] );
 
@@ -92,11 +92,16 @@ export const ScheduleShow:React.FC<IResourceComponentsProps> = () => {
 					<Divider />
 
 					<Descriptions bordered={ true } column={ 4 }>
+
+
 						{ schedule?.notes &&
-							<Descriptions.Item label={ 'Notes' } span={ 3 } labelStyle={ { width: 140 } }>
+							<Descriptions.Item label={ 'Notes' } span={ 4 } labelStyle={ { width: 140 } }>
 								<p>{ schedule.notes }</p>
 							</Descriptions.Item>
 						}
+						<Descriptions.Item label={ 'Customizability' }>
+							<span>{ schedule?.customizable }</span>
+						</Descriptions.Item>
 
 					</Descriptions>
 
@@ -130,7 +135,7 @@ export const ScheduleShow:React.FC<IResourceComponentsProps> = () => {
 							<List
 								dataSource={ allDaySlots }
 								split={ false }
-								renderItem={ ( slot:SlotWithListId ) => (
+								renderItem={ ( slot:SlotWithListData ) => (
 									<List.Item key={ slot._listId }>
 										<SlotItemContent slot={ slot } contentMap={ contentMap } formMap={ formMap } />
 									</List.Item>

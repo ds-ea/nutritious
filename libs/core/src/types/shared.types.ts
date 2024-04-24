@@ -7,7 +7,7 @@ export type EntityStates = `${ EntityState }`;
 
 
 export type TimeFrame = {
-	state:EntityStates;
+	state?:EntityStates | null;
 	from?:string | Date | null;
 	until?:string | Date | null;
 }

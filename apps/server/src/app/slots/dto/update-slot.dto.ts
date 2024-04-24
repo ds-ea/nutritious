@@ -1,4 +1,4 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateSlotDto } from './create-slot.dto';
+import { Prisma } from '@prisma/client';
 
-export class UpdateSlotDto extends PartialType(CreateSlotDto) {}
+
+export type UpdateSlotDto = Prisma.SlotUncheckedUpdateInput;

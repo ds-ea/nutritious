@@ -1,58 +1,38 @@
 import { MinusCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
-import { Prisma, Step, Study, StudyContent, StudyForm, StudyStepType } from '@nutritious/core';
+import { Prisma, Step, Study, StudyContent, StudyForm } from '@nutritious/core';
 import { useList } from '@refinedev/core';
-import { Button, Card, Flex, Form, Input, List, Popconfirm, Segmented, Select, TimePicker, TimePickerProps } from 'antd';
+import { Button, Card, Collapse, Divider, Flex, Form, Input, List, Popconfirm, Segmented, Select, TimePicker, TimePickerProps } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import { DefaultOptionType } from 'rc-select/lib/Select';
 import React, { useEffect, useState } from 'react';
-import { SlotWithListId } from './ScheduleFormElements';
+import { GracePicker } from '../form/GracePicker';
+import { LimitPicker } from '../form/LimitPicker';
+import { StepReferencePicker } from '../form/StepReferencePicker';
+import { WeekdayPicker } from '../form/WeekdayPicker';
+import { GroupDivider } from '../layout/GroupDivider';
+import { SlotWithListData } from './ScheduleFormElements';
 import { StudyStepTypeMeta } from './shared';
 
 
 type StepWithListId = Step & { _listId:string };
 
 type Props = {
+	startOfWeek:0 | 1,
 	dayStart?:number,
-	slot:SlotWithListId,
+	slot:SlotWithListData,
 	study:Study,
 	isCreate?:boolean,
-	onChange?:( data:SlotWithListId ) => void,
-	onFinish?:( data:SlotWithListId ) => void,
+	onChange?:( data:SlotWithListData ) => void,
+	onFinish?:( data:SlotWithListData ) => void,
 	submit?:number
-	uniqueSlotChecks?:( Pick<SlotWithListId, 'key' | 'name' | '_listId'> & { time?:number } )[],
+	uniqueSlotChecks?:( Pick<SlotWithListData, 'key' | 'name' | '_listId'> & { time?:number } )[],
 
 };
 
-function StepReferencePicker( props:{
-	type:Step['type'],
-	value?:string,
-	onChange?:() => void,
-	forms:StudyForm[] | undefined,
-	contents:StudyContent[] | undefined,
-} ){
 
-	if( props.type === StudyStepType.BlsFood )
-		return <></>;
-
-	const [ options, setOptions ] = useState<DefaultOptionType[]>( [] );
-
-	useEffect( () => {
-		let opts:{ label:string, value:string }[] = [];
-
-		if( props.type === 'form' && props.forms?.length )
-			opts = props.forms?.map( opt => ( { label: opt.name, value: opt.id } ) );
-		else if( props.type === 'content' && props.contents?.length )
-			opts = props.contents?.map( opt => ( { label: opt.name, value: opt.id } ) );
-
-		opts = opts.sort( ( a, b ) => a.label!.localeCompare( b.label ) );
-		setOptions( opts );
-
-	}, [ props.type ] );
-
-	return <Select options={ options } value={ props.value } onChange={ props.onChange } />;
-}
 
 export const SlotShortEditor:React.FC<Props> = ( {
+	startOfWeek,
 	dayStart,
 	slot, study,
 	isCreate,
@@ -64,12 +44,13 @@ export const SlotShortEditor:React.FC<Props> = ( {
 	if( !slot || !study )
 		return ( <></> );
 
+	const useCollapseDividerHeaders = false;
+
 	const [ form ] = Form.useForm<Props['slot']>();
 
 	const [ isAllDay, setIsAllDay ] = useState<boolean>( slot.availability ? !!slot.availability?.allDay : true );
 	const [ startTime, setStartTime ] = useState<Dayjs | undefined>();
 	const [ startMinutes, setStartMinutes ] = useState( slot?.availability?.start );
-
 
 	// for triggering submit from outside buttons
 	useEffect( () => ( submit && form.submit(), undefined ), [ submit, form ] );
@@ -86,6 +67,7 @@ export const SlotShortEditor:React.FC<Props> = ( {
 		setStepTypeMap( map );
 	};
 
+
 	const onFormChanges = () => {
 		const data = form.getFieldsValue();
 		setIsAllDay( data?.availability ? !!data.availability?.allDay : true );
@@ -101,7 +83,7 @@ export const SlotShortEditor:React.FC<Props> = ( {
 	// form init
 	useEffect( () => {
 		if( !slot.availability )
-			slot.availability = { allDay: true } as SlotWithListId['availability'];
+			slot.availability = { allDay: true } as SlotWithListData['availability'];
 
 		if( !slot.steps )
 			slot.steps = [];
@@ -121,7 +103,7 @@ export const SlotShortEditor:React.FC<Props> = ( {
 		setStartTime( time );
 		updateStepTypeMap();
 
-	}, [ slot ] );
+	}, [ form, slot ] );
 
 
 	const stepTypeOptions = Object.entries( StudyStepTypeMeta ).map( ( [ value, meta ] ) => ( { label: meta.name, value } as DefaultOptionType ) );
@@ -153,7 +135,7 @@ export const SlotShortEditor:React.FC<Props> = ( {
 			;
 		}
 
-		const availability:Prisma.SlotTimeFrameCreateInput = form.getFieldValue( 'availability' ) || {};
+		const availability:Prisma.SlotAvailabilityCreateInput = form.getFieldValue( 'availability' ) || { days: [] };
 		availability.allDay = isAllDay;
 		availability.start = minutesSinceStartOfDay;
 
@@ -186,6 +168,13 @@ export const SlotShortEditor:React.FC<Props> = ( {
 		form.setFieldValue( 'steps', steps );
 	};
 
+	const perConstraintOptions:DefaultOptionType[] = [
+		{ label: 'day', value: 'day' },
+		{ label: 'week', value: 'week' },
+		{ label: 'month', value: 'month' },
+	];
+
+
 	return (
 		<Form form={ form }
 			  onChange={ onFormChanges }
@@ -215,6 +204,7 @@ export const SlotShortEditor:React.FC<Props> = ( {
 			>
 				<Input placeholder="lunch, bedtime" />
 			</Form.Item>
+
 			<Form.Item name="name"
 					   label="Name"
 					   rules={ [
@@ -231,6 +221,12 @@ export const SlotShortEditor:React.FC<Props> = ( {
 				<Input />
 			</Form.Item>
 
+			<Form.Item label="Days"
+					   name={ [ 'availability', 'days' ] }
+			>
+				<WeekdayPicker startOfWeek={ startOfWeek } allowClear />
+			</Form.Item>
+
 			<Form.Item label="Time"
 					   name={ [ 'availability', 'allDay' ] }
 					   rules={ [ { required: true } ] }
@@ -238,37 +234,80 @@ export const SlotShortEditor:React.FC<Props> = ( {
 				<Segmented options={ [ { label: 'All Day', value: true }, { label: 'Time of Day', value: false } ] } />
 			</Form.Item>
 
-			{ isAllDay
-			  ? <Form.Item name={ [ 'availability', 'start' ] } label={ <></> }></Form.Item>
-			  : (
-				  <Form.Item
-					  name={ [ 'availability', 'start' ] } label={ <></> }
-					  rules={ [
-						  //									 { required: true },
-						  {
-							  validator: ( rule, value ) => {
-								  if( value == null )
-									  return Promise.reject( new Error( 'Please select a time or switch to "all-day"' ) );
+			<Form.Item
+				name={ [ 'availability', 'start' ] } label={ <></> }
+				rules={ isAllDay ? [] : [
+					{
+						validator: ( rule, value ) => {
+							if( value == null )
+								return Promise.reject( new Error( 'Please select a time or switch to "all-day"' ) );
 
-								  if( uniqueSlotChecks?.find( ( { time, _listId } ) => time === startMinutes && _listId !== slot?._listId ) )
-									  return Promise.reject( 'The selected time is already occupied' );
+							if( uniqueSlotChecks?.find( ( { time, _listId } ) => time === startMinutes && _listId !== slot?._listId ) )
+								return Promise.reject( 'The selected time is already occupied' );
 
-								  return Promise.resolve();
-							  },
-						  },
-					  ] }
-				  >
-					  <Form.Item style={ { margin: 0 } }>
-						  <TimePicker
-							  format={ 'HH:mm' }
-							  value={ startTime } onChange={ applyTime }
-							  showNow={ false }
-							  minuteStep={ 5 }
-						  />
-					  </Form.Item>
-				  </Form.Item>
+							return Promise.resolve();
+						},
+					},
+				] }
+				hidden={ isAllDay }
+			>
+				<Form.Item style={ { margin: 0 } }>
+					<TimePicker
+						format={ 'HH:mm' }
+						value={ startTime } onChange={ applyTime }
+						showNow={ false }
+						minuteStep={ 5 }
+					/>
+				</Form.Item>
+			</Form.Item>
 
-			  ) }
+			<Collapse
+				ghost
+				size={ 'small' }
+				defaultActiveKey={ [ 'availability', 'constraints' ] }
+				items={ [
+					isAllDay ? {
+						key: 'availability',
+						label: useCollapseDividerHeaders ? <Divider orientation="left">{ 'Availability' }</Divider> : 'Availability',
+						children: <>
+							<Form.Item label={ 'Entry time' }>
+								<GroupDivider>
+									<GracePicker name={ [ 'availability', 'graceStart' ] } graceType={ 'before' }></GracePicker>
+									<GracePicker name={ [ 'availability', 'graceEnd' ] } graceType={ 'after' }></GracePicker>
+								</GroupDivider>
+							</Form.Item>
+						</>,
+					} : { showArrow: false, label: undefined },
+					{
+						key: 'constraints',
+						label: useCollapseDividerHeaders ? <Divider orientation="left">{ 'Constraints' }</Divider> : 'Constraints',
+						children: <>
+							<Form.Item name={ [ 'constraints', 'obligatory' ] }
+									   label={ 'Obligatory' }
+							>
+								<Segmented options={ [ { label: 'optional', value: false }, { label: 'required', value: true } ] } />
+							</Form.Item>
+
+							<Form.Item label={ 'Response Limits' }>
+								<GroupDivider>
+									<Form.Item label={ 'min' }>
+										<LimitPicker name={ [ 'constraints', 'min' ] } unit={ 'response' } direction={ 'up' } />
+									</Form.Item>
+									<Form.Item label={ 'max' }>
+										<LimitPicker name={ [ 'constraints', 'max' ] } unit={ 'response' } direction={ 'down' } />
+									</Form.Item>
+
+									<Form.Item label={ 'per' }
+											   name={ [ 'constraints', 'per' ] }
+									>
+										<Select options={ perConstraintOptions } allowClear placeholder={ 'day' } disabled />
+									</Form.Item>
+								</GroupDivider>
+							</Form.Item>
+						</>,
+					},
+				] } />
+
 
 			<div style={ { marginBlockStart: 50 } }>
 				<Form.List name={ 'steps' }>
@@ -309,7 +348,6 @@ export const SlotShortEditor:React.FC<Props> = ( {
 												   style={ { flexGrow: 1 } }
 										>
 											<StepReferencePicker type={ stepTypeMap[key] } forms={ availableForms?.data } contents={ availableContents?.data } />
-											{/*<Input />*/ }
 										</Form.Item>
 
 										<div>

@@ -45,3 +45,10 @@ export enum BLSAttendanceOption{
 	Two = 'two',
 	More = 'more',
 }
+
+
+export enum ScheduleCustomizability{
+	All = 'ALL',
+	DayStartEnd = 'DAY_START_END',
+	SlotsOnly = 'SLOTS_ONLY',
+}

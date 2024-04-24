@@ -111,47 +111,28 @@ export class StudyService{
 	}
 
 
-	/**
-	 * records responses locally and attempts to send them afterward
-	 */
-	public logResponses( entries:ResponseLogEntry[] ):Observable<unknown>{
-
-		const studyResponses = entries.reduce( ( acc, entry ) => {
-			acc[entry.study] = acc[entry.study] || [];
-			acc[entry.study].push( entry );
-			return acc;
-		}, {} as Record<ResponseLogEntry['study'], ResponseLogEntry[]> );
-
-		const promisedLogs = Object.keys( studyResponses ).map(
-			studyId =>
-				this.storage.get<ResponseLog>( [ 'log', studyId ] )
-					.then( log => log || { study: studyId, entries: [] } ),
-		);
-
-
-		return from( Promise.all( promisedLogs ) )
-			.pipe(
-				switchMap( async responseLogs => {
-					for( const log of responseLogs ){
-						// TODO: update existing response entries (by uid)
-						log.entries.push( ...studyResponses[log.study] );
-					}
-
-					await Promise.all( responseLogs.map( log => this.storage.set( [ 'log', log.study ], log ) ) );
-
-					return responseLogs;
-				} ),
-			);
+	public async getStudyLog( studyId:ResponseLog['study'] ):Promise<ResponseLog>{
+		const log = await this.storage.get<ResponseLog>( [ 'log', studyId ] );
+		return log || { study: studyId, entries: [], dayIndex: {} };
 	}
 
-	public getStudyLog( studyId:ResponseLog['study'] ):Observable<ResponseLog | undefined>{
-		return from( this.storage.get<ResponseLog>( [ 'log', studyId ] ) );
+	public addEntryToLog( log:ResponseLog, entry:ResponseLogEntry ){
+		const index = log.entries.findIndex( e => e.uid === entry.uid );
+		if( index !== -1 )
+			log.entries[index] = entry;
+		else
+			log.entries.push( entry );
+
+		if( !log.dayIndex[entry.forDay] )
+			log.dayIndex[entry.forDay] = [];
+
+		log.dayIndex[entry.forDay].push( entry.uid );
+
 	}
 
-	public updateLog( studyId:ResponseLog['study'], uids:ResponseLogEntry['uid'][] ):Observable<ResponseLog>{
-		return this.getStudyLog( studyId )
+	public markResponsesAsSent( studyId:ResponseLog['study'], uids:ResponseLogEntry['uid'][] ):Observable<ResponseLog>{
+		return from( this.getStudyLog( studyId ) )
 			.pipe(
-				map( log => log || { study: studyId, entries: [] } ),
 				switchMap( log => {
 					for( const uid of uids ){
 						const entry = log.entries.find( entry => entry.uid === uid );
@@ -164,11 +145,46 @@ export class StudyService{
 
 					return from( this.storage.set( [ 'log', studyId ], log ) )
 						.pipe(
+							// gotta return the log
 							map( updated => log ),
 						);
 				} ),
 			);
 	}
+
+	/**
+	 * records responses locally and attempts to send them afterward
+	 */
+	public logResponses( entries:ResponseLogEntry[] ):Observable<unknown>{
+
+		const logEntriesByStudy = entries.reduce( ( acc, entry ) => {
+			acc[entry.study] = acc[entry.study] || [];
+			acc[entry.study].push( entry );
+			return acc;
+		}, {} as Record<ResponseLogEntry['study'], ResponseLogEntry[]> );
+
+		const promisedLogs = Object.keys( logEntriesByStudy ).map(
+			studyId => this.getStudyLog( studyId ),
+		);
+
+
+		return from( Promise.all( promisedLogs ) )
+			.pipe(
+				switchMap( async responseLogs => {
+					for( const log of responseLogs ){
+						logEntriesByStudy[log.study]
+							.forEach( entry =>
+								this.addEntryToLog( log, entry ),
+							);
+					}
+
+					await Promise.all( responseLogs.map( log => this.storage.set( [ 'log', log.study ], log ) ) );
+
+					return responseLogs;
+				} ),
+			);
+	}
+
 
 
 	/**
@@ -228,7 +244,7 @@ export class StudyService{
 							switchMap( result => {
 								return !result?.success.length
 									   ? EMPTY
-									   : this.updateLog( studyId, result.success )
+									   : this.markResponsesAsSent( studyId, result.success )
 									;
 
 							} ),

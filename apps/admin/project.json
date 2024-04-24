@@ -1,0 +1,17 @@
+{
+	"name": "admin",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "apps/admin",
+	"projectType": "application",
+	"implicitDependencies": ["server", "core"],
+	"targets": {
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/admin",
+				"command": "refine dev"
+			}
+		}
+	},
+	"tags": []
+}

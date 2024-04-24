@@ -21,8 +21,14 @@ enum EntityState {
   DELETED
 }
 
+enum ScheduleCustomizability {
+  ALL
+  DAY_START_END
+  SLOTS_ONLY
+}
+
 type TimeFrame {
-  state EntityState @default(ENABLED)
+  state EntityState? @default(ENABLED)
   from  DateTime?
   until DateTime?
 }
@@ -242,22 +248,35 @@ type ScheduleDaySetup {
   grace Int?
 }
 
-type SlotTimeFrame {
+type SlotAvailability {
   allDay Boolean?
+
+  /// which days of the week this applies to - 0 (Sunday) to 6 (Saturday), empty = all days
+  days Int[]
 
   /// offset from day start in minutes
   start    Int?
   /// offset from start in minutes
   duration Int?
+
+  /// grace period before start in minutes
+  graceStart Int?
   /// grace period after duration in minutes
-  grace    Int?
+  graceEnd   Int?
 }
 
-type SlotFrequency {
-  min   Int?
-  max   Int?
-  // range the limits relate to ( occurance, same-day, same-week, same-month, 123-minutes )
-  per   String?
+type SlotConstraints {
+  /// whether the slot is obligatory in general
+  obligatory Boolean?
+
+  /// minimum number of responses
+  min Int?
+  /// maximum number of responses
+  max Int?
+
+  // range the limits relate to ( event, day, week, month, 123-minutes )
+  per String?
+
   // repeat within slot availability every n-minutes
   every Int?
 }
@@ -290,6 +309,8 @@ model Schedule {
   daySetup  ScheduleDaySetup[]
   weekSetup ScheduleWeekSetup
 
+  customizable ScheduleCustomizability?
+
   studyId String? @db.ObjectId
   study   Study?  @relation(fields: [studyId], references: [id])
 
@@ -309,20 +330,19 @@ model Slot {
   name         String
   translations Json?
 
-  obligatory Boolean?
-
   /// assigned to system events (overwrites date and availability)
-  event        String?
+  event String?
   /// for explicit dates (combines with availability when set, otherwise all day)
-  date         DateTime?
-  /// when the slot is available (at any time otherwise)
-  availability SlotTimeFrame?
+  date  DateTime?
 
-  frequency SlotFrequency?
-  reminders SlotReminder[]
+  /// when the slot is available (at any time otherwise)
+  availability SlotAvailability?
+  constraints  SlotConstraints?
 
   /// dependency to another slot
   dependsOn SlotDependency?
+
+  reminders SlotReminder[]
 
   steps     Step[]
   stepOrder StepSetup[]

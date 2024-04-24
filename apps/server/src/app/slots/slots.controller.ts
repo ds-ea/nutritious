@@ -30,10 +30,10 @@ export class SlotsController{
 	@Patch( ':id' )
 	async update(
 		@Param( 'id' ) id:string,
-		@Body() updateSlotDto:UpdateSlotDto,
+		@Body() data:UpdateSlotDto,
 		@CrudQuery() crudQuery:CrudQueryData,
 	){
-		const updated = await this.slotsService.update( id, updateSlotDto, { crudQuery } );
+		const updated = await this.slotsService.update( id, data, { crudQuery } );
 		return updated;
 	}
 

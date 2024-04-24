@@ -1,16 +1,30 @@
 import { minutesToTime, Schedule, Slot, StudyContent, StudyForm } from '@nutritious/core';
 import { TimeLineItemProps } from 'antd/lib/timeline/TimelineItem';
 import React from 'react';
-import { SlotItemContent, SlotWithListId } from './ScheduleFormElements';
+import { dayData } from '../shared';
+import { SlotItemContent, SlotWithListData } from './ScheduleFormElements';
 
+
+export const humanReadableDays = ( days?:number[] ):string[] | undefined => {
+	if( !days?.length )
+		return undefined;
+
+	if( days.length === 2 && days.includes( 0 ) && days.includes( 6 ) )
+		return [ 'Weekend' ];
+
+	if( days.length === 5 && !days.includes( 0 ) && !days.includes( 6 ) )
+		return [ 'Weekdays' ];
+
+	return days.map( day => dayData[day].short );
+};
 
 export const parseSchedule = (
 	daySetup:Schedule['daySetup'],
-	plainSlots:Slot[] | SlotWithListId[],
+	plainSlots:Slot[] | SlotWithListData[],
 	createCount:number = 0,
 	formMap?:Record<string, StudyForm> | undefined,
 	contentMap?:Record<string, StudyContent> | undefined,
-	onEditSlot?:( slot:SlotWithListId ) => void,
+	onEditSlot?:( slot:SlotWithListData ) => void,
 ) => {
 	const items:{ item:TimeLineItemProps, time:number, type:'spacer' | 'slot' | 'boundary' | 'plain' }[] = [];
 
@@ -57,14 +71,17 @@ export const parseSchedule = (
 
 
 	// slots
-	const allDaySlots:SlotWithListId[] = [];
+	const allDaySlots:SlotWithListData[] = [];
 	const scheduleSlots = [];
-	const slots:SlotWithListId[] = [];
+	const slots:SlotWithListData[] = [];
 
 	for( const plainSlot of plainSlots ){
-		const slot:SlotWithListId = {
+		const onlyOnDays = humanReadableDays( plainSlot.availability?.days );
+
+		const slot:SlotWithListData = {
 			...plainSlot,
 			_listId: ( ( '_listId' in plainSlot && plainSlot._listId ) ? plainSlot._listId : plainSlot.id ?? ( 'new_' + ++createCount ) ),
+			_onlyOnDays: onlyOnDays,
 		};
 		slots.push( slot );
 
@@ -78,7 +95,10 @@ export const parseSchedule = (
 				time: slot?.availability?.start! + dayStart,
 				item: {
 					color: 'green', className: 'slot',
-					label: minutesToTime( slot?.availability?.start! + dayStart ),
+					label: <>
+						{/*{ onlyOnDays && <small style={ { marginInlineEnd: 12 } }>{ onlyOnDays.join( ', ' ) }</small> }*/ }
+						{ minutesToTime( slot?.availability?.start! + dayStart ) }
+					</>,
 				},
 			};
 

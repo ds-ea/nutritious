@@ -87,3 +87,48 @@
 		margin-block-end: 0;
 	}
 }
+
+
+.ant-form-item .ant-form-item-label > label {
+	white-space: wrap;
+}
+
+
+.ant-flex.group-divider {
+	.ant-divider {
+		display: flex;
+		width: 1px;
+		height: auto;
+		margin-inline-start: 0;
+		margin-inline-end: 10px;
+
+	}
+
+	.ant-space-item {
+		margin-block-end: 12px;
+
+		.ant-form-item {
+			margin-block-end: 0;
+		}
+
+		&:last-child .ant-form-item {
+			margin-block-end: 0;
+		}
+	}
+
+	.ant-flex {
+		.ant-form-item:last-child {
+			margin-block-end: 0;
+		}
+	}
+}
+
+
+.ant-collapse-header-text > .ant-divider {
+	margin-block: 0;
+}
+
+
+.ant-collapse-ghost .ant-collapse-content-box {
+	margin-inline: 0;
+}

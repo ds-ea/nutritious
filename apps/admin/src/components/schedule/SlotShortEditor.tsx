@@ -264,20 +264,22 @@ export const SlotShortEditor:React.FC<Props> = ( {
 			<Collapse
 				ghost
 				size={ 'small' }
-				defaultActiveKey={ [ 'availability', 'constraints' ] }
+				defaultActiveKey={ [] }
 				items={ [
-					isAllDay ? {
-						key: 'availability',
-						label: useCollapseDividerHeaders ? <Divider orientation="left">{ 'Availability' }</Divider> : 'Availability',
-						children: <>
-							<Form.Item label={ 'Entry time' }>
-								<GroupDivider>
-									<GracePicker name={ [ 'availability', 'graceStart' ] } graceType={ 'before' }></GracePicker>
-									<GracePicker name={ [ 'availability', 'graceEnd' ] } graceType={ 'after' }></GracePicker>
-								</GroupDivider>
-							</Form.Item>
-						</>,
-					} : { showArrow: false, label: undefined },
+					isAllDay
+					? { showArrow: false, label: undefined }
+					: {
+							key: 'availability',
+							label: useCollapseDividerHeaders ? <Divider orientation="left">{ 'Availability' }</Divider> : 'Availability',
+							children: <>
+								<Form.Item label={ 'Entry Restrictions' }>
+									<GroupDivider>
+										<GracePicker name={ [ 'availability', 'graceStart' ] } graceType={ 'before' }></GracePicker>
+										<GracePicker name={ [ 'availability', 'graceEnd' ] } graceType={ 'after' }></GracePicker>
+									</GroupDivider>
+								</Form.Item>
+							</>,
+						},
 					{
 						key: 'constraints',
 						label: useCollapseDividerHeaders ? <Divider orientation="left">{ 'Constraints' }</Divider> : 'Constraints',

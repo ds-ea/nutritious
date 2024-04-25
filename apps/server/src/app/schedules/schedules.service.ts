@@ -47,6 +47,12 @@ export class SchedulesService extends JsxTranslatedCrudService<Schedule>{
 				const steps = slotData.steps as Prisma.StepUncheckedCreateInput[];
 				delete slotData.steps;
 
+				// remove internal admin data in case it was not cleaned up in client
+				if( '_listId' in slotData )
+					delete slotData['_listId'];
+				if( '_onlyOnDays' in slotData )
+					delete slotData['_onlyOnDays'];
+
 				let slot:Slot | undefined;
 
 				if( slotData.id ){

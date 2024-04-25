@@ -52,6 +52,7 @@ export const ScheduleEdit:React.FC<IResourceComponentsProps> = () => {
 						delete step._listId;
 
 				delete slot._listId;
+				delete slot._onlyOnDays;
 			}
 
 		return onFinish( data );

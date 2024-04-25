@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
-import { BehaviorSubject, concat, EMPTY, from, Observable, of } from 'rxjs';
+import { BehaviorSubject, concat, EMPTY, forkJoin, from, Observable, of } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
-import { MatchedSlot, ParticipantAccount, PreparedSlot, PreparedStudy, ResponseLog, ResponseLogEntry, ResponseLogState, SafeSlot, SubmitResponsesPayload } from '../../../../../libs/core/src';
+import { MatchedSlot, ParticipantAccount, PreparedSlot, PreparedStudy, PublicStudy, ResponseLog, ResponseLogEntry, ResponseLogState, SafeSlot, SubmitResponsesPayload } from '../../../../../libs/core/src';
 import { ApiService } from '../core/api.service';
 import { CoreService } from '../core/core.service';
 import { StorageService } from '../core/storage.service';
@@ -61,10 +61,11 @@ export class StudyService{
 		return this.refreshStudies();
 	}*/
 
-	public refreshStudies():Observable<PreparedStudy[]>{
+	public refreshStudies():Observable<{ study:PreparedStudy, log?:ResponseLog }[]>{
 		if( !this.currentAccount )
 			throw new Error( 'not logged in' );
 
+		const studyLogs:Record<PublicStudy['id'], ResponseLog> = {};
 
 		return concat(
 			from( this.storage.get<PreparedStudy[]>( [ 'studies', this.currentAccountId ] ) )
@@ -87,7 +88,14 @@ export class StudyService{
 						//						Preferences.set( { key: 'study', value: JSON.stringify( study ) } );
 					} ),
 				),
-		).pipe( tap( studies => this.studies$.next( studies ) ) );
+		).pipe(
+			// get logs and merge
+			switchMap( studies =>
+				forkJoin(
+					studies.map( study => from( this.getStudyLog( study.study.id ) ).pipe( map( log => ( { study, log } ) ) ) ),
+				) ),
+			tap( ( data ) => this.studies$.next( data.map( item => item.study ) ) ),
+		);
 	}
 
 	public async restoreStudy():Promise<void>{

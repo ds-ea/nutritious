@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Directive, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { ReplaySubject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { PreparedSlot, SafeStep } from '../../../../../../../libs/core/src';
+import { MatchedSlot, SafeStep } from '../../../../../../../libs/core/src';
 
 
 export type StepProgressState = 'pending' | 'incomplete' | 'error' | 'done-with-skips' | 'done' | 'completed';
@@ -22,7 +22,7 @@ export abstract class AbstractStepComponent<RefType = unknown, ResponseDataType 
 	private _destroyed$ = new ReplaySubject<boolean>( 1 );
 
 	@Input()
-	slot!:PreparedSlot;
+	slot!:MatchedSlot;
 
 	@Input()
 	step!:SafeStep;

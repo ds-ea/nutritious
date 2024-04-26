@@ -1,7 +1,7 @@
 import type { Group, GroupMember, Participant, Schedule, Slot, Step, Study, StudyContent, StudyForm, StudyResponse } from '@prisma/client';
 import { Dayjs } from 'dayjs';
 import { ResponseLogState, StudyStepType } from '../../lib/study';
-import { FormSetup } from './form.types';
+import { FormSetup, SafeInputPreset } from './form.types';
 import { StepResponse, StudyStepTypes } from './step.types';
 
 
@@ -63,6 +63,7 @@ export type PreparedSchedule = {
 	refs?:Partial<
 		& { [StudyStepType.Form]:SafeStudyForm[] }
 		& { [StudyStepType.Content]:SafeStudyContent[] }
+		& { inputPresets:SafeInputPreset[] }
 		& { [type:string]:{ id:string }[] }
 	>;
 }
@@ -72,6 +73,7 @@ export type MatchedSlot = {
 	refs:{
 		[StudyStepType.Form]?:Record<SafeStudyForm['id'], SafeStudyForm>,
 		[StudyStepType.Content]?:Record<SafeStudyContent['id'], SafeStudyContent>,
+		inputPresets?:Record<SafeInputPreset['id'], SafeInputPreset>
 	} & { [type:string]:Record<string, unknown> };
 }
 

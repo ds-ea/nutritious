@@ -1,5 +1,5 @@
-import { Participant, Schedule, Slot, Step, Study, StudyContent, StudyForm, User } from '@prisma/client';
-import { ExportableMember, GroupMember } from '../../index';
+import { FormInputPreset, Participant, Schedule, Slot, Step, Study, StudyContent, StudyForm, User } from '@prisma/client';
+import { ExportableMember, GroupMember, InputPreset, SafeInputPreset } from '../../index';
 import type { PublicStudy, SafeParticipant, SafeSchedule, SafeSlot, SafeStep, SafeStudyContent, SafeStudyForm, SafeUser } from '../../types';
 
 
@@ -76,6 +76,10 @@ export class Sanitize{
 
 	public static safeStudyContent( content:StudyContent ):SafeStudyContent{
 		return clean( content, { keep: [ 'id', 'title', 'content', 'translations' ] } );
+	}
+
+	public static safeFormInputPreset( preset:FormInputPreset | InputPreset | SafeInputPreset ):SafeInputPreset{
+		return clean( preset as InputPreset, { keep: [ 'id', 'inputType', 'config', 'translations' ] } );
 	}
 
 	public static safeStudyForm( form:StudyForm ):SafeStudyForm{

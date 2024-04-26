@@ -4,12 +4,13 @@ import { AlertController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { ReplaySubject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
-import { FormContent, FormInputType, FormQuestion, FormResponseData, FormSetup, SafeStudyForm } from '../../../../../../../libs/core/src';
+import { FormContent, FormInputType, FormQuestion, FormResponseData, FormSetup, MatchedSlot, SafeStudyForm } from '../../../../../../../libs/core/src';
 import { StepProgress, StepProgressState } from '../../slot/steps/abstract-step.component';
 import { AbstractInput } from './inputs/abstract-input';
 import { BinaryInput } from './inputs/binary.input';
 import { ChoicesInput } from './inputs/choices.input';
 import { NumberInput } from './inputs/number.input';
+import { RatingInput } from './inputs/rating.input';
 import { SliderInput } from './inputs/slider.input';
 import { TextInput } from './inputs/text.input';
 
@@ -75,7 +76,11 @@ function emptyValue( control:AbstractControl ):boolean | undefined{
 
 									<ng-template *ngComponentOutlet="
 												inputComponents[ item.input ] || TextInput;
-												inputs: {item, formGroup}
+												inputs: {
+													item,
+													formGroup,
+													refs
+													}
 											" />
 
 									<!--<mat-error *ngIf="!formGroup.controls[item.key].valid">{{ formGroup.controls[item.key].errors|json }}</mat-error>-->
@@ -103,6 +108,9 @@ export class StudyFormComponent implements OnInit, OnDestroy, OnChanges{
 	data?:FormResponseData;
 
 	@Input()
+	refs?:MatchedSlot['refs'];
+
+	@Input()
 	triggerValidation?:EventEmitter<boolean>;
 
 	@Output()
@@ -124,6 +132,7 @@ export class StudyFormComponent implements OnInit, OnDestroy, OnChanges{
 		[FormInputType.Number]: NumberInput,
 		[FormInputType.Choices]: ChoicesInput,
 		[FormInputType.Binary]: BinaryInput,
+		[FormInputType.Rating]: RatingInput,
 	};
 
 	constructor(

@@ -351,6 +351,9 @@ export class StudyService{
 		if( !slot )
 			return undefined;
 
+		if( study?.schedule?.refs?.inputPresets )
+			refs.inputPresets = study?.schedule?.refs?.inputPresets.reduce( ( map, preset ) => ( map[preset.id] = preset, map ), {} as NonNullable<MatchedSlot['refs']['inputPresets']> );
+
 		if( slot.steps?.length )
 			for( const step of slot.steps ){
 				if( !step.ref )

@@ -13,6 +13,7 @@ import { SharedModule } from '../core/shared.module';
 import { BinaryInput } from './components/form/inputs/binary.input';
 import { ChoicesInput } from './components/form/inputs/choices.input';
 import { NumberInput } from './components/form/inputs/number.input';
+import { RatingInput } from './components/form/inputs/rating.input';
 import { SliderInput } from './components/form/inputs/slider.input';
 import { TextInput } from './components/form/inputs/text.input';
 import { StudyFormComponent } from './components/form/study-form.component';
@@ -65,6 +66,7 @@ const routes:Routes = [
 		BinaryInput,
 		SliderInput,
 		ChoicesInput,
+		RatingInput,
 		StudyFormComponent,
 
 	],

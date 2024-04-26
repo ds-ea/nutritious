@@ -9,14 +9,14 @@ import { AbstractInput } from './abstract-input';
 	template: `
 		<div [formGroup]="formGroup" *ngIf="item" class="form-control">
 			<mat-form-field>
-				@if (item.config.variant === 'string') {
+				@if (config?.variant === 'string') {
 
 					<input matInput
 						   [id]="ctrlId" [attr.aria-labelledby]="labelId"
 						   [formControlName]="item.key"
 
-						   [minLength]="item.config.minLength ?? null"
-						   [maxLength]="item.config.maxLength ?? null"
+						   [minLength]="config?.minLength ?? null"
+						   [maxLength]="config?.maxLength ?? null"
 
 					/>
 
@@ -27,8 +27,8 @@ import { AbstractInput } from './abstract-input';
 						[id]="ctrlId" [attr.aria-labelledby]="labelId"
 						[formControlName]="item.key"
 
-						[minLength]="item.config.minLength ?? null"
-						[maxLength]="item.config.maxLength ?? null"
+						[minLength]="config?.minLength ?? null"
+						[maxLength]="config?.maxLength ?? null"
 					></textarea>
 
 				}

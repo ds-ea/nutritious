@@ -12,8 +12,8 @@ import { AbstractInput } from './abstract-input';
 				<input matInput
 					   type="number"
 
-					   [min]="item.config.min ?? null"
-					   [max]="item.config.max ?? null"
+					   [min]="config?.min ?? null"
+					   [max]="config?.max ?? null"
 
 					   [id]="ctrlId" [attr.aria-labelledby]="labelId"
 					   [formControlName]="item.key"

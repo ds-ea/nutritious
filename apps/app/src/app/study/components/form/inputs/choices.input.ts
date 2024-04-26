@@ -8,16 +8,16 @@ import { AbstractInput } from './abstract-input';
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<div [formGroup]="formGroup" *ngIf="item" class="form-control">
-			@if (item) {
+			@if (item && config) {
 
-				@if (item.config.limit == 1) {
+				@if (config.limit == 1) {
 
 					<mat-form-field>
 						<mat-select
 							[id]="ctrlId" [attr.aria-labelledby]="labelId"
 							[formControlName]="item.key"
 						>
-							@for (option of item.config.options; track option.value) {
+							@for (option of config.options; track option.value) {
 								<mat-option [value]="option.value">{{ option.label }}</mat-option>
 							}
 						</mat-select>
@@ -27,14 +27,14 @@ import { AbstractInput } from './abstract-input';
 						[id]="ctrlId" [attr.aria-labelledby]="labelId"
 						[formControlName]="item.key"
 					>
-						@for (option of item.config.options; track option.value ) {
+						@for (option of config.options; track option.value ) {
 							<mat-radio-button [value]="option.value">{{option.label}}</mat-radio-button>
 						}
 					</mat-radio-group>-->
 				} @else {
 
 					<ul class="form-choice-checkboxes">
-						@for (option of item.config.options; track option.value) {
+						@for (option of config.options; track option.value) {
 							<li>
 								<!-- [color]="ctrl?.valid ? 'accent' : 'warn'" -->
 								<mat-checkbox

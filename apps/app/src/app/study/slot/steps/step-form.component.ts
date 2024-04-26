@@ -10,6 +10,7 @@ import { AbstractStepComponent, StepProgress } from './abstract-step.component';
 	template: `
 
 		<study-form [form]="ref" [data]="data"
+					[refs]="slot.refs"
 					[triggerValidation]="triggerValidation"
 					(submit)="onSubmit($event)"
 					(state)="updateState($event)"

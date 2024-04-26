@@ -1,7 +1,7 @@
 import { ConflictException, ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { EntityState, type Group, type GroupMember, type Participant, type ParticipantCredentials, type PreparedSchedule, PreparedSlot, type PreparedStudy, type Prisma, SafeSlot, Sanitize, type Schedule, type SignupCheckResponse, type  SignupResponse, type Slot, type Step, StepResponse, type Study, StudyStepType, StudyStepTypes, SubmitResponsesPayload, type TimeFrame, type User } from '@nutritious/core';
+import { EntityState, type Group, type GroupMember, InputPreset, type Participant, type ParticipantCredentials, type PreparedSchedule, PreparedSlot, type PreparedStudy, type Prisma, SafeSlot, Sanitize, type Schedule, type SignupCheckResponse, type  SignupResponse, type Slot, type Step, StepResponse, type Study, StudyStepType, StudyStepTypes, SubmitResponsesPayload, type TimeFrame, type User } from '@nutritious/core';
 import { hash } from 'argon2';
 import dayjs from 'dayjs';
 import { nanoid } from 'nanoid';
@@ -274,6 +274,7 @@ export class StudyService{
 
 		if( Object.keys( stepRefs ).length ){
 			const preparedRefs:PreparedSchedule['refs'] = {};
+
 			for( const [ refType, refs ] of Object.entries( stepRefs ) ){
 				if( refType === StudyStepType.Form )
 					preparedRefs[refType] = await this.prisma.studyForm.findMany( { where: { id: { in: Object.keys( refs ) } } } )
@@ -282,6 +283,21 @@ export class StudyService{
 					preparedRefs[refType] = await this.prisma.studyContent.findMany( { where: { id: { in: Object.keys( refs ) } } } )
 						.then( contents => contents.map( Sanitize.safeStudyContent ) );
 			}
+
+			// extract and merge form input presets
+			if( preparedRefs[StudyStepType.Form]?.length ){
+				const presets:Record<InputPreset['id'], InputPreset | undefined> = {};
+				for( const form of preparedRefs[StudyStepType.Form] ){
+					for( const item of form.setup.items )
+						if( item.type === 'question' && item.preset )
+							presets[item.preset] = undefined;
+				}
+				const presetIds = Object.keys( presets );
+				if( presetIds.length )
+					preparedRefs.inputPresets = await this.prisma.formInputPreset.findMany( { where: { id: { in: presetIds } } } )
+						.then( presets => presets.map( Sanitize.safeFormInputPreset ) );
+			}
+
 			prepared.refs = preparedRefs;
 		}
 

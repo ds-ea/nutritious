@@ -11,11 +11,11 @@ import { AbstractInput } from './abstract-input';
 			<mat-slider
 
 
-				[min]="item.config.min ?? null"
-				[max]="item.config.max ?? null"
-				[step]="item.config.step ?? null"
+					[min]="config?.min ?? null"
+					[max]="config?.max ?? null"
+					[step]="config?.step ?? null"
 
-				[showTickMarks]="true"
+					[showTickMarks]="true"
 			>
 				<input matSliderThumb
 					   [id]="ctrlId" [attr.aria-labelledby]="labelId"

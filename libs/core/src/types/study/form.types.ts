@@ -34,12 +34,22 @@ export type FormInputConfigChoices = {
 	options:{ label:string, value:string }[];
 }
 
-export type FormInputConfigRating = {
-	behavior:'stepped' | 'linear' | 'stars';
-	variant?:string;
-	options?:{ label:string, value:string }[];
-}
-
+// @formatter:off
+// prettier-ignore
+export type FormInputConfigRating = (
+	{
+		behavior:'stepped' | 'linear' | 'stars';
+		variant?:string;
+		options?:{ label:string, value:string }[];
+	} & Partial<FormInputConfigSlider>
+) & (
+	| { behavior:'stepped';
+		options:{ label:string, value:string }[];
+	}
+	| ({ behavior:'linear' } & FormInputConfigSlider )
+	| { behavior:'stars'; }
+	);
+// @formatter:on
 
 export type FormInputRequiredLevels = typeof FormInputNecessity[ keyof typeof FormInputNecessity ];
 
@@ -52,23 +62,24 @@ export interface FormItem{
 
 // @formatter:off
 // prettier-ignore
-export type InputRelatedConfig<T extends FormInputTypes>
+export type InputRelatedConfig<T extends FormInputTypes | unknown>
 	= T extends FormInputType.Slider  ? FormInputConfigSlider
 	: T extends FormInputType.Text  ? FormInputConfigText
 	: T extends FormInputType.Number  ? FormInputConfigNumber
 	: T extends FormInputType.Choices  ? FormInputConfigChoices
 	: T extends FormInputType.Binary  ? FormInputConfigBinary
-	: T extends FormInputType.Binary  ? FormInputConfigRating
-	: never;
+	: T extends FormInputType.Rating  ? FormInputConfigRating
+	: Record<string, unknown>;
 // @formatter:on
 
-export type InputPreset<T extends FormInputTypes = never> = {
+export type InputPreset<T extends FormInputTypes | unknown = unknown> = {
 	id:FormInputPreset['id'];
 	inputType:T;
 	name?:string;
 	config:InputRelatedConfig<T>;
 	translations?:string | null;
 }
+export type SafeInputPreset<T extends FormInputTypes | unknown = unknown> = Omit<InputPreset<T>, 'name'>;
 
 
 export interface FormQuestion<

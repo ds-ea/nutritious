@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { EventEmitter, Injectable } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
 import { BehaviorSubject, concat, EMPTY, forkJoin, from, Observable, of } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
@@ -21,6 +21,8 @@ export class StudyService{
 
 	public currentAccount:ParticipantAccount | undefined;
 	public currentAccountId:string | 'default' = 'default';
+
+	public newResponses$ = new EventEmitter<{ study:ResponseLogEntry['study'] }[]>();
 
 	constructor(
 		private api:ApiService,
@@ -94,7 +96,14 @@ export class StudyService{
 				forkJoin(
 					studies.map( study => from( this.getStudyLog( study.study.id ) ).pipe( map( log => ( { study, log } ) ) ) ),
 				) ),
-			tap( ( data ) => this.studies$.next( data.map( item => item.study ) ) ),
+			tap( ( data ) =>
+				this.studies$.next( data.map( item => item.study ) ) ),
+		);
+	}
+
+	public refreshLogs( studyIds:PublicStudy['id'][] ):Observable<ResponseLog[]>{
+		return forkJoin(
+			studyIds.map( studyId => from( this.getStudyLog( studyId ) ) ),
 		);
 	}
 
@@ -175,6 +184,7 @@ export class StudyService{
 			studyId => this.getStudyLog( studyId ),
 		);
 
+		const studyIds = [ ...new Set( entries.map( entry => entry.study ) ) ];
 
 		return from( Promise.all( promisedLogs ) )
 			.pipe(
@@ -190,6 +200,9 @@ export class StudyService{
 
 					return responseLogs;
 				} ),
+				tap( responseLogs =>
+					this.newResponses$.next( studyIds.map( study => ( { study } ) ) ),
+				),
 			);
 	}
 
@@ -216,6 +229,7 @@ export class StudyService{
 
 				study: response._study,
 				uid: response.uid,
+				suid: response.suid,
 				slot: response.slot,
 				date: response.created,
 				forDay: response.forDay,

@@ -49,6 +49,10 @@ import { StepMealBlsComponent } from './steps/step-meal-bls.component';
 						<p>error: {{ error.msg }}</p>
 					}
 
+					@if (state === 'done') {
+						{{ 'LOG.SUMMARY.ALL_DONE_MSG' | translate }}
+					}
+
 					<footer class="view-footer">
 						<button mat-flat-button color="primary" (click)="submit()">
 							<!--{{ 'GENERIC.DONE_BTN' | translate }}-->
@@ -77,6 +81,7 @@ export class SlotView implements OnInit, OnDestroy{
 	public study:PublicStudy | undefined;
 
 	public slot:MatchedSlot | undefined;
+	public slotResponseId:string | undefined;
 	public isContentOnly:boolean | undefined;
 
 	public steps:SafeStep[] = [];
@@ -141,6 +146,8 @@ export class SlotView implements OnInit, OnDestroy{
 
 		this.study = study;
 		this.slot = await this.studyService.getSlot( slotId );
+
+		this.slotResponseId = nanoid();
 		this.isContentOnly = containsOnlyContentSteps( this.slot?.prepared.steps );
 
 		if( !this.slot?.prepared.steps ){
@@ -197,6 +204,7 @@ export class SlotView implements OnInit, OnDestroy{
 			slot: this.slot!.prepared.id,
 
 			uid: nanoid(),
+			suid: this.slotResponseId!,
 			data: event.data,
 
 			forDay,

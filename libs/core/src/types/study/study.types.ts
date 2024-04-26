@@ -104,6 +104,7 @@ export type ResponseLogStates = `${ ResponseLogState }`;
 export type ResponseLogEntry<TMeta = unknown> = {
 	study:PublicStudy['id'];
 	uid:StepResponse['uid'];
+	suid:StepResponse['suid'];
 
 	date:Date | Dayjs | string;
 	forDay:StepResponse['forDay'];

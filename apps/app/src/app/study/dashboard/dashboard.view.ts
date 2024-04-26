@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { finalize, ReplaySubject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
-import { containsActionStep, containsOnlyContentSteps, humanReadableDays, minutesToTime, PreparedStudy, PublicStudy, ResponseLog, ResponseLogState, SafeSlot } from '../../../../../../libs/core/src';
+import { containsActionStep, containsOnlyContentSteps, humanReadableDays, minutesToTime, PreparedStudy, PublicStudy, ResponseLog, ResponseLogEntry, ResponseLogState, SafeSlot } from '../../../../../../libs/core/src';
 import { CoreService } from '../../core/core.service';
 import { StudyService } from '../study.service';
 
@@ -92,8 +92,16 @@ type DayAction = {
 
 									@if (item.doneCount) {
 										<span class="states">
-											@for (num of [].constructor(item.doneCount); track num) {
-												<span class="done">✓</span>
+											@if (item.doneCount > 3) {
+												<span class="done">
+													✓
+													<small>×</small>
+													{{ item.doneCount }}
+												</span>
+											} @else {
+												@for (num of [].constructor(item.doneCount); track num) {
+													<span class="done">✓</span>
+												}
 											}
 										</span>
 									}
@@ -211,6 +219,14 @@ export class DashboardView implements OnInit, OnDestroy{
 					} );
 
 			} );
+
+
+		this.studyService.newResponses$
+			.pipe( takeUntil( this._destroyed$ ) )
+			.subscribe( data => {
+				console.log( 'nu resposnes' );
+				this.refreshLogs( data.map( r => r.study ) );
+			} );
 	}
 
 	public ngOnDestroy():void{
@@ -245,6 +261,24 @@ export class DashboardView implements OnInit, OnDestroy{
 					this.loader.dismiss();
 				} ),
 			);
+
+	}
+
+	public refreshLogs( onlyStudies?:PublicStudy['id'][] ){
+		const studyIds = onlyStudies || this.studies?.map( data => data.study.id );
+
+		console.log( 'stud', studyIds );
+		if( studyIds?.length )
+			this.studyService.refreshLogs( studyIds )
+				.subscribe( logs => {
+					if( !this.logs )
+						this.logs = {};
+					for( const log of logs )
+						this.logs[log.study] = log;
+
+					console.log( 'udpates logs', this.logs );
+					this.processSchedule();
+				} );
 
 	}
 
@@ -317,9 +351,16 @@ export class DashboardView implements OnInit, OnDestroy{
 
 					const slotLogs = this.logs?.[study.study.id]?.entries.filter( resp => resp.slot === slot.id );
 					const slotLogsDay = slotLogs?.filter( resp => resp.forDay === nowDate );
-					const doneResponses = slotLogsDay?.filter( resp => resp.state === ResponseLogState.Done || resp.state === ResponseLogState.Local );
 
-					const doneCount = doneResponses?.length ? doneResponses.length / ( slot.steps?.length || 1 ) : 0;
+					const countedSlotResponses:ResponseLogEntry['suid'][] = [];
+					const doneResponses = slotLogsDay?.filter( resp => {
+						if( countedSlotResponses.indexOf( resp.suid ) !== -1 )
+							return false;
+						countedSlotResponses.push( resp.suid );
+						return resp.state === ResponseLogState.Done || resp.state === ResponseLogState.Pending || resp.state === ResponseLogState.Local;
+					} );
+
+					const doneCount = doneResponses?.length ?? 0;
 
 					const action:DayAction = {
 						study: study.study,

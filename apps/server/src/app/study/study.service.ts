@@ -339,6 +339,7 @@ export class StudyService{
 				participantId,
 				type: response.type,
 				uid: response.uid,
+				suid: response.suid,
 				data: response.data as Prisma.InputJsonValue,
 			} );
 

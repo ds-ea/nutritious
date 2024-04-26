@@ -424,8 +424,11 @@ model StudyResponse {
   slotId  String  @db.ObjectId
   slotKey String?
 
-  /// the client side response identifier, not globally unique
-  uid           String?
+  /// the client side response identifier, not necessarily globally unique
+  uid  String?
+  /// client side response slot group, not necessarily globally unique
+  suid String?
+
   participantId String       @db.ObjectId
   participant   Participant? @relation(fields: [participantId], references: [id])
   member        GroupMember? @relation(fields: [groupId, participantId], references: [groupId, participantId])

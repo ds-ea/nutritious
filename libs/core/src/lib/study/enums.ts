@@ -22,6 +22,7 @@ export enum FormInputType{
 	Number = 'number',
 	Choices = 'choices',
 	Binary = 'binary',
+	Rating = 'rating',
 }
 
 export enum FormInputNecessity{

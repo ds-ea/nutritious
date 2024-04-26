@@ -20,7 +20,7 @@ import { Edit, useForm } from '@refinedev/antd';
 import { IResourceComponentsProps } from '@refinedev/core';
 import { Form, Input, Switch } from 'antd';
 import React from 'react';
-import { StateSelect } from '../../../src/components/form/StateSelect';
+import { StateSelect } from '../../components/form-components/StateSelect';
 
 
 export const PageEdit:React.FC<IResourceComponentsProps> = () => {

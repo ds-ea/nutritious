@@ -3,8 +3,8 @@ import { Edit, useForm } from '@refinedev/antd';
 import { IResourceComponentsProps } from '@refinedev/core';
 import { Form, Input } from 'antd';
 import React from 'react';
-import { StateSelect } from '../../../src/components/form/StateSelect';
-import { TimeFrame, TimeFrameFormValue, timeFrameOnFinish, timeFrameOnLoad } from '../../../src/components/form/TimeFrame';
+import { StateSelect } from '../../components/form-components/StateSelect';
+import { TimeFrame, TimeFrameFormValue, timeFrameOnFinish, timeFrameOnLoad } from '../../components/form-components/TimeFrame';
 
 
 export const StudyEdit:React.FC<IResourceComponentsProps> = () => {

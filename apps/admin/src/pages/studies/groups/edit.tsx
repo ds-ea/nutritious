@@ -3,8 +3,8 @@ import { Edit, useForm } from '@refinedev/antd';
 import { IResourceComponentsProps, useOne, useParsed } from '@refinedev/core';
 import { Form } from 'antd';
 import React from 'react';
-import { TimeFrameFormValue, timeFrameOnFinish, timeFrameOnLoad } from '../../../../src/components/form/TimeFrame';
 import { GroupFormElements } from '../../../../src/components/groups/GroupFormElements';
+import { TimeFrameFormValue, timeFrameOnFinish, timeFrameOnLoad } from '../../../components/form-components/TimeFrame';
 
 
 export const GroupEdit:React.FC<IResourceComponentsProps> = () => {

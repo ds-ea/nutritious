@@ -3,8 +3,8 @@ import { Create, useForm } from '@refinedev/antd';
 import { IResourceComponentsProps } from '@refinedev/core';
 import { Form, Input } from 'antd';
 import React, { useEffect } from 'react';
-import { StateSelect } from '../../../src/components/form/StateSelect';
-import { TimeFrame, TimeFrameFormValue, timeFrameOnFinish } from '../../../src/components/form/TimeFrame';
+import { StateSelect } from '../../components/form-components/StateSelect';
+import { TimeFrame, TimeFrameFormValue, timeFrameOnFinish } from '../../components/form-components/TimeFrame';
 
 
 

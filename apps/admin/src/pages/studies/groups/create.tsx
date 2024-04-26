@@ -5,8 +5,8 @@ import { Form } from 'antd';
 
 import generatePassword from 'omgopass';
 import React, { useEffect } from 'react';
-import { TimeFrameFormValue, timeFrameOnFinish } from '../../../../src/components/form/TimeFrame';
 import { GroupFormElements } from '../../../../src/components/groups/GroupFormElements';
+import { TimeFrameFormValue, timeFrameOnFinish } from '../../../components/form-components/TimeFrame';
 
 
 export const GroupCreate:React.FC<IResourceComponentsProps> = () => {

@@ -209,6 +209,8 @@ model GroupMember {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  state EntityState @default(ENABLED)
+
   studyId String @db.ObjectId
   study   Study  @relation(fields: [studyId], references: [id])
 
@@ -378,6 +380,19 @@ model StudyForm {
 
   studyId String? @db.ObjectId
   study   Study?  @relation(fields: [studyId], references: [id])
+}
+
+model FormInputPreset {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name  String
+  notes String?
+
+  inputType    String
+  config       Json
+  translations String?
 }
 
 model StudyContent {

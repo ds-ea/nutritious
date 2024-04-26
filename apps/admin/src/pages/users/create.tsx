@@ -26,7 +26,7 @@ import { Create, useForm } from '@refinedev/antd';
 import { IResourceComponentsProps } from '@refinedev/core';
 import { Form, Input } from 'antd';
 import React from 'react';
-import { StateSelect } from '../../../src/components/form/StateSelect';
+import { StateSelect } from '../../components/form-components/StateSelect';
 
 
 export const UserCreate:React.FC<IResourceComponentsProps> = () => {

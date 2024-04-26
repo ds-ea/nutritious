@@ -2,8 +2,8 @@ import { FormControlLabel, FormGroup, RadioGroup } from '@mui/material';
 import Slider from '@mui/material/Slider';
 import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
-import { FormInputConfigBinary, FormInputConfigChoices, FormInputConfigNumber, FormInputConfigSlider, FormInputConfigText, FormInputConfiguration, FormInputTypes } from '@nutritious/core';
-import { Checkbox, Radio, Space } from 'antd';
+import { FormInputConfigBinary, FormInputConfigChoices, FormInputConfigNumber, FormInputConfigRating, FormInputConfigSlider, FormInputConfigText, FormInputConfiguration, FormInputTypes } from '@nutritious/core';
+import { Checkbox, Radio, Segmented, Space } from 'antd';
 
 
 
@@ -70,6 +70,20 @@ export const FormItemInput:React.FC<{
 		const config = props.config as FormInputConfigBinary;
 		return <Space direction={ 'vertical' } className={ 'stretch' }>
 			<Switch />
+		</Space>;
+	}
+
+	if( input === 'rating' ){
+		const config = props.config as FormInputConfigRating;
+
+
+		return <Space direction={ 'vertical' } className={ 'stretch' }>
+			{ config.behavior === 'stepped' &&
+				<Segmented options={ config.options! } />
+			}
+			{ config.behavior === 'linear' &&
+				<Slider />
+			}
 		</Space>;
 	}
 

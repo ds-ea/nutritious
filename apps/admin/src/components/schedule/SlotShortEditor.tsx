@@ -5,10 +5,10 @@ import { Button, Card, Collapse, Divider, Flex, Form, Input, List, Popconfirm, S
 import dayjs, { Dayjs } from 'dayjs';
 import { DefaultOptionType } from 'rc-select/lib/Select';
 import React, { useEffect, useState } from 'react';
-import { GracePicker } from '../form/GracePicker';
-import { LimitPicker } from '../form/LimitPicker';
-import { StepReferencePicker } from '../form/StepReferencePicker';
-import { WeekdayPicker } from '../form/WeekdayPicker';
+import { GracePicker } from '../form-components/GracePicker';
+import { LimitPicker } from '../form-components/LimitPicker';
+import { StepReferencePicker } from '../form-components/StepReferencePicker';
+import { WeekdayPicker } from '../form-components/WeekdayPicker';
 import { GroupDivider } from '../layout/GroupDivider';
 import { SlotWithListData } from './ScheduleFormElements';
 import { StudyStepTypeMeta } from './shared';

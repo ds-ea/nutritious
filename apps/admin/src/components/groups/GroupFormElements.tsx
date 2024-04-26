@@ -4,8 +4,8 @@ import MDEditor from '@uiw/react-md-editor';
 import { Card, Col, Descriptions, Form, FormProps, Input, Row, Select, Space } from 'antd';
 import { DefaultOptionType } from 'rc-select/lib/Select';
 import React from 'react';
-import { StateSelect } from '../form/StateSelect';
-import { TimeFrame } from '../form/TimeFrame';
+import { StateSelect } from '../form-components/StateSelect';
+import { TimeFrame } from '../form-components/TimeFrame';
 
 
 export const GroupFormElements:React.FC<{

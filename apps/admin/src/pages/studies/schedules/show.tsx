@@ -4,7 +4,7 @@ import { IResourceComponentsProps, useList, useOne, useParsed, useShow } from '@
 import { Card, Col, Descriptions, Divider, List, Row, Space, Timeline } from 'antd';
 import { TimeLineItemProps } from 'antd/lib/timeline/TimelineItem';
 import React, { useEffect, useState } from 'react';
-import { WeekdayPicker } from '../../../components/form/WeekdayPicker';
+import { WeekdayPicker } from '../../../components/form-components/WeekdayPicker';
 import { DetailsHeader } from '../../../components/header/DetailsHeader';
 import { SlotItemContent, SlotWithListData } from '../../../components/schedule/ScheduleFormElements';
 import { parseSchedule } from '../../../components/schedule/ScheduleTimeline';

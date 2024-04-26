@@ -1,5 +1,6 @@
 import AccountBox from '@mui/icons-material/AccountBox';
 import Article from '@mui/icons-material/Article';
+import BallotIcon from '@mui/icons-material/Ballot';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -57,7 +58,7 @@ export const resources:Record<string, ResourceProps> = {
 		edit: '/studies/:studyId/groups/members/:groupId/edit/:id',
 		show: '/studies/:studyId/groups/members/:groupId/show/:id',
 		meta: {
-			parent: 'gorups',
+			parent: 'groups',
 			hide: true,
 		},
 	},
@@ -97,6 +98,8 @@ export const resources:Record<string, ResourceProps> = {
 			hide: true,
 		},
 	},
+
+
 	'study-contents': {
 		name: 'study-contents',
 		list: '/studies/show/:studyId',
@@ -156,6 +159,20 @@ export const resources:Record<string, ResourceProps> = {
 			parent: 'system',
 			label: 'Pages',
 			icon: <Article />,
+		},
+	},
+
+
+	'form-input-presets': {
+		name: 'form-input-presets',
+		list: '/form-input-presets',
+		create: '/form-input-presets/create',
+		edit: '/form-input-presets/edit/:id',
+		show: '/form-input-presets/show/:id',
+		meta: {
+			parent: 'system',
+			label: 'Input Presets',
+			icon: <BallotIcon />,
 		},
 	},
 

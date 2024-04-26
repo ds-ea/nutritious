@@ -4,7 +4,7 @@
 	"projectType": "application",
 	"prefix": "nutritious",
 	"sourceRoot": "apps/app/src",
-	"implicitDependencies": ["server", "core"],
+	"implicitDependencies": ["core", "api-client"],
 	"tags": [],
 	"targets": {
 		"build": {
@@ -38,6 +38,14 @@
 				}
 			},
 			"configurations": {
+				"development": {
+					"buildOptimizer": false,
+					"optimization": false,
+					"vendorChunk": true,
+					"extractLicenses": false,
+					"sourceMap": true,
+					"namedChunks": true
+				},
 				"production": {
 					"baseHref": "/app/",
 					"deployUrl": "/app/",
@@ -60,14 +68,6 @@
 							"with": "apps/app/src/environments/environment.prod.ts"
 						}
 					]
-				},
-				"development": {
-					"buildOptimizer": false,
-					"optimization": false,
-					"vendorChunk": true,
-					"extractLicenses": false,
-					"sourceMap": true,
-					"namedChunks": true
 				}
 			},
 			"defaultConfiguration": "production"

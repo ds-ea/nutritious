@@ -1,3 +1,4 @@
+import type { FormInputPreset } from '@prisma/client';
 import { FormInputNecessity, FormInputType } from '../../lib/study';
 import { ContentContainer } from '../content.types';
 
@@ -27,9 +28,16 @@ export type FormInputConfigBinary = {
 	labelOn?:string;
 	labelOff?:string;
 }
+
 export type FormInputConfigChoices = {
 	limit?:number;
 	options:{ label:string, value:string }[];
+}
+
+export type FormInputConfigRating = {
+	behavior:'stepped' | 'linear' | 'stars';
+	variant?:string;
+	options?:{ label:string, value:string }[];
 }
 
 
@@ -50,8 +58,18 @@ export type InputRelatedConfig<T extends FormInputTypes>
 	: T extends FormInputType.Number  ? FormInputConfigNumber
 	: T extends FormInputType.Choices  ? FormInputConfigChoices
 	: T extends FormInputType.Binary  ? FormInputConfigBinary
+	: T extends FormInputType.Binary  ? FormInputConfigRating
 	: never;
 // @formatter:on
+
+export type InputPreset<T extends FormInputTypes = never> = {
+	id:FormInputPreset['id'];
+	inputType:T;
+	name?:string;
+	config:InputRelatedConfig<T>;
+	translations?:string | null;
+}
+
 
 export interface FormQuestion<
 	T extends FormInputTypes = FormInputTypes,
@@ -64,6 +82,7 @@ export interface FormQuestion<
 	required?:FormInputRequiredLevels;
 
 	input:T;
+	preset?:InputPreset['id'];
 	config:C;
 }
 

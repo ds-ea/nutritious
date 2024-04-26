@@ -6,7 +6,7 @@ import { Button, Card, Col, Descriptions, Divider, Form, FormProps, Input, List,
 import { TimeLineItemProps } from 'antd/lib/timeline/TimelineItem';
 import { DefaultOptionType } from 'rc-select/lib/Select';
 import React, { useEffect, useState } from 'react';
-import { WeekdayPicker } from '../form/WeekdayPicker';
+import { WeekdayPicker } from '../form-components/WeekdayPicker';
 import { parseSchedule } from './ScheduleTimeline';
 import { StudyStepTypeMeta } from './shared';
 import { SlotShortEditor } from './SlotShortEditor';

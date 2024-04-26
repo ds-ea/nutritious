@@ -7,6 +7,7 @@ import { Outlet } from 'react-router-dom';
 import type { RouteObject } from 'react-router/dist/lib/context';
 import { Header } from '../components';
 import Login from '../pages/auth/login';
+import { FormInputPresetsCreate, FormInputPresetsEdit, FormInputPresetsList, FormInputPresetsShow } from '../pages/form-input-presets';
 import { PageEdit, PagesCreate, PageShow, PagesList } from '../pages/pages';
 import { StudiesCreate, StudiesList, StudyEdit, StudyShow } from '../pages/studies';
 import { ContentCreate, ContentEdit, ContentShow } from '../pages/studies/contents';
@@ -38,6 +39,15 @@ const primaryRoutes:RouteObject[] = [
 			{ path: 'create', element: <PagesCreate /> },
 			{ path: 'edit/:id', element: <PageEdit /> },
 			{ path: 'show/:id', element: <PageShow /> },
+		],
+	},
+
+	{
+		path: '/form-input-presets', children: [
+			{ index: true, element: <FormInputPresetsList /> },
+			{ path: 'create', element: <FormInputPresetsCreate /> },
+			{ path: 'edit/:id', element: <FormInputPresetsEdit /> },
+			{ path: 'show/:id', element: <FormInputPresetsShow /> },
 		],
 	},
 

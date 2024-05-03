@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { finalize, ReplaySubject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
-import { containsActionStep, containsOnlyContentSteps, humanReadableDays, minutesToTime, PreparedStudy, PublicStudy, ResponseLog, ResponseLogEntry, ResponseLogState, SafeSlot } from '../../../../../../libs/core/src';
+import { containsActionStep, containsOnlyContentSteps, humanReadableDays, minutesToTime, PreparedSchedule, PreparedStudy, PublicStudy, ResponseLog, ResponseLogEntry, ResponseLogState, SafeSlot } from '../../../../../../libs/core/src';
 import { CoreService } from '../../core/core.service';
 import { StudyService } from '../study.service';
 
@@ -24,12 +24,25 @@ type DayAction = {
 	study?:PublicStudy;
 	slot?:SafeSlot;
 	title?:string;
-	state?:'upcoming' | 'todo' | 'done' | 'repeatable' | 'missed' | 'passed' | 'unavailable';
+	state?:'upcoming' | 'todo' | 'done' | 'repeatable' | 'missed' | 'passed' | 'overdue' | 'unavailable';
 	available?:boolean;
 	hint?:string;
 	key?:SafeSlot['key'];
 
 	doneCount?:number;
+}
+
+type ScheduleActions = {
+	overdue:DayAction[],
+	missed:DayAction[],
+	upcoming:DayAction[],
+	available:DayAction[]
+
+	allDay:DayAction[],
+	actions:DayAction[],
+	timeline:TimelineItem[],
+
+	slots:SafeSlot[],
 }
 
 
@@ -46,7 +59,7 @@ type DayAction = {
 							[showTickMarks]="true"
 							[discrete]="true"
 				>
-					<input matSliderThumb [(ngModel)]="fakeHours" #slider (valueChange)="processSchedule()" />
+					<input matSliderThumb [(ngModel)]="fakeHours" #slider (valueChange)="processStudies()" />
 				</mat-slider>
 				day
 				<mat-slider style="width: 100%"
@@ -56,7 +69,17 @@ type DayAction = {
 							[showTickMarks]="true"
 							[discrete]="true"
 				>
-					<input matSliderThumb [(ngModel)]="fakeDay" #slider (valueChange)="processSchedule()" />
+					<input matSliderThumb [(ngModel)]="fakeDay" #slider (valueChange)="processStudies()" />
+				</mat-slider>
+				view offset
+				<mat-slider style="width: 100%"
+							[max]="0"
+							[min]="-7"
+							[step]="1"
+							[showTickMarks]="true"
+							[discrete]="true"
+				>
+					<input matSliderThumb [(ngModel)]="viewDayOffset" #slider (valueChange)="processStudies()" />
 				</mat-slider>
 			</div>
 
@@ -74,6 +97,31 @@ type DayAction = {
 
 						</mat-card>
 					}
+				}
+
+				@if (overdueActions.length) {
+					<ul class="available-actions">
+						@for (action of overdueActions; track action.slot) {
+							<li [title]="action.hint||''">
+								@if (action.slot?.id) {
+									<button mat-flat-button color="accent"
+											[routerLink]="['slot', action.study!.id,  action.slot!.id ]"
+											[disabled]="!action.available"
+									>
+										{{ action.title || action.key }}
+									</button>
+								}
+
+								@if (action.doneCount) {
+									<div class="states">
+										@for (num of [].constructor(action.doneCount); track num) {
+											<span class="done">✓</span>
+										}
+									</div>
+								}
+							</li>
+						}
+					</ul>
 				}
 
 				@if (timeline.length) {
@@ -129,9 +177,9 @@ type DayAction = {
 
 
 				<footer class="view-footer">
-					@if (availableActions) {
+					@if (allDayActions) {
 						<ul class="available-actions">
-							@for (action of availableActions; track action.slot) {
+							@for (action of allDayActions; track action.slot) {
 								<li [title]="action.hint||''">
 									@if (action.slot?.id) {
 										<button mat-flat-button color="accent"
@@ -180,13 +228,15 @@ export class DashboardView implements OnInit, OnDestroy{
 	public slots:SafeSlot[] | undefined;
 
 	public timeline:TimelineItem[] = [];
-	public overdue:DayAction[] = [];
-	public availableActions:DayAction[] = [];
+	public overdueActions:DayAction[] = [];
+	public allDayActions:DayAction[] = [];
 
 	public fakeHours = dayjs().hour();
 	public fakeDay = dayjs().day();
+	public viewDayOffset = 0;
 
 	public nowDate:string = '';
+	public viewDate:string = '';
 
 	constructor(
 		private readonly core:CoreService,
@@ -224,7 +274,6 @@ export class DashboardView implements OnInit, OnDestroy{
 		this.studyService.newResponses$
 			.pipe( takeUntil( this._destroyed$ ) )
 			.subscribe( data => {
-				console.log( 'nu resposnes' );
 				this.refreshLogs( data.map( r => r.study ) );
 			} );
 	}
@@ -253,7 +302,7 @@ export class DashboardView implements OnInit, OnDestroy{
 						{} as NonNullable<DashboardView['logs']>,
 					);
 
-					this.processSchedule();
+					this.processStudies();
 				} ),
 				finalize( () => {
 					this.busy = false;
@@ -267,7 +316,6 @@ export class DashboardView implements OnInit, OnDestroy{
 	public refreshLogs( onlyStudies?:PublicStudy['id'][] ){
 		const studyIds = onlyStudies || this.studies?.map( data => data.study.id );
 
-		console.log( 'stud', studyIds );
 		if( studyIds?.length )
 			this.studyService.refreshLogs( studyIds )
 				.subscribe( logs => {
@@ -276,23 +324,242 @@ export class DashboardView implements OnInit, OnDestroy{
 					for( const log of logs )
 						this.logs[log.study] = log;
 
-					console.log( 'udpates logs', this.logs );
-					this.processSchedule();
+					this.processStudies();
 				} );
 
 	}
 
-	public processSchedule(){
+
+	private static processSchedule(
+		study:PublicStudy,
+		preparedSchedule:PreparedSchedule,
+		day:dayjs.Dayjs,
+		now = dayjs(),
+		log?:ResponseLog,
+		translate?:TranslateService,
+	):ScheduleActions{
+
+		const nowDate = now.format( 'YYYY-MM-DD' );
+		const nowMinutes = ( now.hour() * 60 ) + now.minute();
+		const nowUnix = now.unix();
+
+		const date = day.format( 'YYYY-MM-DD' );
+		const dayOfWeek = day.day();
+		const isToday = nowDate === date;
+
+
+		const { schedule, slots } = preparedSchedule;
+
+		const daySetup = schedule.daySetup.find( ds => ds.days.includes( dayOfWeek ) );
+
+		const overdue:DayAction[] = [];
+		const missed:DayAction[] = [];
+		const upcoming:DayAction[] = [];
+		const available:DayAction[] = [];
+		const actions:DayAction[] = [];
+		const timeline:TimelineItem[] = [];
+
+		const allDaySlots:SafeSlot[] = [];
+		const allDayActions:DayAction[] = [];
+
+
+		const dayUnix = day.unix() - ( nowMinutes * 60 );
+
+		const startOfDay = daySetup?.start || 6 * 60;
+		const endOfDay = daySetup?.end || 23 * 60;
+		const endOfEntryMinutes = endOfDay + ( daySetup?.grace ?? 0 );
+
+		const startOfDayUnix = dayUnix + ( startOfDay * 60 );
+		const endOfDayUnix = dayUnix + ( endOfDay * 60 );
+		const endOfEntryUnix = dayUnix + ( endOfEntryMinutes * 60 );
+
+		const dayEntryAvailable = endOfEntryUnix > nowUnix;
+
+
+		for( const slot of slots ){
+			const { availability, constraints } = slot;
+
+
+			if( slot.date ){
+				// TODO: implement "on date" functionality
+			}
+
+
+			const isAction = containsActionStep( slot.steps );
+			const isContent = containsOnlyContentSteps( slot.steps );
+
+			const slotLogs = log?.entries.filter( resp => resp.slot === slot.id );
+			const slotLogsDay = slotLogs?.filter( resp => resp.forDay === nowDate );
+
+			const countedSlotResponses:ResponseLogEntry['suid'][] = [];
+			const doneResponses = slotLogsDay?.filter( resp => {
+				if( countedSlotResponses.indexOf( resp.suid ) !== -1 )
+					return false;
+				countedSlotResponses.push( resp.suid );
+				return resp.state === ResponseLogState.Done || resp.state === ResponseLogState.Pending || resp.state === ResponseLogState.Local;
+			} );
+
+			const doneCount = doneResponses?.length ?? 0;
+
+			const action:DayAction = {
+				study,
+				slot,
+				title: slot.name || slot.key,
+				state: 'todo',
+				available: dayEntryAvailable,
+				doneCount,
+			};
+
+			// slot constraints processing
+			if( constraints ){
+				if( action.available &&
+					constraints.min != null && doneCount < constraints.min && doneCount > 0
+				){
+					action.state = 'todo';
+				}
+
+				if( action.available &&
+					constraints.max != null && doneCount >= constraints.max
+				){
+					action.available = false;
+					action.state = 'done';
+				}
+			}
+
+
+			// slot availability processing in relation to days
+			if( availability ){
+				if( action.available &&
+					availability.days?.length && !availability.days.includes( dayOfWeek )
+				){
+					action.available = false;
+					action.state = 'unavailable';
+					action.hint = translate?.instant( 'STUDY.HINT_SLOT_DAY_AVAILABILITY', { DAYS: humanReadableDays( availability.days, translate )?.join( ', ' ) } );
+				}
+			}
+
+
+			if( availability?.allDay || availability?.start == null ){
+				////////////////////////
+				// ALL DAY
+				allDaySlots.push( slot );
+
+				if( isAction ){
+					allDayActions.push( action );
+
+
+					if( action.available && slot.constraints?.obligatory && date !== nowDate ){
+						action.state = 'overdue';
+						action.hint = translate?.instant( 'STUDY.HINT_SLOT_OVERDUE' );
+						overdue.push( action );
+					}
+				}
+
+			}else{
+				////////////////////////
+				// slot
+				const startMinutes = startOfDay + Number( availability.start );
+				const endMinutes = ( availability.duration ) ? startMinutes + availability.duration : undefined;
+				const startUnix = startOfDayUnix + ( startMinutes * 60 );
+				const endUnix = endMinutes ? startOfDayUnix + ( endMinutes * 60 ) : undefined;
+
+				const item:TimelineItem = {
+					...action,
+					type: 'slot',
+					time: startMinutes,
+					timeLabel: minutesToTime( startMinutes ),
+				};
+
+
+				// can start all day if grace is null, otherwise starttime is exact ( adjusted by grace time), but can not be earlier than start of day
+				const availableFrom = availability.graceStart == null ? undefined : Math.max( startOfDay, startMinutes - ( availability.graceStart ?? 0 ) );
+				const availableFromUnix = availableFrom && ( dayUnix + ( availableFrom * 60 ) );
+				const availableUntil = availability.graceEnd == null ? endOfEntryMinutes : Math.max( startOfDay, ( endMinutes ?? startMinutes ) + ( availability.graceEnd ?? 0 ) );
+				const availableUntilUnix = dayUnix + ( availableUntil * 60 );
+
+
+				// slot availability processing in regard to time (only done when no other factors disabled it already -
+				// but day entry grace might be before the item's grace, so we need to check both)
+				if( item.available || !dayEntryAvailable ){
+
+					if( availableFromUnix && nowUnix < availableFromUnix ){
+						item.available = false;
+						item.state = 'upcoming';
+						item.hint = translate?.instant( 'STUDY.HINT_SLOT_UPCOMING', { TIME: minutesToTime( availableFrom ) } );
+
+						upcoming.push( item );
+					}
+
+					if( item.available && nowUnix > availableUntilUnix ){
+						item.available = false;
+
+						if( slot.constraints?.obligatory ){
+							// missed = should have entered but wasn't
+							item.state = 'missed';
+							item.hint = translate?.instant( 'STUDY.HINT_SLOT_MISSED', { TIME: minutesToTime( availableUntil ) } );
+
+							missed.push( item );
+						}else{
+							// passed = is optional and wasn't entered
+							item.state = 'passed';
+							item.hint = translate?.instant( 'STUDY.HINT_SLOT_PASSED', { TIME: minutesToTime( availableUntil ) } );
+						}
+					}
+				}
+
+				if( isAction ){
+					item.type = 'action';
+					item.title = slot.name;
+
+				}else if( isContent ){
+					item.type = 'content';
+				}
+
+				timeline.push( item );
+
+				if( item.available ){
+					available.push( item );
+
+					if( slot.constraints?.obligatory && date !== nowDate ){
+						item.state = 'overdue';
+						item.hint = translate?.instant( 'STUDY.HINT_SLOT_OVERDUE' );
+						overdue.push( item );
+					}
+				}
+
+			}
+		}
+
+
+		timeline.push( {
+			type: 'marker',
+			time: startOfDay,
+			timeLabel: minutesToTime( startOfDay ),
+			title: 'Start of Day',
+			study,
+		} );
+
+		timeline.push( {
+			type: 'marker',
+			time: endOfDay,
+			timeLabel: minutesToTime( endOfDay ),
+			title: 'End of Day',
+			study,
+		} );
+
+
+		return { actions, allDay: allDayActions, missed, available, timeline, overdue, upcoming, slots };
+
+	}
+
+
+	public processStudies(){
 
 		const allSlots:SafeSlot[] = [];
 		const allDaySlots:SafeSlot[] = [];
 
-		const overdue:DayAction[] = [];
+		const overdueActions:DayAction[] = [];
 		const allDayActions:DayAction[] = [];
-
-		// items (and actions) on the current
-		const timelineItems:TimelineItem[] = [];
-		const availableActions:DayAction[] = [];
 
 		let now = dayjs();
 		const realDate = now.format( 'YYYY-MM-DD' );
@@ -307,166 +574,66 @@ export class DashboardView implements OnInit, OnDestroy{
 		const nowMinutes = ( now.hour() * 60 ) + now.minute();
 
 		this.nowDate = realDate === nowDate ? 'today' : now.fromNow();
+		this.viewDate = this.nowDate;
+
+		const daysToLookBack = 7;
+
+
+		const consolidated:{
+			overdue:{ day:string, actions:DayAction[] }[],
+			days:{ [day:string]:ScheduleActions },
+			today?:ScheduleActions,
+			yesterday?:ScheduleActions
+		} = {
+			overdue: [],
+			days: {},
+		};
+
 
 		if( this.studies ){
 			for( const study of this.studies ){
 				if( !study.schedule?.slots?.length )
 					continue;
 
-				const dayOfWeek = now.day();
-				const daySetup = study.schedule.schedule.daySetup.find( ds => ds.days.includes( dayOfWeek ) );
+				for( let dayOffset = daysToLookBack ; dayOffset >= 0 ; dayOffset-- ){
+					const day = now.clone().subtract( dayOffset, 'day' );
+					const dayDate = day.format( 'YYYY-MM-DD' );
 
-				const startOfDay = daySetup?.start || 6 * 60;
-				const endOfDay = daySetup?.end || 23 * 60;
-				const endOfEntry = endOfDay + ( daySetup?.grace ?? 0 );
+					const processed = DashboardView.processSchedule( study.study, study.schedule, day, now, this.logs?.[study.study.id], this.translate );
 
-				timelineItems.push( {
-					type: 'marker',
-					time: startOfDay,
-					timeLabel: minutesToTime( startOfDay ),
-					title: 'Start of Day',
-					study: study.study,
-				} );
-				timelineItems.push( {
-					type: 'marker',
-					time: endOfDay,
-					timeLabel: minutesToTime( endOfDay ),
-					title: 'End of Day',
-					study: study.study,
-				} );
+					if( dayOffset === 0 )
+						consolidated.today = processed;
+					else if( dayOffset === 1 )
+						consolidated.yesterday = processed;
 
 
-				for( const slot of study.schedule.slots ){
-					const { availability, constraints } = slot;
+					if( !consolidated.days[dayDate] )
+						consolidated.days[dayDate] = processed;
+					else
+						for( const [ key, actions ] of Object.entries( processed ) )
+							// TODO: properly merge timelines
+							if( key === 'timeline' )
+								consolidated.days[dayDate][key].push( ...actions as TimelineItem[] );
+							else if( key === 'slots' )
+								consolidated.days[dayDate][key].push( ...actions as SafeSlot[] );
+							else
+								consolidated.days[dayDate][key as Exclude<keyof ScheduleActions, 'timeline' | 'slots'>].push( ...actions as DayAction[] );
 
 
-					if( slot.date ){
-						// TODO: implement "on date" functionality
-					}
-
-					allSlots.push( slot );
-
-					const isAction = containsActionStep( slot.steps );
-					const isContent = containsOnlyContentSteps( slot.steps );
-
-					const slotLogs = this.logs?.[study.study.id]?.entries.filter( resp => resp.slot === slot.id );
-					const slotLogsDay = slotLogs?.filter( resp => resp.forDay === nowDate );
-
-					const countedSlotResponses:ResponseLogEntry['suid'][] = [];
-					const doneResponses = slotLogsDay?.filter( resp => {
-						if( countedSlotResponses.indexOf( resp.suid ) !== -1 )
-							return false;
-						countedSlotResponses.push( resp.suid );
-						return resp.state === ResponseLogState.Done || resp.state === ResponseLogState.Pending || resp.state === ResponseLogState.Local;
-					} );
-
-					const doneCount = doneResponses?.length ?? 0;
-
-					const action:DayAction = {
-						study: study.study,
-						slot,
-						title: slot.name || slot.key,
-						state: 'todo',
-						available: true,
-						doneCount,
-					};
-
-					// slot constraints processing
-					if( constraints ){
-						if( action.available &&
-							constraints.min != null && doneCount < constraints.min && doneCount > 0
-						){
-							action.state = 'todo';
-						}
-
-						if( action.available &&
-							constraints.max != null && doneCount >= constraints.max
-						){
-							action.available = false;
-							action.state = 'done';
-						}
-					}
-
-
-					// slot availability processing in relation to days
-					if( availability ){
-						if( action.available &&
-							availability.days?.length && !availability.days.includes( nowDay )
-						){
-							action.available = false;
-							action.state = 'unavailable';
-							action.hint = this.translate.instant( 'STUDY.HINT_SLOT_DAY_AVAILABILITY', { DAYS: humanReadableDays( availability.days, this.translate )?.join( ', ' ) } );
-						}
-					}
-
-
-
-					if( availability?.allDay || availability?.start == null ){
-						////////////////////////
-						// ALL DAY
-						allDaySlots.push( slot );
-
-						if( isAction )
-							allDayActions.push( action );
-
-					}else{
-						////////////////////////
-						// slot
-						const startMinutes = startOfDay + Number( availability.start );
-						const endMinutes = ( availability.duration ) ? startMinutes + availability.duration : undefined;
-
-						const item:TimelineItem = {
-							...action,
-							type: 'slot',
-							time: startMinutes,
-							timeLabel: minutesToTime( startMinutes ),
-						};
-
-
-						// can start all day if grace is null, otherwise starttime is exact ( adjusted by grace time), but can not be earlier than start of day
-						const availableFrom = availability.graceStart == null ? undefined : Math.max( startOfDay, startMinutes - ( availability.graceStart ?? 0 ) );
-						const availableUntil = availability.graceEnd == null ? endOfEntry : Math.max( startOfDay, ( endMinutes ?? startMinutes ) + ( availability.graceEnd ?? 0 ) );
-
-						// slot availability processing in regard to time (only done when no other factors disabled it already)
-						if( item.available ){
-							if( availableFrom && nowMinutes < availableFrom ){
-								item.available = false;
-								item.state = 'upcoming';
-								item.hint = this.translate.instant( 'STUDY.HINT_SLOT_UPCOMING', { TIME: minutesToTime( availableFrom ) } );
-							}
-
-							if( item.available && nowMinutes > availableUntil ){
-								item.available = false;
-								item.state = 'passed';
-								item.hint = this.translate.instant( 'STUDY.HINT_SLOT_PASSED', { TIME: minutesToTime( availableUntil ) } );
-							}
-						}
-
-						if( isAction ){
-							item.type = 'action';
-							item.title = slot.name;
-
-						}else if( isContent ){
-							item.type = 'content';
-						}
-
-
-						timelineItems.push( item );
-
-					}
+					if( processed.overdue?.length )
+						overdueActions.push( ...processed.overdue );
 				}
+
 			}
 		}
 
-		if( allDayActions.length ){
-			for( const action of allDayActions ){
-				availableActions.push( action );
-			}
-		}
+		const viewDate = now.clone().subtract( -this.viewDayOffset, 'day' ).format( 'YYYY-MM-DD' );
+		const viewDay = consolidated.days[viewDate];
+		this.nowDate = viewDate;
 
-
+		// items (and actions) on the current
+		const timelineItems:TimelineItem[] = viewDay?.timeline || [];
 		if( timelineItems.length ){
-
 			const endOfDayMinutes = ( 23 * 60 ) + 59;
 			timelineItems.push( {
 				type: 'boundary',
@@ -481,10 +648,11 @@ export class DashboardView implements OnInit, OnDestroy{
 		}
 
 		this.slots = allSlots;
-		this.overdue = overdue;
-		this.availableActions = availableActions;
+		this.overdueActions = overdueActions || [];
+		this.allDayActions = viewDay?.allDay || [];
 
-		timelineItems.push( { type: 'now', time: nowMinutes } );
+		if( viewDate === realDate )
+			timelineItems.push( { type: 'now', time: nowMinutes } );
 
 		this.timeline = timelineItems.sort( ( a, b ) => a.time - b.time );
 

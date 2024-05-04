@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { LoadingController } from '@ionic/angular';
+import { ActionSheetController, LoadingController, ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import dayjs from 'dayjs';
 
@@ -10,9 +10,32 @@ import { takeUntil, tap } from 'rxjs/operators';
 import { containsActionStep, containsOnlyContentSteps, humanReadableDays, minutesToTime, PreparedSchedule, PreparedStudy, PublicStudy, ResponseLog, ResponseLogEntry, ResponseLogState, SafeSlot } from '../../../../../../libs/core/src';
 import { CoreService } from '../../core/core.service';
 import { StudyService } from '../study.service';
+import { DaySelectorComponentComponent } from './day-selector.component';
 
 
 dayjs.extend( relativeTime );
+
+enum ActionState{
+	// will be available in the future
+	Upcoming = 'upcoming',
+	// currently available
+	Todo = 'todo',
+	// done, can NOT be repeated
+	Done = 'done',
+	// done, but can be repeated
+	Repeatable = 'repeatable',
+	// was to be done, but wasn't, and is not available anymore
+	Missed = 'missed',
+	// obligatory task that was not done when expected, but is still available
+	Overdue = 'overdue',
+	// optional task that's past its time, but still available
+	Unfulfilled = 'unfulfilled',
+	// simply unavailable for whatever reason
+	Unavailable = 'unavailable',
+}
+
+type ActionStates = `${ ActionState }`;
+
 
 type TimelineItem = {
 	type:'marker' | 'slot' | 'action' | 'trail' | 'content' | 'boundary' | 'now';
@@ -24,7 +47,7 @@ type DayAction = {
 	study?:PublicStudy;
 	slot?:SafeSlot;
 	title?:string;
-	state?:'upcoming' | 'todo' | 'done' | 'repeatable' | 'missed' | 'passed' | 'overdue' | 'unavailable';
+	state?:ActionStates;
 	available?:boolean;
 	hint?:string;
 	key?:SafeSlot['key'];
@@ -34,6 +57,7 @@ type DayAction = {
 
 type ScheduleActions = {
 	overdue:DayAction[],
+	unfulfilled:DayAction[],
 	missed:DayAction[],
 	upcoming:DayAction[],
 	available:DayAction[]
@@ -105,9 +129,10 @@ type ScheduleActions = {
 							<li [title]="action.hint||''">
 								@if (action.slot?.id) {
 									<button mat-flat-button color="accent"
-											[routerLink]="['slot', action.study!.id,  action.slot!.id ]"
 											[disabled]="!action.available"
+											(click)="openAction(action)"
 									>
+										<!--[routerLink]="['slot', action.study!.id,  action.slot!.id ]"-->
 										{{ action.title || action.key }}
 									</button>
 								}
@@ -158,9 +183,10 @@ type ScheduleActions = {
 										<span class="actions">
 											@if (item.slot?.id) {
 												<button mat-flat-button color="primary"
-														[routerLink]="['slot', item.study!.id, item.slot!.id ]"
 														[disabled]="!item.available"
+														(click)="openAction(item)"
 												>
+													<!--[routerLink]="['slot', item.study!.id, item.slot!.id ]"-->
 													{{
 														item.type === 'action' ? 'log' : item.type === 'content' ? 'read' : ''
 													}}
@@ -183,9 +209,10 @@ type ScheduleActions = {
 								<li [title]="action.hint||''">
 									@if (action.slot?.id) {
 										<button mat-flat-button color="accent"
-												[routerLink]="['slot', action.study!.id,  action.slot!.id ]"
 												[disabled]="!action.available"
+												(click)="openAction(action)"
 										>
+											<!--[routerLink]="['slot', action.study!.id,  action.slot!.id ]"-->
 											{{ action.title || action.key }}
 										</button>
 									}
@@ -225,11 +252,11 @@ export class DashboardView implements OnInit, OnDestroy{
 
 	public logs:Record<PublicStudy['id'], ResponseLog | undefined> | undefined;
 	public studies:PreparedStudy[] | undefined;
-	public slots:SafeSlot[] | undefined;
 
 	public timeline:TimelineItem[] = [];
 	public overdueActions:DayAction[] = [];
 	public allDayActions:DayAction[] = [];
+	public available:{ [slotId:string]:{ action:DayAction, days:string[] } } = {};
 
 	public fakeHours = dayjs().hour();
 	public fakeDay = dayjs().day();
@@ -245,6 +272,8 @@ export class DashboardView implements OnInit, OnDestroy{
 		public readonly router:Router,
 		public readonly cdr:ChangeDetectorRef,
 		public readonly translate:TranslateService,
+		public readonly actionSheetCtrl:ActionSheetController,
+		public readonly modalCtrl:ModalController,
 	){
 
 	}
@@ -257,16 +286,20 @@ export class DashboardView implements OnInit, OnDestroy{
 			.subscribe( account => {
 				if( !account ){
 					this.studies = undefined;
-					this.slots = undefined;
+					this.timeline = [];
+					this.overdueActions = [];
+					this.allDayActions = [];
+					this.available = {};
 				}
 
 				this.cdr.markForCheck();
 
 				// refresh studies when logged in
 				if( account )
-					this.refreshStudies().subscribe( () => {
+					this.refreshStudies()
+						.subscribe( () => {
 
-					} );
+						} );
 
 			} );
 
@@ -354,6 +387,7 @@ export class DashboardView implements OnInit, OnDestroy{
 
 		const overdue:DayAction[] = [];
 		const missed:DayAction[] = [];
+		const unfulfilled:DayAction[] = [];
 		const upcoming:DayAction[] = [];
 		const available:DayAction[] = [];
 		const actions:DayAction[] = [];
@@ -448,10 +482,14 @@ export class DashboardView implements OnInit, OnDestroy{
 					allDayActions.push( action );
 
 
-					if( action.available && slot.constraints?.obligatory && date !== nowDate ){
-						action.state = 'overdue';
-						action.hint = translate?.instant( 'STUDY.HINT_SLOT_OVERDUE' );
-						overdue.push( action );
+					if( action.available ){
+						available.push( action );
+
+						if( slot.constraints?.obligatory && date !== nowDate ){
+							action.state = 'overdue';
+							action.hint = translate?.instant( 'STUDY.HINT_SLOT_OVERDUE' );
+							overdue.push( action );
+						}
 					}
 				}
 
@@ -494,15 +532,14 @@ export class DashboardView implements OnInit, OnDestroy{
 						item.available = false;
 
 						if( slot.constraints?.obligatory ){
-							// missed = should have entered but wasn't
 							item.state = 'missed';
 							item.hint = translate?.instant( 'STUDY.HINT_SLOT_MISSED', { TIME: minutesToTime( availableUntil ) } );
 
 							missed.push( item );
 						}else{
-							// passed = is optional and wasn't entered
-							item.state = 'passed';
-							item.hint = translate?.instant( 'STUDY.HINT_SLOT_PASSED', { TIME: minutesToTime( availableUntil ) } );
+							item.state = 'unfulfilled';
+							item.hint = translate?.instant( 'STUDY.HINT_SLOT_UNFULFILLED', { TIME: minutesToTime( availableUntil ) } );
+							unfulfilled.push( item );
 						}
 					}
 				}
@@ -548,18 +585,15 @@ export class DashboardView implements OnInit, OnDestroy{
 		} );
 
 
-		return { actions, allDay: allDayActions, missed, available, timeline, overdue, upcoming, slots };
+		return { actions, allDay: allDayActions, missed, unfulfilled, available, timeline, overdue, upcoming, slots };
 
 	}
 
 
 	public processStudies(){
 
-		const allSlots:SafeSlot[] = [];
-		const allDaySlots:SafeSlot[] = [];
-
 		const overdueActions:DayAction[] = [];
-		const allDayActions:DayAction[] = [];
+		const available:{ [slotId:string]:{ action:DayAction, days:string[] } } = {};
 
 		let now = dayjs();
 		const realDate = now.format( 'YYYY-MM-DD' );
@@ -622,6 +656,16 @@ export class DashboardView implements OnInit, OnDestroy{
 
 					if( processed.overdue?.length )
 						overdueActions.push( ...processed.overdue );
+
+					if( processed.available?.length )
+						for( const action of processed.available )
+							if( action.slot ){
+								const slotKey = action.slot.key || action.slot.id;
+								if( !available[slotKey] )
+									available[slotKey] = { action, days: [ dayDate ] };
+								else
+									available[slotKey].days.push( dayDate );
+							}
 				}
 
 			}
@@ -647,8 +691,8 @@ export class DashboardView implements OnInit, OnDestroy{
 			} );
 		}
 
-		this.slots = allSlots;
 		this.overdueActions = overdueActions || [];
+		this.available = available;
 		this.allDayActions = viewDay?.allDay || [];
 
 		if( viewDate === realDate )
@@ -660,4 +704,34 @@ export class DashboardView implements OnInit, OnDestroy{
 	}
 
 
+	public openAction( action:DayAction, date?:string ){
+		if( !action?.slot )
+			return;
+
+		// check if unfulfilled or overdue tasks occupying the same slot are available - ask user which date for
+		const slotKey = action.slot.key || action.slot.id;
+		if( this.available[slotKey] && !date ){
+			const availableDates = this.available[slotKey].days.map( date => dayjs( date ) );
+			if( availableDates.length > 1 ){
+
+				this.modalCtrl.create( {
+					component: DaySelectorComponentComponent,
+					componentProps: { availableDates },
+					cssClass: 'centered',
+				} ).then( modal => {
+					modal.onDidDismiss()
+						.then( ( { data } ) => {
+							if( data?.day )
+								this.openAction( action, data.day.format( 'YYYY-MM-DD' ) );
+						} );
+
+					modal.present();
+				} );
+
+				return;
+			}
+		}
+
+		this.router.navigate( [ 'study', 'slot', action.study!.id, action.slot!.id, date || 'now' ] );
+	}
 }

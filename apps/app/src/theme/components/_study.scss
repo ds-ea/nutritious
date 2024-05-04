@@ -1,0 +1,8 @@
+day-selector-component {
+	padding-inline: $gutter;
+	padding-block-end: $gutter;
+
+	.day-of-week {
+		font-weight: bold;
+	}
+}

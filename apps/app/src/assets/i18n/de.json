@@ -63,6 +63,7 @@
 	"STUDY.HINT_SLOT_DAY_AVAILABILITY": "nur an folgenden Tagen verfügbar: {{DAYS}}",
 	"STUDY.HINT_SLOT_PASSED": "Dies war verfügbar bis {{TIME}}",
 	"STUDY.HINT_SLOT_UPCOMING": "Dies wird verfügbar um {{TIME}}",
+	"STUDY.MSG_SELECT_DAY_FOR_ENTRY": "Für welchen Tag ist das?",
 	"STUDY.NO_STUDY_ERR": "Keine Studie verfügbar.",
 	"USER.AUTH.DOMAIN_LBL": "Domain",
 	"USER.AUTH.GOTO_LOGIN_BTN": "zurück zur Anmeldung",

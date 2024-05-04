@@ -48,7 +48,7 @@ import { StudyService } from './study/study.service';
 			<ion-header id="app-header">
 				<ion-toolbar>
 					<ion-buttons slot="start">
-						<ion-button>
+						<ion-button routerLink="/">
 							<ion-img src="assets/icon/logo-outlined.svg" slot="icon-only"></ion-img>
 						</ion-button>
 					</ion-buttons>

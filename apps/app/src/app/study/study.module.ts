@@ -22,6 +22,7 @@ import { FoodListComponent } from './components/meal-bls/food/food-list.componen
 import { FoodPickerComponent } from './components/meal-bls/food/food-picker.component';
 import { MealBlsComponent } from './components/meal-bls/meal-bls.component';
 import { DashboardView } from './dashboard/dashboard.view';
+import { DaySelectorComponentComponent } from './dashboard/day-selector.component';
 import { SlotView } from './slot/slot.view';
 import { StepContentComponent } from './slot/steps/step-content.component';
 import { StepFormComponent } from './slot/steps/step-form.component';
@@ -37,6 +38,10 @@ const routes:Routes = [
 			{
 				path: '', pathMatch: 'full',
 				component: DashboardView,
+			},
+			{
+				path: 'slot/:studyId/:slotId/:date',
+				component: SlotView,
 			},
 			{
 				path: 'slot/:studyId/:slotId',
@@ -69,6 +74,7 @@ const routes:Routes = [
 		RatingInput,
 		StudyFormComponent,
 
+		DaySelectorComponentComponent,
 	],
 	imports: [
 		SharedModule,

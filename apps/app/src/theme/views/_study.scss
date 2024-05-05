@@ -1,4 +1,12 @@
 app-dashboard {
+	--base-width: 250px;
+	--base-width-minor: var(--base-width);
+
+	@media only screen and (min-width: 500px) {
+		--base-width: 300px;
+		--base-width-minor: 200px;
+	}
+
 	.mat-card {
 		width: $grid-width-minor;
 		max-width: 100%;
@@ -10,6 +18,24 @@ app-dashboard {
 	}
 
 
+	.dashboard-container {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		gap: $gutter;
+
+		@media only screen and (min-width: 500px) {
+			flex-direction: row;
+			align-items: flex-start;
+			flex-wrap: wrap;
+			> * {
+				//width: 50%;
+			}
+		}
+	}
+
+
 	.timeline {
 		--timline-trail-color: #{color(light)};
 		--timeline-bullet-size: 10px;
@@ -18,7 +44,6 @@ app-dashboard {
 		list-style-type: none;
 		margin: 0;
 		padding: $gutter;
-
 
 		li {
 			position: relative;
@@ -136,7 +161,7 @@ app-dashboard {
 	}
 
 
-	.available-actions {
+	.available-actions, .overdue-actions {
 		list-style-type: none;
 		margin: 0;
 		padding: 0;
@@ -154,6 +179,23 @@ app-dashboard {
 			display: flex;
 			margin-block-start: $gutter *.5;
 		}
+	}
+
+	.mdc-card.schedule {
+		min-width: var(--base-width);
+	}
+
+	.mdc-card.overdue {
+		min-width: var(--base-width-minor);
+
+		.mat-mdc-card-subtitle {
+			color: color(danger);
+		}
+	}
+
+	.overdue-actions {
+		padding: $gutter;
+		grid-template-columns: 1fr;
 	}
 }
 

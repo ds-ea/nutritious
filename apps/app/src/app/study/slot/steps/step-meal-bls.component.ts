@@ -3,6 +3,7 @@ import { MealBLSResponseData } from '../../../../../../../libs/core/src';
 import { MealBLSSubmitResult } from '../../components/meal-bls/meal-bls.component';
 import { AbstractStepComponent, StepProgress } from './abstract-step.component';
 
+// TODO: improve config typing and use
 
 @Component( {
 	changeDetection: ChangeDetectionStrategy.OnPush,
@@ -10,6 +11,10 @@ import { AbstractStepComponent, StepProgress } from './abstract-step.component';
 	template: `
 		<meal-bls
 			[data]="data"
+			[meal]="slot.prepared.key"
+			[mealSelection]="$any(step.config?.['mealSelect'])"
+			[dateSelection]="$any(step.config?.['lockDate'])"
+			[entryDate]="entryDate"
 			[triggerValidation]="triggerValidation"
 			(submit)="onSubmit($event)"
 			(state)="updateState($event)"

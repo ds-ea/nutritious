@@ -65,6 +65,7 @@
 	"STUDY.HINT_SLOT_UPCOMING": "This becomes available at {{TIME}}",
 	"STUDY.MSG_SELECT_DAY_FOR_ENTRY": "Which day is this for?",
 	"STUDY.NO_STUDY_ERR": "No study available.",
+	"STUDY.OVERDUE_LBL": "Overdue",
 	"USER.AUTH.DOMAIN_LBL": "Domain",
 	"USER.AUTH.GOTO_LOGIN_BTN": "back to login",
 	"USER.AUTH.GOTO_REGISTRATION_BTN": "goto Sign Up",

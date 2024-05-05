@@ -37,9 +37,13 @@ export type SignupResponse = {
 
 export type SafeSchedule = Pick<Schedule, 'id' | 'daySetup' | 'weekSetup'>;
 
-export type SafeStep =
+// TODO: implement config typing for different step types and update related type usage in app
+export type SafeStep<TConfig extends Record<string, unknown> = Record<string, unknown>> =
 	Pick<Step, 'id' | 'ref'>
-	& { type:StudyStepTypes };
+	& {
+	type:StudyStepTypes
+	config?:TConfig
+};
 
 //export type SafeSlot = Omit<Slot, 'createdAt' | 'updatedAt' | 'scheduleId' | 'schedule' | 'steps'>;
 export type SafeSlot = Pick<Slot,

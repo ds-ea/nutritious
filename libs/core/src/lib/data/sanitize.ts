@@ -63,7 +63,7 @@ export class Sanitize{
 	}
 
 	static safeStep( step:Step ):SafeStep{
-		return clean( step as unknown as SafeStep, { keep: [ 'id', 'type', 'ref' ] } );
+		return clean( step as unknown as SafeStep, { keep: [ 'id', 'type', 'ref', 'config' ] } );
 	}
 
 	static safeUser( user:User | SafeUser ):SafeUser{

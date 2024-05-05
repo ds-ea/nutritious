@@ -13,6 +13,25 @@ import { StepFormComponent } from './steps/step-form.component';
 import { StepMealBlsComponent } from './steps/step-meal-bls.component';
 
 
+function parseEntryDate( dateStr?:string | null ){
+	const now = dayjs();
+
+	if( !dateStr?.length || dateStr === 'now' )
+		return now;
+
+	const parsed = dayjs( dateStr );
+
+	// if parsing a date without time component, we retain the current time
+	if( parsed.format( 'Hms' ) === '000' )
+		return parsed
+			.set( 'hours', now.hour() )
+			.set( 'minutes', now.minute() )
+			.set( 'seconds', now.second() )
+			;
+
+	return parsed;
+}
+
 @Component( {
 	selector: 'slot-view',
 	changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,6 +50,7 @@ import { StepMealBlsComponent } from './steps/step-meal-bls.component';
 								step: currentStep.step,
 								ref: currentStep.ref,
 								data: currentResponse,
+								entryDate: entryDate,
 								progress: stepProgress,
 								triggerComplete: stepTriggerComplete,
 								onComplete: stepOnComplete
@@ -93,6 +113,7 @@ export class SlotView implements OnInit, OnDestroy{
 		component:Type<AbstractStepComponent>
 	} | undefined;
 
+	public entryDate:Dayjs | undefined;
 
 	public responses:Record<string, StepResponse> = {};
 	public currentResponse:Record<PropertyKey, unknown> | undefined = undefined;
@@ -120,8 +141,10 @@ export class SlotView implements OnInit, OnDestroy{
 		this.route.paramMap.subscribe( params => {
 			const studyId = params.get( 'studyId' );
 			const slotId = params.get( 'slotId' );
+			const date = params.get( 'date' );
+
 			if( studyId && slotId )
-				this.loadSlot( studyId, slotId );
+				this.loadSlot( studyId, slotId, date );
 		} );
 
 		this.stepOnComplete
@@ -134,8 +157,10 @@ export class SlotView implements OnInit, OnDestroy{
 		this._destroyed$.unsubscribe();
 	}
 
-	private async loadSlot( studyId:PublicStudy['id'], slotId:SafeSlot['id'] ){
+	private async loadSlot( studyId:PublicStudy['id'], slotId:SafeSlot['id'], dateStr?:string | null ){
 		this.loader = await this.loading.create( { spinner: 'crescent' } );
+
+		this.entryDate = parseEntryDate( dateStr );
 
 		const study = this.studyService.studies?.find( s => s.study.id === studyId )?.study;
 		if( !study ){

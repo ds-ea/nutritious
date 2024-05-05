@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Directive, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Dayjs } from 'dayjs';
 import { ReplaySubject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { MatchedSlot, SafeStep } from '../../../../../../../libs/core/src';
@@ -35,6 +36,9 @@ export abstract class AbstractStepComponent<RefType = unknown, ResponseDataType 
 
 	@Output()
 	dataChanged = new EventEmitter<ResponseDataType>;
+
+	@Input()
+	entryDate?:Dayjs;
 
 	@Input( 'progress' )
 	progressEmitter:EventEmitter<StepProgress> | undefined;

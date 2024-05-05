@@ -1,5 +1,5 @@
 import { MinusCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
-import { Prisma, Step, Study, StudyContent, StudyForm } from '@nutritious/core';
+import { Prisma, Step, Study, StudyContent, StudyForm, StudyStepType } from '@nutritious/core';
 import { useList } from '@refinedev/core';
 import { Button, Card, Collapse, Divider, Flex, Form, Input, List, Popconfirm, Segmented, Select, TimePicker, TimePickerProps } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
@@ -7,6 +7,7 @@ import { DefaultOptionType } from 'rc-select/lib/Select';
 import React, { useEffect, useState } from 'react';
 import { GracePicker } from '../form-components/GracePicker';
 import { LimitPicker } from '../form-components/LimitPicker';
+import { StepInlineConfig } from '../form-components/StepInlineConfig';
 import { StepReferencePicker } from '../form-components/StepReferencePicker';
 import { WeekdayPicker } from '../form-components/WeekdayPicker';
 import { GroupDivider } from '../layout/GroupDivider';
@@ -323,50 +324,65 @@ export const SlotShortEditor:React.FC<Props> = ( {
 							  }
 						>
 
-							{ fields.map( ( { key, name, ...restField } ) => (
-								<List.Item key={ key }>
-									<Flex gap={ 'middle' }>
-										<div style={ { display: 'none' } }>
-											<Form.Item name={ [ name, 'id' ] } { ...restField } >
-												<Input type="hidden" />
-											</Form.Item>
-											<Form.Item name={ [ name, 'slotId' ] } { ...restField } >
-												<Input type="hidden" />
-											</Form.Item>
-										</div>
+							{ fields.map( ( { key, name, ...restField } ) => {
+								const stepType = form.getFieldValue( [ 'steps', name, 'type' ] );
 
-										<Form.Item name={ [ name, 'type' ] } { ...restField }
-												   rules={ [ { required: true, message: 'Please select a type' } ] }
-												   style={ { minWidth: 140 } }
-										>
-											<Select placeholder="Select Type"
-													options={ stepTypeOptions }
-													onChange={ () => updateStepTypeMap() }
-											/>
-										</Form.Item>
+								return (
+									<List.Item key={ key }>
+										<Flex gap={ 'middle' }>
+											<div style={ { display: 'none' } }>
+												<Form.Item name={ [ name, 'id' ] } { ...restField } >
+													<Input type="hidden" />
+												</Form.Item>
+												<Form.Item name={ [ name, 'slotId' ] } { ...restField } >
+													<Input type="hidden" />
+												</Form.Item>
+											</div>
 
-										<Form.Item name={ [ name, 'ref' ] } { ...restField }
-											/*rules={ [ { required: true, message: 'Please set the reference' } ] }*/
-												   style={ { flexGrow: 1 } }
-										>
-											<StepReferencePicker type={ stepTypeMap[key] } forms={ availableForms?.data } contents={ availableContents?.data } />
-										</Form.Item>
-
-										<div>
-											<Popconfirm
-												title="Remove step"
-												description="Are you sure you want to remove this step?"
-												onConfirm={ () => removeStep( key ) }
-												okText="Yes"
-												cancelText="No"
+											<Form.Item name={ [ name, 'type' ] } { ...restField }
+													   rules={ [ { required: true, message: 'Please select a type' } ] }
+													   style={ { minWidth: 140 } }
 											>
-												<Button type={ 'text' } icon={ <MinusCircleOutlined /> }></Button>
-											</Popconfirm>
-										</div>
-									</Flex>
+												<Select placeholder="Select Type"
+														options={ stepTypeOptions }
+														onChange={ () => updateStepTypeMap() }
+												/>
+											</Form.Item>
 
-								</List.Item>
-							) ) }
+											<Flex vertical style={ { flexGrow: 1 } }>
+												{ stepType === StudyStepType.BlsFood &&
+													<Form.Item  { ...restField } >
+														<StepInlineConfig type={ stepType } name={ [ name, 'config' ] } />
+													</Form.Item>
+												}
+
+
+												{ stepType !== StudyStepType.BlsFood &&
+													<Form.Item name={ [ name, 'ref' ] } { ...restField }
+														/*rules={ [ { required: true, message: 'Please set the reference' } ] }*/
+															   style={ { flexGrow: 1 } }
+													>
+														<StepReferencePicker type={ stepTypeMap[key] } forms={ availableForms?.data } contents={ availableContents?.data } />
+													</Form.Item>
+												}
+											</Flex>
+
+											<div>
+												<Popconfirm
+													title="Remove step"
+													description="Are you sure you want to remove this step?"
+													onConfirm={ () => removeStep( key ) }
+													okText="Yes"
+													cancelText="No"
+												>
+													<Button type={ 'text' } icon={ <MinusCircleOutlined /> }></Button>
+												</Popconfirm>
+											</div>
+										</Flex>
+
+									</List.Item>
+								);
+							} ) }
 						</Card>
 					) }
 				</Form.List>

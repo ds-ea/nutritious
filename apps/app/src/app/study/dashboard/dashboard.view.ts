@@ -74,7 +74,8 @@ type ScheduleActions = {
 	selector: 'app-dashboard',
 	template: `
 		<ion-content class="content-centered">
-			<div style="position: absolute; width: 500px; top: 20%;">
+
+			<div style="position: absolute; width: 500px; top: 60px;">
 				hour
 				<mat-slider style="width: 100%"
 							[max]="23"
@@ -109,130 +110,142 @@ type ScheduleActions = {
 
 			<div class="view-content" *ngIf="!busy && studies?.length; else nostudy">
 
-				@if (false) {
-					@for (study of studies; track study.study.id) {
-						<mat-card>
+				<div class="dashboard-container">
+
+
+					@if (false) {
+						@for (study of studies; track study.study.id) {
+							<mat-card>
+								<mat-card-header>
+									<mat-card-subtitle>{{ 'STUDY.CURRENT_STUDY_MSG' | translate }}</mat-card-subtitle>
+									<mat-card-title>
+										<h1>{{ study.study.name }}</h1>
+									</mat-card-title>
+								</mat-card-header>
+
+							</mat-card>
+						}
+					}
+
+					@if (overdueActions.length) {
+						<mat-card class="overdue">
 							<mat-card-header>
-								<mat-card-subtitle>{{ 'STUDY.CURRENT_STUDY_MSG' | translate }}</mat-card-subtitle>
-								<mat-card-title>
-									<h1>{{ study.study.name }}</h1>
-								</mat-card-title>
+								<mat-card-subtitle>{{ 'STUDY.OVERDUE_LBL' | translate }}</mat-card-subtitle>
 							</mat-card-header>
 
+							<ul class="overdue-actions">
+								@for (overdue of overdueActions; track overdue.date) {
+									<li>
+										<span class="date">{{ overdue.date | date: 'EEEE MMM d.' }}</span>
+										<ul class="overdue-actions">
+											@for (action of overdue.actions; track action) {
+												<li [title]="action.hint||''">
+													@if (action.slot?.id) {
+														<button mat-flat-button color="accent"
+																[disabled]="!action.available"
+																(click)="openAction(action)"
+														>
+															{{ action.title || action.key }}
+														</button>
+													}
+												</li>
+											}
+										</ul>
+									</li>
+								}
+							</ul>
 						</mat-card>
 					}
-				}
 
-				@if (overdueActions.length) {
-					<ul class="available-actions">
-						@for (action of overdueActions; track action.slot) {
-							<li [title]="action.hint||''">
-								@if (action.slot?.id) {
-									<button mat-flat-button color="accent"
-											[disabled]="!action.available"
-											(click)="openAction(action)"
-									>
-										<!--[routerLink]="['slot', action.study!.id,  action.slot!.id ]"-->
-										{{ action.title || action.key }}
-									</button>
-								}
+					<div>
 
-								@if (action.doneCount) {
-									<div class="states">
-										@for (num of [].constructor(action.doneCount); track num) {
-											<span class="done">✓</span>
-										}
-									</div>
-								}
-							</li>
-						}
-					</ul>
-				}
+						@if (timeline.length) {
+							<mat-card class="schedule">
+								<mat-card-header>
+									<mat-card-subtitle>{{ 'STUDY.DAY_SCHEDULE_LBL' | translate }} {{ nowDate }}</mat-card-subtitle>
+								</mat-card-header>
 
-				@if (timeline.length) {
-					<mat-card>
-						<mat-card-header>
-							<mat-card-subtitle>{{ 'STUDY.DAY_SCHEDULE_LBL' | translate }} {{ nowDate }}</mat-card-subtitle>
-						</mat-card-header>
+								<ul class="timeline">
+									<li class="trail"></li>
+									@for (item of timeline; track item.time) {
+										<li [ngClass]="[item.type, 'state-'+item.state]" [title]="item.hint||''">
+											<span class="time">{{ item.timeLabel }}</span>
+											<span class="bullet"></span>
+											<span class="title" *ngIf="item.title">{{ item.title }}</span>
 
-						<ul class="timeline">
-							<li class="trail"></li>
-							@for (item of timeline; track item.time) {
-								<li [ngClass]="[item.type, 'state-'+item.state]" [title]="item.hint||''">
-									<span class="time">{{ item.timeLabel }}</span>
-									<span class="bullet"></span>
-									<span class="title" *ngIf="item.title">{{ item.title }}</span>
-
-									@if (item.doneCount) {
-										<span class="states">
-											@if (item.doneCount > 3) {
-												<span class="done">
-													✓
-													<small>×</small>
-													{{ item.doneCount }}
+											@if (item.doneCount) {
+												<span class="states">
+													@if (item.doneCount > 3) {
+														<span class="done">
+															✓
+															<small>×</small>
+															{{ item.doneCount }}
+														</span>
+													} @else {
+														@for (num of [].constructor(item.doneCount); track num) {
+															<span class="done">✓</span>
+														}
+													}
 												</span>
-											} @else {
-												@for (num of [].constructor(item.doneCount); track num) {
-													<span class="done">✓</span>
-												}
 											}
-										</span>
-									}
 
-									@if (item.type === 'action' || item.type === 'content') {
-										<span class="actions">
-											@if (item.slot?.id) {
-												<button mat-flat-button color="primary"
-														[disabled]="!item.available"
-														(click)="openAction(item)"
+											@if (item.type === 'action' || item.type === 'content') {
+												<span class="actions">
+													@if (item.slot?.id) {
+														<button mat-flat-button color="primary"
+																[disabled]="!item.available"
+																(click)="openAction(item)"
+														>
+															<!--[routerLink]="['slot', item.study!.id, item.slot!.id ]"-->
+															{{
+																item.type === 'action' ? 'log' : item.type === 'content' ? 'read' : ''
+															}}
+														</button>
+													}
+												</span>
+											}
+										</li>
+									}
+									<li class="trail"></li>
+								</ul>
+							</mat-card>
+						}
+
+						<footer class="view-footer">
+							@if (allDayActions) {
+								<ul class="available-actions">
+									@for (action of allDayActions; track action.slot) {
+										<li [title]="action.hint||''">
+											@if (action.slot?.id) {
+												<button mat-flat-button color="accent"
+														[disabled]="!action.available"
+														(click)="openAction(action)"
 												>
-													<!--[routerLink]="['slot', item.study!.id, item.slot!.id ]"-->
-													{{
-														item.type === 'action' ? 'log' : item.type === 'content' ? 'read' : ''
-													}}
+													<!--[routerLink]="['slot', action.study!.id,  action.slot!.id ]"-->
+													{{ action.title || action.key }}
 												</button>
 											}
-										</span>
-									}
-								</li>
-							}
-							<li class="trail"></li>
-						</ul>
-					</mat-card>
-				}
 
-
-				<footer class="view-footer">
-					@if (allDayActions) {
-						<ul class="available-actions">
-							@for (action of allDayActions; track action.slot) {
-								<li [title]="action.hint||''">
-									@if (action.slot?.id) {
-										<button mat-flat-button color="accent"
-												[disabled]="!action.available"
-												(click)="openAction(action)"
-										>
-											<!--[routerLink]="['slot', action.study!.id,  action.slot!.id ]"-->
-											{{ action.title || action.key }}
-										</button>
-									}
-
-									@if (action.doneCount) {
-										<div class="states">
-											@for (num of [].constructor(action.doneCount); track num) {
-												<span class="done">✓</span>
+											@if (action.doneCount) {
+												<div class="states">
+													@for (num of [].constructor(action.doneCount); track num) {
+														<span class="done">✓</span>
+													}
+												</div>
 											}
-										</div>
+										</li>
 									}
-								</li>
+								</ul>
 							}
-						</ul>
-					}
-					<!--<a routerLink="/log/new"
-					   mat-flat-button color="accent"
-					>{{ 'STUDY.ENTER_DATA_BTN' | translate }}
-					</a>-->
-				</footer>
+							<!--<a routerLink="/log/new"
+							   mat-flat-button color="accent"
+							>{{ 'STUDY.ENTER_DATA_BTN' | translate }}
+							</a>-->
+						</footer>
+					</div>
+				</div>
+
+
 			</div>
 
 			<ng-template #nostudy>
@@ -254,8 +267,8 @@ export class DashboardView implements OnInit, OnDestroy{
 	public studies:PreparedStudy[] | undefined;
 
 	public timeline:TimelineItem[] = [];
-	public overdueActions:DayAction[] = [];
 	public allDayActions:DayAction[] = [];
+	public overdueActions:{ date:Date, actions:DayAction[] }[] = [];
 	public available:{ [slotId:string]:{ action:DayAction, days:string[] } } = {};
 
 	public fakeHours = dayjs().hour();
@@ -592,8 +605,8 @@ export class DashboardView implements OnInit, OnDestroy{
 
 	public processStudies(){
 
-		const overdueActions:DayAction[] = [];
-		const available:{ [slotId:string]:{ action:DayAction, days:string[] } } = {};
+		const overdueActions:DashboardView['overdueActions'] = [];
+		const available:DashboardView['available'] = {};
 
 		let now = dayjs();
 		const realDate = now.format( 'YYYY-MM-DD' );
@@ -654,8 +667,18 @@ export class DashboardView implements OnInit, OnDestroy{
 								consolidated.days[dayDate][key as Exclude<keyof ScheduleActions, 'timeline' | 'slots'>].push( ...actions as DayAction[] );
 
 
-					if( processed.overdue?.length )
-						overdueActions.push( ...processed.overdue );
+					if( processed.overdue?.length ){
+						const overdue:DashboardView['overdueActions'][number] = {
+							date: day.toDate(),
+							actions: [],
+						};
+						for( const action of processed.overdue )
+							if( action.slot )
+								overdue.actions.push( action );
+
+						if( overdue.actions.length )
+							overdueActions.push( overdue );
+					}
 
 					if( processed.available?.length )
 						for( const action of processed.available )

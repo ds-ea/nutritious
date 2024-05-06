@@ -66,9 +66,9 @@ export const resources:Record<string, ResourceProps> = {
 	participants: {
 		name: 'participants',
 		list: '/studies/show/:studyId',
-		create: '/studies/:studyId/groups/:groupId/participants/create',
-		edit: '/studies/:studyId/groups/:groupId/participants/edit/:id',
-		show: '/studies/:studyId/groups/:groupId/participants/show/:id',
+		create: '/participants/create',
+		edit: '/participants/edit/:id',
+		show: '/participants/show/:id',
 		meta: {
 			parent: 'studies',
 			hide: true,

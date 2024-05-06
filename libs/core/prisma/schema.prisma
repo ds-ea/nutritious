@@ -146,8 +146,8 @@ model Participant {
   /// timezone offset in minutes
   timeZone Int?
 
-  AuthToken   AuthToken[]
-  GroupMember GroupMember[]
+  authTokens  AuthToken[]
+  memberships GroupMember[]
   responses   StudyResponse[]
 }
 

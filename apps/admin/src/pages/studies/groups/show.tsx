@@ -1,10 +1,12 @@
-import { ExportableResponse, Group, Participant, Schedule, Study, xorEncryptDecrypt } from '@nutritious/core';
-import { EditButton, Show, ShowButton, useTable } from '@refinedev/antd';
-import { IResourceComponentsProps, useExport, useOne, useParsed, useShow } from '@refinedev/core';
+import { ExportableResponse, Group, GroupMember, Schedule, Study, xorEncryptDecrypt } from '@nutritious/core';
+import { Show, ShowButton, useTable } from '@refinedev/antd';
+import { IResourceComponentsProps, useExport, useGetToPath, useGo, useOne, useParsed, useShow } from '@refinedev/core';
 import { Alert, Button, Card, Col, Descriptions, Divider, QRCode, Row, Space, Statistic, Table, Typography } from 'antd';
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { DetailsHeader } from '../../../components/header/DetailsHeader';
 import { ExportButton } from '../../../components/header/ExportButton';
+import { resources } from '../../../data/resources';
 import { responseExportOptions } from '../../../services/exporter';
 
 
@@ -18,6 +20,9 @@ function getShortenedDomain( url:string ){
 }
 
 export const GroupShow:React.FC<IResourceComponentsProps> = () => {
+	const getToPath = useGetToPath();
+	const go = useGo();
+
 	const { id: groupId, params } = useParsed<{ studyId?:string }>();
 	// get study
 	const studyId = params?.studyId;
@@ -81,7 +86,7 @@ export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 
 	// get participants
 	const { tableProps: groupTableProps } =
-		useTable( {
+		useTable<GroupMember>( {
 			syncWithLocation: true,
 			resource: 'group-members',
 			meta: {
@@ -215,29 +220,34 @@ export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 						<Card title={ 'Participants' }>
 							{
 								<Table { ...groupTableProps } rowKey="id">
-									<Table.Column dataIndex="participantId" title="Participant" width={ 1 } />
+									<Table.Column dataIndex="participantId" title="Participant" width={ 1 }
+												  render={ ( _, member:GroupMember ) =>
+													  <Link to={ getToPath( {
+														  resource: resources.participants,
+														  meta: { id: member.participantId },
+														  action: 'show',
+													  } ) || '#' }
+													  >{ member.participantId }</Link>
+												  }
+									/>
 									<Table.Column dataIndex="badge" title="Badge" />
 									<Table.Column
 										title="Actions"
 										dataIndex="actions"
 										width={ 1 }
-										render={ ( _, participant:Participant ) => (
+										render={ ( _, member:GroupMember ) => (
 											<Space>
-												<EditButton
-													disabled
-													hideText
-													size="small"
-													resource={ 'groups' }
-													recordItemId={ participant.id }
-													meta={ { studyId, groupId } }
-												/>
-												<ShowButton
-													disabled
+												{/*<EditButton
 													hideText
 													size="small"
 													resource={ 'participants' }
-													recordItemId={ participant.id }
-													meta={ { studyId, groupId } }
+													recordItemId={ member.participantId }
+												/>*/ }
+												<ShowButton
+													hideText
+													size="small"
+													resource={ 'participants' }
+													recordItemId={ member.participantId }
 												/>
 											</Space>
 										) }

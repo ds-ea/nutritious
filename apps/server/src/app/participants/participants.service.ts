@@ -8,8 +8,9 @@ export class ParticipantsService extends JsxTranslatedCrudService<Participant>{
 	constructor(){
 		super( {
 			model: 'participant',
-			allowedJoins: [],
+			allowedJoins: [ 'memberships', 'memberships.study', 'memberships.group' ],
 			defaultJoins: [],
+			forbiddenPaths: [ 'password' ],
 		} );
 	}
 }

@@ -1,4 +1,4 @@
-import type { Group, Schedule, Study, StudyContent, StudyForm } from '@nutritious/core';
+import type { Group, Participant, Schedule, Study, StudyContent, StudyForm } from '@nutritious/core';
 import { Descriptions, Space } from 'antd';
 import React from 'react';
 
@@ -8,6 +8,7 @@ type DetailsHeaderRecordTypes =
 	| { group:Group | undefined }
 	| { form:StudyForm | undefined }
 	| { content:StudyContent | undefined }
+	| { participant:Participant | undefined }
 	| { record:Partial<{ id:string, name?:string, notes?:string | null }> | undefined }
 	;
 
@@ -17,9 +18,9 @@ type KeysOfUnion<T> = T extends T ? keyof T : never;
 
 export const DetailsHeader:React.FC<DetailsHeaderProps> = ( { study, ...props } ) => {
 
-	const recordType = [ 'schedule', 'group', 'form', 'content', 'record' ].filter( type => type in props )?.[0] as KeysOfUnion<DetailsHeaderRecordTypes>;
+	const recordType = [ 'schedule', 'group', 'form', 'content', 'record', 'participant' ].filter( type => type in props )?.[0] as KeysOfUnion<DetailsHeaderRecordTypes>;
 	//@ts-ignore
-	const record:Schedule | Group | StudyForm | StudyContent = props[recordType];
+	const record:Schedule | Group | StudyForm | StudyContent | Participant = props[recordType];
 
 
 	return (

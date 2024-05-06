@@ -6,7 +6,9 @@ import { SafeSlot, SafeStep } from './study.types';
 export type StudyStepTypes = typeof StudyStepType[ keyof typeof StudyStepType ];
 
 
-
+/**
+ * this is for sending data to the study endpoint - not to be confused with StudyResponse, which is what the resulting stored record is
+ */
 export type StepResponse<TData = unknown, TMeta = unknown> = {
 	participant?:SafeParticipant['id'];
 

@@ -1,5 +1,5 @@
-import { FormInputPreset, Participant, Schedule, Slot, Step, Study, StudyContent, StudyForm, User } from '@prisma/client';
-import { ExportableMember, GroupMember, InputPreset, SafeInputPreset } from '../../index';
+import { FormInputPreset, Group, Participant, Schedule, Slot, Step, Study, StudyContent, StudyForm, User } from '@prisma/client';
+import { ExportableMember, GroupMember, InputPreset, SafeGroup, SafeInputPreset } from '../../index';
 import type { PublicStudy, SafeParticipant, SafeSchedule, SafeSlot, SafeStep, SafeStudyContent, SafeStudyForm, SafeUser } from '../../types';
 
 
@@ -50,6 +50,10 @@ export class Sanitize{
 
 	static publicStudy( study:Study | PublicStudy ):PublicStudy{
 		return clean<PublicStudy>( study, { keep: [ 'id', 'name' ] } );
+	}
+
+	static safeGroup( group:Group | SafeGroup ):SafeGroup{
+		return clean<SafeGroup>( group, { keep: [ 'id', 'name', 'state' ] } );
 	}
 
 	static safeSchedule( schedule:Schedule ):SafeSchedule{

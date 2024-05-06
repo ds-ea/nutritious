@@ -9,6 +9,7 @@ import { Header } from '../components';
 import Login from '../pages/auth/login';
 import { FormInputPresetsCreate, FormInputPresetsEdit, FormInputPresetsList, FormInputPresetsShow } from '../pages/form-input-presets';
 import { PageEdit, PagesCreate, PageShow, PagesList } from '../pages/pages';
+import { ParticipantCreate, ParticipantEdit, ParticipantShow } from '../pages/participants';
 import { StudiesCreate, StudiesList, StudyEdit, StudyShow } from '../pages/studies';
 import { ContentCreate, ContentEdit, ContentShow } from '../pages/studies/contents';
 import { FormCreate, FormEdit, FormShow } from '../pages/studies/forms';
@@ -52,6 +53,14 @@ const primaryRoutes:RouteObject[] = [
 	},
 
 	{
+		path: '/participants', children: [
+			{ path: 'create', element: <ParticipantCreate /> },
+			{ path: 'show/:id', element: <ParticipantShow /> },
+			{ path: 'edit/:id', element: <ParticipantEdit /> },
+		],
+	},
+
+	{
 		path: '/studies', children: [
 			{ index: true, element: <StudiesList /> },
 			{ path: 'create', element: <StudiesCreate /> },
@@ -65,7 +74,6 @@ const primaryRoutes:RouteObject[] = [
 					{ path: 'edit/:id', element: <GroupEdit /> },
 				],
 			},
-
 
 			{
 				path: ':studyId/schedules', children: [

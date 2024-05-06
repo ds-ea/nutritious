@@ -2,7 +2,7 @@ import { ClockCircleOutlined, EditOutlined, PlusCircleOutlined } from '@ant-desi
 import { EmojiFoodBeverageOutlined, NewspaperOutlined, QuizOutlined } from '@mui/icons-material';
 import { hoursToTime, Prisma, Schedule, ScheduleCustomizability, Slot, Step, Study, StudyContent, StudyForm, StudyStepType } from '@nutritious/core';
 import { useList } from '@refinedev/core';
-import { Button, Card, Col, Descriptions, Divider, Form, FormProps, Input, List, Modal, Row, Select, Space, Tag, Timeline } from 'antd';
+import { Button, Card, Col, Descriptions, Divider, Empty, Form, FormProps, Input, List, Modal, Row, Select, Space, Tag, Timeline } from 'antd';
 import { TimeLineItemProps } from 'antd/lib/timeline/TimelineItem';
 import { DefaultOptionType } from 'rc-select/lib/Select';
 import React, { useEffect, useState } from 'react';
@@ -352,38 +352,45 @@ export const ScheduleFormElements:React.FC<{
 				</Row>
 			</Card>
 
-			<Card title={ 'Schedule' } extra={
-				<Button type={ 'primary' } icon={ <PlusCircleOutlined /> }
-						onClick={ addSlot }
-				>{ 'add slot to schedule' }</Button>
-			}>
 
-				<Row gutter={ [ 50, 50 ] }>
-					<Col xs={ 24 } lg={ { span: 12, order: 2 } }>
+			{ isCreate
+			  ? <Card title={ 'Schedule' }>
+				  <Empty description={ 'Please save the schedule once before adding items to it' } />
+			  </Card>
 
-						<Divider orientation={ 'left' }>All Day Slots</Divider>
+			  : <Card title={ 'Schedule' } extra={
+					<Button type={ 'primary' } icon={ <PlusCircleOutlined /> }
+							onClick={ addSlot }
+					>{ 'add slot to schedule' }</Button>
+				}>
 
-						<List
-							dataSource={ allDaySlots }
-							split={ false }
-							renderItem={ ( slot:SlotWithListData ) => (
-								<List.Item
-									/*actions={ [ <a key="list-loadmore-edit">edit</a>, <a key="list-loadmore-more">more</a> ] }*/
-								>
-									<SlotItemContent slot={ slot } onEdit={ editSlot } contentMap={ contentMap } formMap={ formMap } />
-								</List.Item>
-							) }
-						/>
+				  <Row gutter={ [ 50, 50 ] }>
+					  <Col xs={ 24 } lg={ { span: 12, order: 2 } }>
 
-					</Col>
+						  <Divider orientation={ 'left' }>All Day Slots</Divider>
 
-					<Col xs={ 24 } lg={ 12 }>
-						<Divider>Scheduled Slots</Divider>
+						  <List
+							  dataSource={ allDaySlots }
+							  split={ false }
+							  renderItem={ ( slot:SlotWithListData ) => (
+								  <List.Item
+									  /*actions={ [ <a key="list-loadmore-edit">edit</a>, <a key="list-loadmore-more">more</a> ] }*/
+								  >
+									  <SlotItemContent slot={ slot } onEdit={ editSlot } contentMap={ contentMap } formMap={ formMap } />
+								  </List.Item>
+							  ) }
+						  />
 
-						<Timeline mode={ 'left' } items={ timeline } />
-					</Col>
-				</Row>
-			</Card>
+					  </Col>
+
+					  <Col xs={ 24 } lg={ 12 }>
+						  <Divider>Scheduled Slots</Divider>
+
+						  <Timeline mode={ 'left' } items={ timeline } />
+					  </Col>
+				  </Row>
+			  </Card>
+			}
 
 		</Space>
 	</> );

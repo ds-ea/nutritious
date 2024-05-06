@@ -6,6 +6,7 @@ import { StepResponse, StudyStepTypes } from './step.types';
 
 
 export type PublicStudy = Pick<Study, 'id' | 'name'>;
+export type SafeGroup = Pick<Group, 'id' | 'name' | 'state'>;
 
 export type SignupCheckPayload = {
 	key:string;

@@ -16,7 +16,7 @@ export const SchedulesCreate:React.FC<IResourceComponentsProps> = () => {
 		queryResult,
 		onFinish,
 	} = useForm<Prisma.ScheduleCreateInput, HttpError, Prisma.ScheduleCreateInput>( {
-		redirect: 'show',
+		redirect: 'edit',
 	} );
 
 	const { params } = useParsed<{ studyId?:string }>();

@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, NotImplementedException, Param, Patch, Post } from '@nestjs/common';
-import { type Participant, ParticipantWithMemberships, Sanitize } from '@nutritious/core';
+import { type Participant, ParticipantWithMemberships, Sanitize, UpdateGroupAssignmentsDTO } from '@nutritious/core';
 import { CrudQuery, CrudQueryData } from '../core/decorators/crud-query.decorator';
 import { CreateParticipantDto } from './dto/create-participant.dto';
 import { UpdateParticipantDto } from './dto/update-participant.dto';
@@ -55,5 +55,13 @@ export class ParticipantsController{
 	async remove( @Param( 'id' ) id:string, @CrudQuery() crudQuery:CrudQueryData ){
 		throw new NotImplementedException( 'removing participants is not supported' );
 		return this.participantsService.remove( id, { crudQuery } );
+	}
+
+
+	@Post( ':id/assign-groups' )
+	async updateParticipantGroupAssignments( @Param( 'id' ) participantId:string, @Body() data:UpdateGroupAssignmentsDTO[] ){
+		const updated = await this.participantsService.updateGroupAssignments( participantId, data );
+
+		return this.findOne( participantId, {} );
 	}
 }

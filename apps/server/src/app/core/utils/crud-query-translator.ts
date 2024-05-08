@@ -6,6 +6,7 @@ export type JsxQuery = {
 	limit?:number;
 	page?:number;
 	offset?:number;
+	'join[0]'?:string;
 };
 
 export type QueryFilterItem =
@@ -46,6 +47,11 @@ export class CrudQueryTranslator{
 		// CONTINUE: unsure what 'offset' does if page and pageSize are also set?
 		//		if( 'offset' in query )
 		//			crud. = query.limit;
+
+
+		// TODO: add proper query parsing I guess? this thing currently doesn't parse keys properly
+		if( 'join[0]' in query && query['join[0]'] )
+			crud.joins = [ query['join[0]'] ];
 
 		return crud;
 	}

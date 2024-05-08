@@ -13,7 +13,7 @@ export class GroupsService extends JsxTranslatedCrudService<Group>{
 	){
 		super( {
 			model: 'group',
-			allowedJoins: [ 'schedule' ],
+			allowedJoins: [ 'schedule', 'study' ],
 			defaultJoins: [ 'schedule' ],
 		} );
 	}

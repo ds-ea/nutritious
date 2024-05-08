@@ -11,3 +11,10 @@ export type ParticipantWithMemberships = Participant &
 				group:SafeGroup
 			} )[]
 	}
+
+export type UpdateGroupAssignmentsDTO = {
+	studyId:PublicStudy['id'];
+	groupId:SafeGroup['id'];
+	change:'add' | 'remove';
+	badge?:string;
+}

@@ -199,7 +199,7 @@ export class StudyService{
 	public async prepareStudies( participantId:Participant['id'] ):Promise<PreparedStudy[]>{
 
 		const memberships = await this.prisma.groupMember.findMany( {
-			where: { participantId },
+			where: { participantId, state: EntityState.Enabled },
 			include: { study: true, group: true },
 		} );
 		//		const groups = await this.prisma.group.findMany({where: {id: {in: memberships.map(m=>m.groupId)}}});

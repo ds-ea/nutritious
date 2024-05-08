@@ -132,3 +132,15 @@
 .ant-collapse-ghost .ant-collapse-content-box {
 	margin-inline: 0;
 }
+
+
+.group-assignments {
+	.ant-list-header {
+		background: #eee;
+		font-weight: bold;
+	}
+
+	.ant-list-item {
+		align-items: flex-start;
+	}
+}

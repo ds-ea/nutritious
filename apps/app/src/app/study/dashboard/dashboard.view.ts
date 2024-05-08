@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { App } from '@capacitor/app';
 import { ActionSheetController, LoadingController, ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { finalize, ReplaySubject } from 'rxjs';
+import { EMPTY, finalize, interval, ReplaySubject, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { containsActionStep, containsOnlyContentSteps, humanReadableDays, minutesToTime, PreparedSchedule, PreparedStudy, PublicStudy, ResponseLog, ResponseLogEntry, ResponseLogState, SafeSlot } from '../../../../../../libs/core/src';
 import { CoreService } from '../../core/core.service';
@@ -75,38 +76,40 @@ type ScheduleActions = {
 	template: `
 		<ion-content class="content-centered">
 
-			<div style="position: absolute; width: 500px; top: 60px;">
-				hour
-				<mat-slider style="width: 100%"
-							[max]="23"
-							[min]="0"
-							[step]="1"
-							[showTickMarks]="true"
-							[discrete]="true"
-				>
-					<input matSliderThumb [(ngModel)]="fakeHours" #slider (valueChange)="processStudies()" />
-				</mat-slider>
-				day
-				<mat-slider style="width: 100%"
-							[max]="6"
-							[min]="0"
-							[step]="1"
-							[showTickMarks]="true"
-							[discrete]="true"
-				>
-					<input matSliderThumb [(ngModel)]="fakeDay" #slider (valueChange)="processStudies()" />
-				</mat-slider>
-				view offset
-				<mat-slider style="width: 100%"
-							[max]="0"
-							[min]="-7"
-							[step]="1"
-							[showTickMarks]="true"
-							[discrete]="true"
-				>
-					<input matSliderThumb [(ngModel)]="viewDayOffset" #slider (valueChange)="processStudies()" />
-				</mat-slider>
-			</div>
+			@if (dateDebug) {
+				<div style="position: absolute; width: 500px; top: 60px;">
+					hour
+					<mat-slider style="width: 100%"
+								[max]="23"
+								[min]="0"
+								[step]="1"
+								[showTickMarks]="true"
+								[discrete]="true"
+					>
+						<input matSliderThumb [(ngModel)]="fakeHours" #slider (valueChange)="processStudies()" />
+					</mat-slider>
+					day
+					<mat-slider style="width: 100%"
+								[max]="6"
+								[min]="0"
+								[step]="1"
+								[showTickMarks]="true"
+								[discrete]="true"
+					>
+						<input matSliderThumb [(ngModel)]="fakeDay" #slider (valueChange)="processStudies()" />
+					</mat-slider>
+					view offset
+					<mat-slider style="width: 100%"
+								[max]="0"
+								[min]="-7"
+								[step]="1"
+								[showTickMarks]="true"
+								[discrete]="true"
+					>
+						<input matSliderThumb [(ngModel)]="viewDayOffset" #slider (valueChange)="processStudies()" />
+					</mat-slider>
+				</div>
+			}
 
 			<div class="view-content" *ngIf="!busy && studies?.length; else nostudy">
 
@@ -278,6 +281,14 @@ export class DashboardView implements OnInit, OnDestroy{
 	public nowDate:string = '';
 	public viewDate:string = '';
 
+	private _lastRefresh:Dayjs | undefined;
+	public triggerRefresh$ = new Subject<boolean | undefined>();
+
+	public dateDebug:boolean = false;
+
+	// automated refresh timings (in minutes)
+	public automaticRefreshRange = { min: 5, auto: 30 };
+
 	constructor(
 		private readonly core:CoreService,
 		private readonly studyService:StudyService,
@@ -288,10 +299,10 @@ export class DashboardView implements OnInit, OnDestroy{
 		public readonly actionSheetCtrl:ActionSheetController,
 		public readonly modalCtrl:ModalController,
 	){
-
 	}
 
 	async ngOnInit(){
+
 		this.loader = await this.loading.create( { spinner: 'crescent' } );
 
 		this.core.account$
@@ -322,6 +333,39 @@ export class DashboardView implements OnInit, OnDestroy{
 			.subscribe( data => {
 				this.refreshLogs( data.map( r => r.study ) );
 			} );
+
+
+		// trigger optional refresh every 30 minutes
+		interval( this.automaticRefreshRange.auto * 60 * 1000 )
+			.pipe(
+				takeUntil( this._destroyed$ ),
+			)
+			.subscribe( ( v ) => {
+				console.log( 'interv', v );
+				this.triggerRefresh$.next( false );
+			} );
+
+		this.triggerRefresh$
+			.pipe(
+				takeUntil( this._destroyed$ ),
+			)
+			.subscribe( ( ignoreAge ) => {
+				if( ignoreAge
+					|| !this._lastRefresh
+					|| ( this._lastRefresh.diff() / 1000 > this.automaticRefreshRange.min * 60 )
+				){
+					this.refreshStudies()
+						.subscribe( () => {
+
+						} );
+				}
+			} );
+
+
+		// force refresh when returning from outside the app
+		App.addListener( 'resume', () => {
+			this.triggerRefresh$.next( true );
+		} );
 	}
 
 	public ngOnDestroy():void{
@@ -330,9 +374,14 @@ export class DashboardView implements OnInit, OnDestroy{
 	}
 
 	public refreshStudies(){
+		if( this.busy )
+			return EMPTY;
+
 		this.busy = true;
 		this.loader.present();
 		this.cdr.markForCheck();
+
+		this._lastRefresh = dayjs();
 
 		return this.studyService.refreshStudies()
 			.pipe(

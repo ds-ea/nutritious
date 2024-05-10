@@ -6,7 +6,7 @@ import { TranslateService } from '@ngx-translate/core';
 import dayjs, { Dayjs } from 'dayjs';
 
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { EMPTY, finalize, interval, ReplaySubject, Subject } from 'rxjs';
+import { EMPTY, filter, finalize, interval, ReplaySubject, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { containsActionStep, containsOnlyContentSteps, humanReadableDays, minutesToTime, PreparedSchedule, PreparedStudy, PublicStudy, ResponseLog, ResponseLogEntry, ResponseLogState, SafeSlot } from '../../../../../../libs/core/src';
 import { CoreService } from '../../core/core.service';
@@ -334,20 +334,17 @@ export class DashboardView implements OnInit, OnDestroy{
 				this.refreshLogs( data.map( r => r.study ) );
 			} );
 
-
 		// trigger optional refresh every 30 minutes
 		interval( this.automaticRefreshRange.auto * 60 * 1000 )
-			.pipe(
-				takeUntil( this._destroyed$ ),
-			)
+			.pipe( takeUntil( this._destroyed$ ) )
 			.subscribe( ( v ) => {
-				console.log( 'interv', v );
 				this.triggerRefresh$.next( false );
 			} );
 
 		this.triggerRefresh$
 			.pipe(
 				takeUntil( this._destroyed$ ),
+				filter( () => !!this.core.account && this.core.online$.value ),
 			)
 			.subscribe( ( ignoreAge ) => {
 				if( ignoreAge

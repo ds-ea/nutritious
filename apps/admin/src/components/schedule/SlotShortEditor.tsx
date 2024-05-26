@@ -1,5 +1,5 @@
 import { MinusCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
-import { Prisma, Step, Study, StudyContent, StudyForm, StudyStepType } from '@nutritious/core';
+import { EntityState, Prisma, Step, Study, StudyContent, StudyForm, StudyStepType } from '@nutritious/core';
 import { useList } from '@refinedev/core';
 import { Button, Card, Collapse, Divider, Flex, Form, Input, List, Popconfirm, Segmented, Select, TimePicker, TimePickerProps } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
@@ -159,10 +159,10 @@ export const SlotShortEditor:React.FC<Props> = ( {
 	};
 
 	const removeStep = ( index:number ) => {
-		const steps = form.getFieldValue( 'steps' ) || [];
+		const steps:Step[] = form.getFieldValue( 'steps' ) || [];
 
 		if( steps[index].id )
-			steps[index]['_remove'] = !steps[index]['_remove'];
+			steps[index].state = steps[index].state === EntityState.Enabled ? EntityState.Deleted : EntityState.Enabled;
 		else
 			steps.splice( index, 1 );
 
@@ -312,7 +312,7 @@ export const SlotShortEditor:React.FC<Props> = ( {
 				] } />
 
 
-			<div style={ { marginBlockStart: 50 } }>
+			<div style={ { marginBlockStart: 50 } } className={ 'slot-editor-steps' }>
 				<Form.List name={ 'steps' }>
 					{ ( fields, { add, move, remove } ) => (
 						<Card title="Steps"
@@ -325,11 +325,13 @@ export const SlotShortEditor:React.FC<Props> = ( {
 						>
 
 							{ fields.map( ( { key, name, ...restField } ) => {
-								const stepType = form.getFieldValue( [ 'steps', name, 'type' ] );
+								const stepType:StudyStepType = form.getFieldValue( [ 'steps', name, 'type' ] );
+								const stepState:EntityState = form.getFieldValue( [ 'steps', name, 'state' ] );
+								const toRemove = stepState === EntityState.Deleted;
 
 								return (
 									<List.Item key={ key }>
-										<Flex gap={ 'middle' }>
+										<Flex gap={ 'middle' } className={ 'step-state-' + ( stepState?.toLowerCase() ?? 'enabled' ) }>
 											<div style={ { display: 'none' } }>
 												<Form.Item name={ [ name, 'id' ] } { ...restField } >
 													<Input type="hidden" />
@@ -346,6 +348,7 @@ export const SlotShortEditor:React.FC<Props> = ( {
 												<Select placeholder="Select Type"
 														options={ stepTypeOptions }
 														onChange={ () => updateStepTypeMap() }
+														disabled={ toRemove }
 												/>
 											</Form.Item>
 
@@ -368,15 +371,21 @@ export const SlotShortEditor:React.FC<Props> = ( {
 											</Flex>
 
 											<div>
-												<Popconfirm
-													title="Remove step"
-													description="Are you sure you want to remove this step?"
-													onConfirm={ () => removeStep( key ) }
-													okText="Yes"
-													cancelText="No"
-												>
-													<Button type={ 'text' } icon={ <MinusCircleOutlined /> }></Button>
-												</Popconfirm>
+												{ toRemove
+												  ? <Button type={ 'text' } icon={ <PlusCircleOutlined /> }
+															onClick={ () => removeStep( key ) }
+												  ></Button>
+												  : <Popconfirm
+													  title="Remove step"
+													  description="Are you sure you want to remove this step?"
+													  onConfirm={ () => removeStep( key ) }
+													  okText="Yes"
+													  cancelText="No"
+												  >
+													  <Button type={ 'text' } icon={ <MinusCircleOutlined /> }></Button>
+												  </Popconfirm>
+
+												}
 											</div>
 										</Flex>
 

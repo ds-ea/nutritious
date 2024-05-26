@@ -18,7 +18,7 @@ import { TextInput } from './inputs/text.input';
 export type StudyFormSubmitResult = {
 	data:FormResponseData,
 	skippedOptionals:boolean
-};
+} | { error:string };
 
 
 function emptyValue( control:AbstractControl ):boolean | undefined{
@@ -175,6 +175,13 @@ export class StudyFormComponent implements OnInit, OnDestroy, OnChanges{
 
 	private applyForm( form:SafeStudyForm ){
 		this.formSetup = form?.setup;
+
+		if( !this.formSetup ){
+			this.state.next( { state: 'error' } );
+			this._submit.next( { error: 'invalid form setup' } );
+			return;
+		}
+
 
 		const questions = form.setup.items.filter( i => i.type === 'question' ) as FormQuestion[];
 

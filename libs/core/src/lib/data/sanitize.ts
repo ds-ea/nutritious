@@ -1,5 +1,5 @@
 import { FormInputPreset, Group, Participant, Schedule, Slot, Step, Study, StudyContent, StudyForm, User } from '@prisma/client';
-import { ExportableMember, GroupMember, InputPreset, SafeGroup, SafeInputPreset } from '../../index';
+import { EntityState, EntityStates, ExportableMember, GroupMember, InputPreset, SafeGroup, SafeInputPreset } from '../../index';
 import type { PublicStudy, SafeParticipant, SafeSchedule, SafeSlot, SafeStep, SafeStudyContent, SafeStudyForm, SafeUser } from '../../types';
 
 
@@ -93,4 +93,58 @@ export class Sanitize{
 	public static exportableMember( member:GroupMember | ExportableMember ):ExportableMember{
 		return clean( member, { keep: [ 'badge' ] } );
 	}
+
+	public static enforceState<T extends { state:EntityStates }>( record:T, allowedStates?:undefined | EntityStates | ( undefined | EntityStates )[] ):T
+	public static enforceState<T extends { state:EntityStates }>( records:T[], allowedStates?:undefined | EntityStates | ( undefined | EntityStates )[] ):T[]
+	public static enforceState<T extends { state:EntityStates }>( anyRecords:T | T[] | undefined, anyStates:undefined | EntityStates | ( undefined | EntityStates )[] = EntityState.Enabled ):T | T[] | undefined{
+		if( !anyRecords )
+			return undefined;
+
+		const multiple = Array.isArray( anyRecords );
+		const records = multiple ? anyRecords : [ anyRecords ];
+		const validStates = Array.isArray( anyStates ) ? anyStates : [ anyStates ];
+		const undefinedIsValid = validStates.includes( undefined );
+
+		const filtered = records.filter( record =>
+			( undefinedIsValid && !record.state )
+			|| validStates.includes( record.state ),
+		);
+
+		return multiple ? filtered : filtered[0];
+	}
+
+
+	public static enforceDeepState<T extends { state:EntityStates }>( record:T, recursiveKeys:string | string[], allowedStates?:undefined | EntityStates | ( undefined | EntityStates )[] ):T
+	public static enforceDeepState<T extends { state:EntityStates }>( records:T[], recursiveKeys:string | string[], allowedStates?:undefined | EntityStates | ( undefined | EntityStates )[] ):T[]
+	public static enforceDeepState<T extends { state:EntityStates }, TT extends { state:EntityStates }>(
+		anyRecords:T | T[] | undefined, anyKeys:string | string[], anyStates:undefined | EntityStates | ( undefined | EntityStates )[] = EntityState.Enabled,
+	):T | T[] | undefined{
+		if( !anyRecords )
+			return undefined;
+
+		const multiple = Array.isArray( anyRecords );
+		const records = multiple ? anyRecords : [ anyRecords ];
+		const recursiveKeys = Array.isArray( anyKeys ) ? anyKeys : [ anyKeys ];
+
+		const filtered = anyKeys ? records : this.enforceState( records, anyStates );
+		for( const recKey of recursiveKeys ){
+			const splitPos = recKey.indexOf( '.' );
+			const key = ( splitPos > 0 ? recKey.substring( 0, splitPos ) : recKey ) as keyof T;
+			const deeper = splitPos > 0 ? recKey.substring( splitPos + 1 ) : undefined;
+
+			for( const record of filtered ){
+				if( key in record && Array.isArray( record[key] ) ){
+					record[key] = (
+						deeper
+						? this.enforceDeepState( record[key] as TT[], deeper, anyStates )
+						: this.enforceState( record[key] as TT[], anyStates )
+					) as T[keyof T];
+				}
+			}
+
+		}
+
+		return multiple ? filtered : filtered[0];
+	}
+
 }

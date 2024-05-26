@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { App } from '@capacitor/app';
 import { ActionSheetController, LoadingController, ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
@@ -64,10 +64,13 @@ type ScheduleActions = {
 	available:DayAction[]
 
 	allDay:DayAction[],
+	allDayContent:DayAction[],
 	actions:DayAction[],
 	timeline:TimelineItem[],
 
 	slots:SafeSlot[],
+
+	emptySchedule:boolean;
 }
 
 
@@ -162,7 +165,7 @@ type ScheduleActions = {
 
 					<div>
 
-						@if (timeline.length) {
+						@if (!emptySchedule) {
 							<mat-card class="schedule">
 								<mat-card-header>
 									<mat-card-subtitle>{{ 'STUDY.DAY_SCHEDULE_LBL' | translate }} {{ nowDate }}</mat-card-subtitle>
@@ -214,6 +217,14 @@ type ScheduleActions = {
 							</mat-card>
 						}
 
+						@if (emptySchedule && !allDayActions.length && !allDayContent.length) {
+							<mat-card>
+								<mat-card-content>
+									{{ 'STUDY.NOTHING_TO_DO'|translate }}
+								</mat-card-content>
+							</mat-card>
+						}
+
 						<footer class="view-footer">
 							@if (allDayActions) {
 								<ul class="available-actions">
@@ -235,6 +246,23 @@ type ScheduleActions = {
 														<span class="done">✓</span>
 													}
 												</div>
+											}
+										</li>
+									}
+								</ul>
+							}
+							@if (allDayContent) {
+								<ul class="available-content">
+									@for (action of allDayContent; track action.slot) {
+										<li [title]="action.hint||''">
+											@if (action.slot?.id) {
+												<button mat-flat-button color="default"
+														[disabled]="!action.available"
+														(click)="openContent(action)"
+												>
+													<!--[routerLink]="['slot', action.study!.id,  action.slot!.id ]"-->
+													{{ action.title || action.key }}
+												</button>
 											}
 										</li>
 									}
@@ -271,8 +299,10 @@ export class DashboardView implements OnInit, OnDestroy{
 
 	public timeline:TimelineItem[] = [];
 	public allDayActions:DayAction[] = [];
+	public allDayContent:DayAction[] = [];
 	public overdueActions:{ date:Date, actions:DayAction[] }[] = [];
 	public available:{ [slotId:string]:{ action:DayAction, days:string[] } } = {};
+	public emptySchedule:boolean | undefined = undefined;
 
 	public fakeHours = dayjs().hour();
 	public fakeDay = dayjs().day();
@@ -294,6 +324,7 @@ export class DashboardView implements OnInit, OnDestroy{
 		private readonly studyService:StudyService,
 		public readonly loading:LoadingController,
 		public readonly router:Router,
+		public readonly route:ActivatedRoute,
 		public readonly cdr:ChangeDetectorRef,
 		public readonly translate:TranslateService,
 		public readonly actionSheetCtrl:ActionSheetController,
@@ -309,10 +340,12 @@ export class DashboardView implements OnInit, OnDestroy{
 			.pipe( takeUntil( this._destroyed$ ) )
 			.subscribe( account => {
 				if( !account ){
+					this.emptySchedule = undefined;
 					this.studies = undefined;
 					this.timeline = [];
 					this.overdueActions = [];
 					this.allDayActions = [];
+					this.allDayContent = [];
 					this.available = {};
 				}
 
@@ -324,8 +357,15 @@ export class DashboardView implements OnInit, OnDestroy{
 						.subscribe( () => {
 
 						} );
+				else
+					this.router.navigateByUrl( '/login' );
 
 			} );
+
+		this.route.url.subscribe( url => {
+			if( !this.core.account )
+				this.router.navigateByUrl( '/login' );
+		} );
 
 
 		this.studyService.newResponses$
@@ -441,6 +481,7 @@ export class DashboardView implements OnInit, OnDestroy{
 
 
 		const { schedule, slots } = preparedSchedule;
+		let emptySchedule = true;
 
 		const daySetup = schedule.daySetup.find( ds => ds.days.includes( dayOfWeek ) );
 
@@ -454,12 +495,13 @@ export class DashboardView implements OnInit, OnDestroy{
 
 		const allDaySlots:SafeSlot[] = [];
 		const allDayActions:DayAction[] = [];
+		const allDayContent:DayAction[] = [];
 
 
 		const dayUnix = day.unix() - ( nowMinutes * 60 );
 
-		const startOfDay = daySetup?.start || 6 * 60;
-		const endOfDay = daySetup?.end || 23 * 60;
+		const startOfDay = daySetup?.start || 0;
+		const endOfDay = daySetup?.end || 24 * 60;
 		const endOfEntryMinutes = endOfDay + ( daySetup?.grace ?? 0 );
 
 		const startOfDayUnix = dayUnix + ( startOfDay * 60 );
@@ -472,6 +514,8 @@ export class DashboardView implements OnInit, OnDestroy{
 		for( const slot of slots ){
 			const { availability, constraints } = slot;
 
+			if( slot.steps?.length )
+				emptySchedule = false;
 
 			if( slot.date ){
 				// TODO: implement "on date" functionality
@@ -537,9 +581,11 @@ export class DashboardView implements OnInit, OnDestroy{
 				// ALL DAY
 				allDaySlots.push( slot );
 
-				if( isAction ){
-					allDayActions.push( action );
-
+				if( isAction || isContent ){
+					if( isAction )
+						allDayActions.push( action );
+					else if( isContent )
+						allDayContent.push( action );
 
 					if( action.available ){
 						available.push( action );
@@ -626,7 +672,6 @@ export class DashboardView implements OnInit, OnDestroy{
 			}
 		}
 
-
 		timeline.push( {
 			type: 'marker',
 			time: startOfDay,
@@ -637,14 +682,14 @@ export class DashboardView implements OnInit, OnDestroy{
 
 		timeline.push( {
 			type: 'marker',
-			time: endOfDay,
-			timeLabel: minutesToTime( endOfDay ),
+			time: endOfDay < startOfDay ? endOfDay + 24 * 60 : endOfDay,
+			timeLabel: minutesToTime( endOfDay === 24 * 60 ? 23 * 60 + 59 : endOfDay ),
 			title: 'End of Day',
 			study,
 		} );
 
 
-		return { actions, allDay: allDayActions, missed, unfulfilled, available, timeline, overdue, upcoming, slots };
+		return { actions, allDay: allDayActions, allDayContent, missed, unfulfilled, available, timeline, overdue, upcoming, slots, emptySchedule };
 
 	}
 
@@ -683,6 +728,7 @@ export class DashboardView implements OnInit, OnDestroy{
 		};
 
 
+		this.emptySchedule = true;
 		if( this.studies ){
 			for( const study of this.studies ){
 				if( !study.schedule?.slots?.length )
@@ -693,6 +739,9 @@ export class DashboardView implements OnInit, OnDestroy{
 					const dayDate = day.format( 'YYYY-MM-DD' );
 
 					const processed = DashboardView.processSchedule( study.study, study.schedule, day, now, this.logs?.[study.study.id], this.translate );
+
+					if( !processed.emptySchedule )
+						this.emptySchedule = false;
 
 					if( dayOffset === 0 )
 						consolidated.today = processed;
@@ -710,7 +759,7 @@ export class DashboardView implements OnInit, OnDestroy{
 							else if( key === 'slots' )
 								consolidated.days[dayDate][key].push( ...actions as SafeSlot[] );
 							else
-								consolidated.days[dayDate][key as Exclude<keyof ScheduleActions, 'timeline' | 'slots'>].push( ...actions as DayAction[] );
+								consolidated.days[dayDate][key as Exclude<keyof ScheduleActions, 'timeline' | 'slots' | 'emptySchedule'>].push( ...actions as DayAction[] );
 
 
 					if( processed.overdue?.length ){
@@ -747,22 +796,26 @@ export class DashboardView implements OnInit, OnDestroy{
 		// items (and actions) on the current
 		const timelineItems:TimelineItem[] = viewDay?.timeline || [];
 		if( timelineItems.length ){
-			const endOfDayMinutes = ( 23 * 60 ) + 59;
-			timelineItems.push( {
-				type: 'boundary',
-				time: 0,
-				timeLabel: minutesToTime( 0 ),
-			} );
-			timelineItems.push( {
-				type: 'boundary',
-				time: endOfDayMinutes,
-				timeLabel: minutesToTime( endOfDayMinutes ),
-			} );
+			if( !timelineItems.find( item => item.time === 0 && item.type === 'marker' ) )
+				timelineItems.push( {
+					type: 'boundary',
+					time: 0,
+					timeLabel: minutesToTime( 0 ),
+				} );
+
+			const endOfDayMinutes = 24 * 60;
+			if( !timelineItems.find( item => item.time === endOfDayMinutes && item.type === 'marker' ) )
+				timelineItems.push( {
+					type: 'boundary',
+					time: endOfDayMinutes,
+					timeLabel: minutesToTime( endOfDayMinutes === 24 * 60 ? 23 * 60 + 59 : endOfDayMinutes ),
+				} );
 		}
 
 		this.overdueActions = overdueActions || [];
 		this.available = available;
 		this.allDayActions = viewDay?.allDay || [];
+		this.allDayContent = viewDay?.allDayContent || [];
 
 		if( viewDate === realDate )
 			timelineItems.push( { type: 'now', time: nowMinutes } );
@@ -772,6 +825,9 @@ export class DashboardView implements OnInit, OnDestroy{
 		this.cdr.markForCheck();
 	}
 
+	public openContent( action:DayAction, date?:string ){
+		this.router.navigate( [ 'study', 'slot', action.study!.id, action.slot!.id, date || 'now' ] );
+	}
 
 	public openAction( action:DayAction, date?:string ){
 		if( !action?.slot )

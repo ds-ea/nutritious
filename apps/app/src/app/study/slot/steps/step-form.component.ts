@@ -34,9 +34,16 @@ export class StepFormComponent extends AbstractStepComponent<SafeStudyForm, Form
 	}
 
 	public onSubmit( result:StudyFormSubmitResult ){
-		this.progress = { state: result.skippedOptionals ? 'done-with-skips' : 'done' };
-		this.data = result.data;
-		this.dataChanged.next( result.data );
-		this.complete();
+		if( 'error' in result ){
+			this.progress = { state: 'error' };
+			this.complete();
+
+		}else{
+
+			this.progress = { state: result.skippedOptionals ? 'done-with-skips' : 'done' };
+			this.data = result.data;
+			this.dataChanged.next( result.data );
+			this.complete();
+		}
 	}
 }

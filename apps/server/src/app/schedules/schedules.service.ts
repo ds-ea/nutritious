@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { type Prisma, Schedule, type Slot, type Step } from '@nutritious/core';
+import { EntityState, type Prisma, Schedule, type Slot } from '@nutritious/core';
 import { CrudMethodOpts } from 'nestjs-prisma-crud';
 import { PrismaService } from '../core/services/db/prisma.service';
 import { JsxTranslatedCrudService } from '../core/services/jsx-translated-crud.service';
@@ -38,7 +38,6 @@ export class SchedulesService extends JsxTranslatedCrudService<Schedule>{
 
 			const stepCreates:Prisma.StepCreateManyInput[] = [];
 			const stepUpdates:Prisma.StepUpdateArgs[] = [];
-			const stepRemoves:Step['id'][] = [];
 
 			// NOTE: typing is not correct (regarding nested values)
 			for( const slotData of slots as Prisma.SlotUncheckedCreateInput[] ){
@@ -81,11 +80,11 @@ export class SchedulesService extends JsxTranslatedCrudService<Schedule>{
 					for( const stepData of steps ){
 						stepData.slotId = slot.id;
 
-						if( '_remove' in stepData ){
-							if( stepData.id )
-								stepRemoves.push( stepData.id );
+						// fallback for previous frontend logic
+						if( '_remove' in stepData )
+							stepData.state = EntityState.Deleted;
 
-						}else if( stepData.id ){
+						if( stepData.id ){
 							const { id, ...withoutId } = stepData as typeof stepData;
 							delete withoutId['createdAt'];
 							delete withoutId['updatedAt'];
@@ -107,9 +106,6 @@ export class SchedulesService extends JsxTranslatedCrudService<Schedule>{
 				await this.prisma.step.createMany( { data: stepCreates } );
 			if( stepUpdates.length )
 				await Promise.all( stepUpdates.map( stepUpdate => this.prisma.step.update( stepUpdate ) ) );
-			if( stepRemoves.length )
-				await this.prisma.step.deleteMany( { where: { id: { in: stepRemoves } } } );
-
 
 
 		}

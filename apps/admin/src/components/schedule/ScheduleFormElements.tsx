@@ -1,8 +1,8 @@
-import { ClockCircleOutlined, EditOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { ClockCircleOutlined, EditOutlined, PlusCircleOutlined, RollbackOutlined } from '@ant-design/icons';
 import { EmojiFoodBeverageOutlined, NewspaperOutlined, QuizOutlined } from '@mui/icons-material';
-import { hoursToTime, Prisma, Schedule, ScheduleCustomizability, Slot, Step, Study, StudyContent, StudyForm, StudyStepType } from '@nutritious/core';
+import { EntityState, hoursToTime, Prisma, Schedule, ScheduleCustomizability, Slot, Step, Study, StudyContent, StudyForm, StudyStepType } from '@nutritious/core';
 import { useList } from '@refinedev/core';
-import { Button, Card, Col, Descriptions, Divider, Empty, Form, FormProps, Input, List, Modal, Row, Select, Space, Tag, Timeline } from 'antd';
+import { Button, Card, Col, Descriptions, Divider, Empty, Flex, Form, FormProps, Input, List, Modal, Popconfirm, Row, Select, Space, Tag, Timeline } from 'antd';
 import { TimeLineItemProps } from 'antd/lib/timeline/TimelineItem';
 import { DefaultOptionType } from 'rc-select/lib/Select';
 import React, { useEffect, useState } from 'react';
@@ -23,6 +23,7 @@ export function SlotItemContent( props:{
 	formMap:Record<string, StudyForm> | undefined,
 	contentMap:Record<string, StudyContent> | undefined
 	onEdit?:( slot:SlotWithListData ) => void,
+	hideSteps?:boolean
 } ){
 	const { slot } = props;
 	return <Space direction={ 'vertical' }>
@@ -37,23 +38,25 @@ export function SlotItemContent( props:{
 			{ slot._onlyOnDays && <small>{ slot._onlyOnDays.join( ', ' ) }</small> }
 
 		</Space>
-		<ol>
-			{ slot.steps?.map( step => (
-				<li key={ step._listId ?? step.id }>
-					<Space align={ 'center' }>
-						{ step.type === StudyStepType.Content && <NewspaperOutlined fontSize={ 'small' } /> }
-						{ step.type === StudyStepType.Form && <QuizOutlined fontSize={ 'small' } /> }
-						{ step.type === StudyStepType.BlsFood && <EmojiFoodBeverageOutlined fontSize={ 'small' } /> }
+		{ props.hideSteps ? <></> :
+		  <ol>
+			  { slot.steps?.map( step => (
+				  <li key={ step._listId ?? step.id }>
+					  <Space align={ 'center' }>
+						  { step.type === StudyStepType.Content && <NewspaperOutlined fontSize={ 'small' } /> }
+						  { step.type === StudyStepType.Form && <QuizOutlined fontSize={ 'small' } /> }
+						  { step.type === StudyStepType.BlsFood && <EmojiFoodBeverageOutlined fontSize={ 'small' } /> }
 
-						<Tag>
-							{ step.type === StudyStepType.Content && ( props.contentMap?.[step.ref ?? 0]?.name ?? '?' ) }
-							{ step.type === StudyStepType.Form && ( props.formMap?.[step.ref ?? 0]?.name ?? '?' ) }
-							{ step.type === StudyStepType.BlsFood && StudyStepTypeMeta['bls-food-entry'].name }
-						</Tag>
-					</Space>
-				</li>
-			) ) }
-		</ol>
+						  <Tag>
+							  { step.type === StudyStepType.Content && ( props.contentMap?.[step.ref ?? 0]?.name ?? '?' ) }
+							  { step.type === StudyStepType.Form && ( props.formMap?.[step.ref ?? 0]?.name ?? '?' ) }
+							  { step.type === StudyStepType.BlsFood && StudyStepTypeMeta['bls-food-entry'].name }
+						  </Tag>
+					  </Space>
+				  </li>
+			  ) ) }
+		  </ol>
+		}
 	</Space>;
 }
 
@@ -89,6 +92,7 @@ export const ScheduleFormElements:React.FC<{
 
 
 	const [ allDaySlots, setAllDaySlots ] = useState<SlotWithListData[]>( [] );
+	const [ removedSlots, setRemovedSlots ] = useState<SlotWithListData[]>( [] );
 	const [ dayStart, setDayStart ] = useState<number>( formProps?.form?.getFieldValue( 'daySetup' )?.[0].start ?? 0 );
 	const [ timeline, setTimeline ] = useState<TimeLineItemProps[]>( [] );
 
@@ -132,13 +136,14 @@ export const ScheduleFormElements:React.FC<{
 		if( !slots?.length )
 			return;
 
-		const { dayStart, allDaySlots, timelineItems, uniqueSlotChecks }
+		const { dayStart, allDaySlots, timelineItems, uniqueSlotChecks, removedSlots }
 			= parseSchedule( daySetup, slots, createCount, formMap, contentMap, editSlot );
 
 		setDayStart( dayStart );
 		setAllDaySlots( allDaySlots );
 		setTimeline( timelineItems );
 		setUniqueSlotChecks( uniqueSlotChecks );
+		setRemovedSlots( removedSlots );
 	};
 
 	useEffect( () => {
@@ -165,7 +170,8 @@ export const ScheduleFormElements:React.FC<{
 		const slotsValue:( SlotWithListData<SlotUpdateDto> )[] = formProps?.form?.getFieldValue( 'slots' ) ?? [];
 
 		// patch slot
-		const existing = slotsValue.find( slot => ( slot._listId || slot.id ) === ( selectedSlot?._listId || selectedSlot?.id ) );
+		const existing = slotsValue.find( slot => ( slot._listId || slot.id ) === ( data?._listId || data?.id ) );
+
 		if( existing )
 			Object.assign( existing, data );
 		else
@@ -182,6 +188,7 @@ export const ScheduleFormElements:React.FC<{
 		const slot:typeof selectedSlot = {
 			key: '',
 			name: '',
+			state: EntityState.Enabled,
 			availability: { allDay: false } as SlotWithListData['availability'],
 			steps: [ { _listId: 'new_' + Date.now() } ],
 			_listId: 'new_' + ++createCount,
@@ -195,12 +202,50 @@ export const ScheduleFormElements:React.FC<{
 		setSelectedSlot( slot );
 	};
 
+	const deleteSlot = ( slot?:SlotWithListData | null ) => {
+		if( !slot )
+			return;
+
+		if( !slot.id ){
+			// local
+			let slots:SlotWithListData[] = formProps.form?.getFieldValue( 'slots' );
+			slots = slots.filter( s => s._listId !== slot._listId );
+			formProps.form?.setFieldValue( 'slots', slots );
+
+			setIsNewSlot( false );
+			setSelectedSlot( null );
+
+			updateTimeline();
+		}else{
+			// remote
+			slot.state = EntityState.Deleted;
+			confirmSlotChanges( slot );
+		}
+	};
+
+	const reactivateSlot = ( slot:SlotWithListData ) => {
+		slot.state = EntityState.Enabled;
+		confirmSlotChanges( slot );
+	};
+
 
 	return ( <>
 		<Modal open={ !!selectedSlot } onCancel={ cancelSlotEditing }
 			   centered width={ 600 }
 			   title={ ( selectedSlot && 'id' in selectedSlot && selectedSlot?.id ) ? 'Edit Slot' : 'Add Slot' }
-			   footer={ <><Button type={ 'primary' } onClick={ () => callSubmitSlotForm( prev => prev + 1 ) }>{ 'Ok' }</Button></> }
+			   footer={ <Flex justify={ isNewSlot ? 'flex-end' : 'space-between' }>
+				   { !isNewSlot && <Popconfirm
+					   title="Remove slot"
+					   description="Are you sure you want to remove this slot?"
+					   onConfirm={ () => deleteSlot( selectedSlot ) }
+					   okText="Yes"
+					   cancelText="No"
+				   >
+					   <Button type={ 'link' } danger>{ 'remove slot' }</Button>
+				   </Popconfirm>
+				   }
+				   <Button type={ 'primary' } onClick={ () => callSubmitSlotForm( prev => prev + 1 ) }>{ 'Ok' }</Button>
+			   </Flex> }
 		>
 			{ !selectedSlot
 			  ? <></>
@@ -368,7 +413,6 @@ export const ScheduleFormElements:React.FC<{
 					  <Col xs={ 24 } lg={ { span: 12, order: 2 } }>
 
 						  <Divider orientation={ 'left' }>All Day Slots</Divider>
-
 						  <List
 							  dataSource={ allDaySlots }
 							  split={ false }
@@ -380,6 +424,26 @@ export const ScheduleFormElements:React.FC<{
 								  </List.Item>
 							  ) }
 						  />
+
+						  { !removedSlots?.length ? <></> :
+							<>
+								<Divider orientation={ 'left' }>Removed Slots</Divider>
+								<List
+									dataSource={ removedSlots }
+									split={ false }
+									renderItem={ ( slot:SlotWithListData ) => (
+										<List.Item>
+											<Space>
+												<SlotItemContent slot={ slot } contentMap={ contentMap } formMap={ formMap } hideSteps={ true } />
+												<Button size="small" shape="circle" type="default" icon={ <RollbackOutlined /> }
+														onClick={ () => reactivateSlot( slot ) } title={ 'recover' }
+												/>
+											</Space>
+										</List.Item>
+									) }
+								/>
+							</>
+						  }
 
 					  </Col>
 

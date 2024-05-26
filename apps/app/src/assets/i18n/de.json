@@ -64,6 +64,7 @@
 	"STUDY.HINT_SLOT_PASSED": "Dies war verfügbar bis {{TIME}}",
 	"STUDY.HINT_SLOT_UPCOMING": "Dies wird verfügbar um {{TIME}}",
 	"STUDY.MSG_SELECT_DAY_FOR_ENTRY": "Für welchen Tag ist das?",
+	"STUDY.NOTHING_TO_DO": "Im Moment gibt es nichts zu tun.",
 	"STUDY.NO_STUDY_ERR": "Keine Studie verfügbar.",
 	"STUDY.OVERDUE_LBL": "Überfällig",
 	"USER.AUTH.DOMAIN_LBL": "Domain",

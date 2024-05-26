@@ -303,6 +303,8 @@ model Schedule {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  state EntityState @default(ENABLED)
+
   name  String?
   notes String?
 
@@ -324,6 +326,8 @@ model Slot {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  state EntityState @default(ENABLED)
 
   scheduleId String?   @db.ObjectId
   schedule   Schedule? @relation(fields: [scheduleId], references: [id])
@@ -354,6 +358,8 @@ model Step {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  state EntityState @default(ENABLED)
 
   type   String
   ref    String? @db.ObjectId

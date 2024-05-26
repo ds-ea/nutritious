@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Sanitize } from '@nutritious/core';
 import { CrudQuery, CrudQueryData } from '../core/decorators/crud-query.decorator';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
@@ -18,13 +19,14 @@ export class SchedulesController{
 	@Get()
 	async findMany( @CrudQuery( { injectNotDeleted: false } ) crudQuery:CrudQueryData ){
 		const matches = await this.schedulesService.findMany( { crudQuery } );
+		matches.data = Sanitize.enforceDeepState( matches.data, [ 'slots', 'slots.steps' ] );
 		return matches;
 	}
 
 	@Get( ':id' )
 	async findOne( @Param( 'id' ) id:string, @CrudQuery( { injectNotDeleted: false } ) crudQuery:CrudQueryData ){
 		const match = await this.schedulesService.findOne( id, { crudQuery } );
-		return match;
+		return Sanitize.enforceDeepState( match, [ 'slots', 'slots.steps' ] );
 	}
 
 	@Patch( ':id' )

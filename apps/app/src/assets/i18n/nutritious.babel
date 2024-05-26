@@ -1128,6 +1128,22 @@
                                 </translations>
                             </concept_node>
                             <concept_node>
+                                <name>NOTHING_TO_DO</name>
+                                <description/>
+                                <comment/>
+                                <default_text/>
+                                <translations>
+                                    <translation>
+                                        <language>de-DE</language>
+                                        <approved>false</approved>
+                                    </translation>
+                                    <translation>
+                                        <language>en-US</language>
+                                        <approved>false</approved>
+                                    </translation>
+                                </translations>
+                            </concept_node>
+                            <concept_node>
                                 <name>NO_STUDY_ERR</name>
                                 <description/>
                                 <comment/>

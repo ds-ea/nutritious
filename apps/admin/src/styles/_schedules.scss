@@ -1,0 +1,27 @@
+.slot-editor-steps {
+	--color-for-removal: red;
+
+	.step-state-enabled {
+
+	}
+
+	.step-state-deleted {
+
+		.ant-form-item {
+			cursor: not-allowed;
+
+			* {
+				pointer-events: none;
+				text-decoration: line-through;
+				border-color: var(--color-for-removal);
+				color: var(--color-for-removal);
+			}
+
+		}
+
+		.ant-btn-icon {
+			color: var(--color-for-removal);
+		}
+	}
+
+}

@@ -233,7 +233,10 @@ export class StudyService{
 		const prepared:PreparedSlot = Sanitize.safeSlot( slot );
 
 		if( slot.steps ){
-			prepared.steps = slot.steps.map( Sanitize.safeStep );
+			prepared.steps = slot.steps
+				.filter( step => step.state === EntityState.Enabled )
+				.map( Sanitize.safeStep );
+
 			for( const step of prepared.steps )
 				if( step.ref ){
 					if( !stepRefs[step.type] )
@@ -261,7 +264,7 @@ export class StudyService{
 
 		const stepRefs:StepRefMap = {};
 
-		const slots:SafeSlot[] = await this.prisma.slot.findMany( { where: { scheduleId }, include: { steps: true } } )
+		const slots:SafeSlot[] = await this.prisma.slot.findMany( { where: { scheduleId, state: EntityState.Enabled }, include: { steps: true } } )
 			.then( slots =>
 				slots.map( slot => this.prepareSlot( slot, stepRefs ),
 				) );

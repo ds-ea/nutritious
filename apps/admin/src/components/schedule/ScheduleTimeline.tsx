@@ -1,4 +1,4 @@
-import { minutesToTime, Schedule, Slot, StudyContent, StudyForm } from '@nutritious/core';
+import { EntityState, minutesToTime, Schedule, Slot, StudyContent, StudyForm } from '@nutritious/core';
 import { TimeLineItemProps } from 'antd/lib/timeline/TimelineItem';
 import React from 'react';
 import { dayData } from '../shared';
@@ -30,7 +30,7 @@ export const parseSchedule = (
 
 	//	const daySetup:Schedule['daySetup'] = formProps?.form?.getFieldValue( 'daySetup' );
 	const dayStart = daySetup?.[0].start ?? 0;
-	const dayEnd = daySetup?.[0].end ?? 0;
+	const dayEnd = daySetup?.[0].end ?? 24 * 60;
 
 
 	// add day boundaries if not overlapping with day start/end
@@ -63,7 +63,7 @@ export const parseSchedule = (
 		type: 'plain',
 		time: dayEnd < dayStart ? dayEnd + 24 * 60 : dayEnd,
 		item: {
-			label: !dayEnd ? '23:59' : ( dayEnd / 60 ).toString().padStart( 2, '0' ) + ':00',
+			label: !dayEnd || dayEnd === 24 * 60 ? '23:59' : ( dayEnd / 60 ).toString().padStart( 2, '0' ) + ':00',
 			children: 'End of Day',
 			color: 'blue', className: 'day-end',
 		},
@@ -74,6 +74,7 @@ export const parseSchedule = (
 	const allDaySlots:SlotWithListData[] = [];
 	const scheduleSlots = [];
 	const slots:SlotWithListData[] = [];
+	const removedSlots:SlotWithListData[] = [];
 
 	for( const plainSlot of plainSlots ){
 		const onlyOnDays = humanReadableDays( plainSlot.availability?.days );
@@ -83,6 +84,12 @@ export const parseSchedule = (
 			_listId: ( ( '_listId' in plainSlot && plainSlot._listId ) ? plainSlot._listId : plainSlot.id ?? ( 'new_' + ++createCount ) ),
 			_onlyOnDays: onlyOnDays,
 		};
+
+		if( plainSlot.state && plainSlot.state !== EntityState.Enabled ){
+			removedSlots.push( slot );
+			continue;
+		}
+
 		slots.push( slot );
 
 		if( !slot.availability || slot.availability.allDay ){
@@ -134,5 +141,5 @@ export const parseSchedule = (
 		_listId,
 	} ) );
 
-	return { dayStart, dayEnd, allDaySlots, timelineItems, uniqueSlotChecks };
+	return { dayStart, dayEnd, allDaySlots, timelineItems, uniqueSlotChecks, removedSlots };
 };

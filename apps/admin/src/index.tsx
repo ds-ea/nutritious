@@ -2,7 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 
 import App from './App';
-import './styles/shared.scss';
+import './styles/admin.scss';
 
 
 const container = document.getElementById( 'root' ) as HTMLElement;

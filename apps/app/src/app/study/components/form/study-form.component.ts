@@ -50,7 +50,11 @@ function emptyValue( control:AbstractControl ):boolean | undefined{
 	template: `
 		<mat-card *ngIf="form?.setup">
 			<mat-card-content>
-
+				@if (form?.intro?.length) {
+					<div class="intro">
+						<markdown [data]="form?.intro || ''"></markdown>
+					</div>
+				}
 
 				<section class="study-form" *ngIf="formGroup">
 					<form [formGroup]="formGroup" (ngSubmit)="submit">

@@ -12,6 +12,14 @@ textarea.mat-input-element {
 }
 
 
+study-form {
+
+	.intro {
+		max-width: $grid-width;
+		margin-bottom: $gutter * 5;
+	}
+}
+
 .study-form {
 	.question {
 		display: flex;

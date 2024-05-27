@@ -4,7 +4,7 @@ import { LoadingController } from '@ionic/angular';
 import dayjs, { Dayjs } from 'dayjs';
 import { nanoid } from 'nanoid';
 import { BehaviorSubject, ReplaySubject } from 'rxjs';
-import { takeUntil, tap } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
 import { containsOnlyContentSteps, MatchedSlot, PreparedSlot, PublicStudy, SafeSlot, SafeStep, StepResponse, StudyStepType } from '../../../../../../libs/core/src';
 import { StudyService } from '../study.service';
 import { AbstractStepComponent, StepCompleteEvent, StepProgress } from './steps/abstract-step.component';
@@ -218,7 +218,7 @@ export class SlotView implements OnInit, OnDestroy{
 			console.error( 'slot step completed, but no matching step found: ', { event, knownSteps: this.steps, slot: this.slot } );
 		}
 
-		const nowDay = dayjs();
+		const nowDay = this.entryDate || dayjs();
 		const now = nowDay.toISOString();
 		const forDay = this.getIntendedDay( this.slot!.prepared, step!, nowDay );
 
@@ -263,9 +263,7 @@ export class SlotView implements OnInit, OnDestroy{
 
 		await this.loader.present();
 		this.studyService.submitResponses( { responses } )
-			.pipe( takeUntil( this._destroyed$ ),
-				tap( t => console.log( t ) ),
-			)
+			.pipe( takeUntil( this._destroyed$ ) )
 			.subscribe( {
 				complete: () => {
 					this.loader.dismiss();

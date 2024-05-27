@@ -343,6 +343,7 @@ export class StudyService{
 				type: response.type,
 				uid: response.uid,
 				suid: response.suid,
+				forDay: response.forDay,
 				data: response.data as Prisma.InputJsonValue,
 			} );
 

@@ -436,6 +436,9 @@ model StudyResponse {
   /// client side response slot group, not necessarily globally unique
   suid String?
 
+  /// when for a date other than "now" (as a day local to the participant, independent of timezone)
+  forDay String?
+
   participantId String       @db.ObjectId
   participant   Participant? @relation(fields: [participantId], references: [id])
   member        GroupMember? @relation(fields: [groupId, participantId], references: [groupId, participantId])

@@ -24,13 +24,19 @@ import { AbstractInput } from './abstract-input';
 							   [formControlName]="item.key"
 						/>
 					</mat-slider>
+					@if (config.labelMin || config.labelMax) {
+						<div class="slider-labels">
+							<span class="min">{{ config.labelMin ?? '' }}</span>
+							<span class="max">{{ config.labelMax ?? '' }}</span>
+						</div>
+					}
 
 
 				} @else if (config.behavior === 'stars') {
 
 					<div>STARS</div>
 
-				} @else if (config.behavior === 'stepped') {
+				} @else if (config.behavior === 'stepped' || true) {
 
 					<mat-radio-group
 						[id]="ctrlId" [attr.aria-labelledby]="labelId"

@@ -9,6 +9,9 @@ export function minutesToTime( minutes:number | null | undefined ):string{
 	if( minutes == null )
 		return '';
 
+	// wrap 24h
+	minutes = minutes % 1440;
+
 	return `${ String( Math.floor( minutes / 60 ) ).padStart( 2, '0' ) }:${ String( minutes % 60 ).padStart( 2, '0' ) }`;
 }
 

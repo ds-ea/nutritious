@@ -174,7 +174,7 @@ export const FormInputConfig:React.FC<FormInputConfigProps> = ( { inputType, ...
 
 			{ inputType === 'choices' && ( <Space direction={ 'vertical' } style={ { width: '100%' } }>
 				<Form.Item name={ [ ...name, 'limit' ] } label={ 'Number of Choices' }>
-					<Input type={ 'number' } placeholder={ 'no limit' } allowClear style={ { width: 140 } } />
+					<Input type={ 'number' } placeholder={ 'no limit' } allowClear style={ { width: 140 } } min={ 0 } />
 				</Form.Item>
 				<Form.List name={ [ ...name, 'options' ] }>
 					{ renderOptions }
@@ -190,7 +190,7 @@ export const FormInputConfig:React.FC<FormInputConfigProps> = ( { inputType, ...
 					] } />
 				</Form.Item>
 
-				{ inputConfig?.behavior === 'stepped' &&
+				{ ( !inputConfig?.behavior || inputConfig?.behavior === 'stepped' ) &&
 					<Form.List name={ [ ...name, 'options' ] }>
 						{ renderOptions }
 					</Form.List>

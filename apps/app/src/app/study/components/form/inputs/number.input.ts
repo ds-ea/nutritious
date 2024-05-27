@@ -9,6 +9,7 @@ import { AbstractInput } from './abstract-input';
 	template: `
 		<div [formGroup]="formGroup" *ngIf="item" class="form-control">
 			<mat-form-field>
+				<span matTextPrefix *ngIf="config?.prefix">{{ config?.prefix }}</span>
 				<input matInput
 					   type="number"
 
@@ -18,6 +19,9 @@ import { AbstractInput } from './abstract-input';
 					   [id]="ctrlId" [attr.aria-labelledby]="labelId"
 					   [formControlName]="item.key"
 				/>
+
+				<span matTextSuffix *ngIf="config?.suffix">{{ config?.suffix }}</span>
+
 			</mat-form-field>
 		</div>
 	`,

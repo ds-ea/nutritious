@@ -4,18 +4,29 @@ import { CrudQuery, CrudQueryData } from '../core/decorators/crud-query.decorato
 import { ResponsesService } from './responses.service';
 
 
-export function flattenNestedRecord<T extends Record<PropertyKey, unknown>>( record:T, parentKey = '' ):Record<string, T>{
+export function flattenNestedRecord<T extends Record<PropertyKey, unknown>>( record:T, parentKey = '' ):Record<string, string | number>{
 	return Object.keys( record )
 		.reduce( ( acc, key ) => {
 			const newKey = parentKey ? `${ parentKey }.${ key }` : key;
 			if( typeof record[key] === 'object' && record[key] !== null ){
+
+				// flatten simple arrays
+				if( Array.isArray( record[key] ) ){
+					const arrayLike = record[key] as unknown[];
+					if( arrayLike[0] && typeof arrayLike[0] != 'object' ){
+						acc[newKey] = arrayLike.join( ',' );
+						return acc;
+					}
+				}
+
 				const flattened = flattenNestedRecord( record[key] as T, newKey );
 				Object.assign( acc, flattened );
+
 			}else{
-				acc[newKey] = record[key] as T;
+				acc[newKey] = record[key] as string | number;
 			}
 			return acc;
-		}, {} as Record<PropertyKey, T> );
+		}, {} as Record<PropertyKey, string | number> );
 }
 
 

@@ -137,7 +137,6 @@ export class FoodListComponent implements OnInit, OnDestroy{
 			.pipe(
 				takeUntil( this._destroyed$ ),
 				debounceTime( 100 ),
-				//				tap( e => console.log( 'se', e ) ),
 			)
 			.subscribe( () => this.search( this.searchTerm ) );
 

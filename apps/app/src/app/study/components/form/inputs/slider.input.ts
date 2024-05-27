@@ -11,17 +11,23 @@ import { AbstractInput } from './abstract-input';
 			<mat-slider
 
 
-					[min]="config?.min ?? null"
-					[max]="config?.max ?? null"
-					[step]="config?.step ?? null"
+				[min]="config?.min ?? null"
+				[max]="config?.max ?? null"
+				[step]="config?.step ?? null"
 
-					[showTickMarks]="true"
+				[showTickMarks]="true"
 			>
 				<input matSliderThumb
 					   [id]="ctrlId" [attr.aria-labelledby]="labelId"
 					   [formControlName]="item.key"
 				/>
 			</mat-slider>
+			@if (config?.labelMin || config?.labelMax) {
+				<div class="slider-labels">
+					<span class="min">{{ config?.labelMin ?? '' }}</span>
+					<span class="max">{{ config?.labelMax ?? '' }}</span>
+				</div>
+			}
 		</div>
 	`,
 } )

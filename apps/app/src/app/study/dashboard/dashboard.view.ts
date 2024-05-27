@@ -501,7 +501,7 @@ export class DashboardView implements OnInit, OnDestroy{
 		const dayUnix = day.unix() - ( nowMinutes * 60 );
 
 		const startOfDay = daySetup?.start || 0;
-		const endOfDay = daySetup?.end || 24 * 60;
+		const endOfDay = daySetup?.end ? daySetup?.end + ( startOfDay > daySetup.end ? 24 * 60 : 0 ) : 24 * 60;
 		const endOfEntryMinutes = endOfDay + ( daySetup?.grace ?? 0 );
 
 		const startOfDayUnix = dayUnix + ( startOfDay * 60 );

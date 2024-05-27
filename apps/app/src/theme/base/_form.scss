@@ -11,16 +11,28 @@ textarea.mat-input-element {
 	//border-bottom: 1px solid ;
 }
 
+nutri-step-form {
+	display: flex;
+	max-width: 100%;
+}
 
 study-form {
+	display: flex;
+	flex-direction: column;
+
+	width: $grid-width-minor;
+	max-width: 100%;
+
 
 	.intro {
 		max-width: $grid-width;
 		margin-bottom: $gutter * 5;
 	}
+
 }
 
 .study-form {
+
 	.question {
 		display: flex;
 		flex-direction: column;
@@ -43,12 +55,19 @@ study-form {
 		}
 
 		.form-control {
+			display: flex;
+			flex-direction: column;
+
 			mat-form-field {
-				width: 100%;
+				flex-grow: 1;
 			}
 
 			mat-slider {
-				width: 100%;
+				flex-grow: 1;
+			}
+
+			mat-button-toggle-group {
+				width: min-content;
 			}
 
 			.form-choice-checkboxes {

@@ -22,15 +22,13 @@ type validFilterKeys = 'studyId' | 'groupId' | 'participantId';
 
 
 export function responseExportOptions<T>( context:{ group:Group | undefined } | { study:PublicStudy | undefined } | { participant:SafeParticipant | undefined } ):UseExportOptionsType{
-
-
 	const [ key, contextData ] = Object.entries( context )?.[0];
 	if( !contextData )
 		throw new Error( 'missing or empty export context' );
 
 	const field = key ? key + 'Id' : undefined;
 	const value = contextData.id;
-	const fileNameAddon = contextData ? key + ' ' + contextData.name?.trim() : undefined;
+	const fileNameAddon = contextData ? key + ' ' + ( contextData.name || contextData.key )?.trim() : undefined;
 
 	if( !field || !value )
 		throw new Error( 'missing or empty export filter' );
@@ -56,6 +54,7 @@ export function responseExportOptions<T>( context:{ group:Group | undefined } | 
 			slot: item.slotKey,
 			type: item.type,
 			group: item.groupId,
+			day: item.forDay,
 			//			...( typeof item.data === 'object' ? flattenNestedRecord( item.data as Record<string, unknown> ) : {} ),
 			...( item.data as Record<string, unknown> ),
 		} ),

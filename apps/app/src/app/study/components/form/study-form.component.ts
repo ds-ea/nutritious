@@ -4,7 +4,7 @@ import { AlertController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { ReplaySubject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
-import { FormContent, FormInputType, FormQuestion, FormResponseData, FormSetup, MatchedSlot, SafeStudyForm } from '../../../../../../../libs/core/src';
+import { FormContent, FormInputConfigChoices, FormInputType, FormQuestion, FormResponseData, FormSetup, MatchedSlot, SafeStudyForm } from '../../../../../../../libs/core/src';
 import { StepProgress, StepProgressState } from '../../slot/steps/abstract-step.component';
 import { AbstractInput } from './inputs/abstract-input';
 import { BinaryInput } from './inputs/binary.input';
@@ -198,10 +198,38 @@ export class StudyFormComponent implements OnInit, OnDestroy, OnChanges{
 			else if( question.required === 'should' )
 				validators.push( this._validateOptional.bind( this ) );
 
-			controls[question.key] = new FormControl(
-				this.data?.answers?.[question.key] ?? '',
-				{ validators },
-			);
+
+			const arrayBehavior:'array' | 'boolKeys' = 'array';
+			const valueIsArray = question.input === 'choices';
+
+			if( valueIsArray && ( <FormInputConfigChoices> question.config )?.limit != 1 ){
+				const groupOptions = ( <FormInputConfigChoices> question.config )?.options || [];
+				const groupValues = this.data?.answers?.[question.key] ?? [];
+
+				if( arrayBehavior === 'array' ){
+					controls[question.key] = new FormControl(
+						groupValues,
+						{ validators },
+					);
+
+				}else{
+					const groupControls:Record<string, AbstractControl> = {};
+					for( const opt of groupOptions )
+						groupControls[opt.value] = new FormControl();
+
+					controls[question.key] = new FormGroup(
+						groupControls,
+						{ validators },
+					);
+				}
+
+			}else{
+				controls[question.key] = new FormControl(
+					this.data?.answers?.[question.key] ?? '',
+					{ validators },
+				);
+			}
+
 
 		}
 
@@ -221,7 +249,6 @@ export class StudyFormComponent implements OnInit, OnDestroy, OnChanges{
 				debounceTime( 50 ),
 			)
 			.subscribe( data => {
-				//				console.log( 'form data', data );
 
 			} );
 

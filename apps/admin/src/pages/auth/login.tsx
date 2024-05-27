@@ -16,7 +16,7 @@ export default function Login(){
 				text={ <>
 					<span>{ import.meta.env.VITE_PROJECT_NAME ?? 'Nutritious' }</span>
 					&nbsp;
-					<small>({ import.meta.env.MODE ?? 'unknown version' })</small>
+					<small>({ import.meta.env.VITE_DEPLOYMENT_ENV ?? 'unknown version' })</small>
 				</> }
 			/> }
 

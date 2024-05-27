@@ -11,7 +11,7 @@ import { StudyService } from './study/study.service';
 @Component( {
 	selector: 'app-root',
 	template: `
-		<ion-app>
+		<ion-app [ngClass]="'env-'+deployENV">
 			<ion-router-outlet id="main"></ion-router-outlet>
 
 			<ion-menu side="end" menuId="first" contentId="main" class="nutri-main-menu" type="overlay">
@@ -51,6 +51,9 @@ import { StudyService } from './study/study.service';
 						<ion-button routerLink="/">
 							<ion-img src="assets/icon/logo-outlined.svg" slot="icon-only"></ion-img>
 						</ion-button>
+						@if (deployENV !== 'production') {
+							<span>{{ deployENV }}</span>
+						}
 					</ion-buttons>
 
 					<ion-buttons slot="end">
@@ -68,6 +71,8 @@ import { StudyService } from './study/study.service';
 } )
 export class AppComponent implements OnInit{
 
+	public deployENV = 'unknown';
+
 	constructor(
 		public core:CoreService,
 		public api:ApiService,
@@ -77,6 +82,7 @@ export class AppComponent implements OnInit{
 		public translate:TranslateService,
 		private menu:MenuController,
 	){
+		this.deployENV = config.get( 'NX_DEPLOYMENT_ENV' ) || process.env['NX_DEPLOYMENT_ENV'] || 'unknown';
 	}
 
 	public async ngOnInit(){

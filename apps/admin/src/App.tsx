@@ -27,7 +27,7 @@ function App(){
 		<BrowserRouter basename={ 'admin' }>
 			<RefineKbarProvider>
 				<ColorModeContextProvider>
-					<AntdApp>
+					<AntdApp className={ 'env-' + import.meta.env.VITE_DEPLOYMENT_ENV }>
 						<DevtoolsProvider>
 							<Refine
 								dataProvider={ restDataProvider }
@@ -41,10 +41,8 @@ function App(){
 									useNewQueryKeys: true,
 									disableTelemetry: true,
 									projectId: 'p8Q6UV-cOiBz0-ZzPRVD',
-									//                  projectId: "XTXxAW-8hagMy-bfrEMR",
 								} }
 							>
-
 								<Router />
 
 								<RefineKbar />

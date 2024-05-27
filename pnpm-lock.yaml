@@ -311,6 +311,9 @@ importers:
       react-redux:
         specifier: ^9.1.0
         version: 9.1.1(@types/react@18.2.79)(react@18.2.0)(redux@5.0.1)
+      react-router:
+        specifier: ^6.23.1
+        version: 6.23.1(react@18.2.0)
       redux:
         specifier: ^5.0.1
         version: 5.0.1
@@ -7937,7 +7940,7 @@ packages:
     peerDependencies:
       nx: '>= 16 <= 18'
     dependencies:
-      '@nrwl/devkit': 17.3.2(nx@17.0.2)
+      '@nrwl/devkit': 17.3.2(nx@18.0.4)
       ejs: 3.1.10
       enquirer: 2.3.6
       ignore: 5.3.1
@@ -10121,6 +10124,11 @@ packages:
   /@remix-run/router@1.16.0:
     resolution: {integrity: sha512-Quz1KOffeEf/zwkCBM3kBtH4ZoZ+pT3xIXBG4PPW/XFtDP7EGhtTiC2+gpL9GnR7+Qdet5Oa6cYSvwKYg6kN9Q==}
     engines: {node: '>=14.0.0'}
+
+  /@remix-run/router@1.16.1:
+    resolution: {integrity: sha512-es2g3dq6Nb07iFxGk5GuHN20RwBZOsuDQN7izWIisUcv9r+d2C5jQxqmgkdebXgReWfiyUabcki6Fg77mSNrig==}
+    engines: {node: '>=14.0.0'}
+    dev: false
 
   /@remix-run/serve@2.9.1(typescript@5.3.3):
     resolution: {integrity: sha512-NtxfJqJFtBrSM+GjdBs+pqcbzZfeCVm0l67OUm+THHLHHFWsxndbqWX2nSSYacWNnGu+O2gNiBDzxyOE8/aElA==}
@@ -13217,7 +13225,7 @@ packages:
       react-i18next: 12.3.1(i18next@22.5.1)(react-dom@18.2.0)(react@18.2.0)
       react-is: 18.2.0
       react-redux: 8.1.3(@types/react-dom@18.2.25)(@types/react@18.2.79)(react-dom@18.2.0)(react@18.2.0)(redux@4.2.1)
-      react-router: 6.23.0(react@18.2.0)
+      react-router: 6.23.1(react@18.2.0)
       react-router-dom: 6.23.0(react-dom@18.2.0)(react@18.2.0)
       redux: 4.2.1
       regenerator-runtime: 0.14.1
@@ -26995,6 +27003,16 @@ packages:
     dependencies:
       '@remix-run/router': 1.16.0
       react: 18.2.0
+
+  /react-router@6.23.1(react@18.2.0):
+    resolution: {integrity: sha512-fzcOaRF69uvqbbM7OhvQyBTFDVrrGlsFdS3AL+1KfIBtGETibHzi3FkoTRyiDJnWNc2VxrfvR+657ROHjaNjqQ==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      react: '>=16.8'
+    dependencies:
+      '@remix-run/router': 1.16.1
+      react: 18.2.0
+    dev: false
 
   /react-select@5.8.0(@types/react@18.2.79)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-TfjLDo58XrhP6VG5M/Mi56Us0Yt8X7xD6cDybC7yoRMUNm7BGO7qk8J0TLQOua/prb8vUOtsfnXZwfm30HGsAA==}

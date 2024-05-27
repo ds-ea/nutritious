@@ -1,2 +1,21 @@
 @import "shared";
 @import "schedules";
+
+
+.ant-app.env-dev {
+	> .ant-layout {
+		> .ant-layout > .ant-layout-header,
+		> .ant-layout-sider .ant-layout-sider-children > :first-child {
+			background-color: #a1ff00 !important;
+		}
+	}
+}
+
+.ant-app.env-staging {
+	> .ant-layout {
+		> .ant-layout > .ant-layout-header,
+		> .ant-layout-sider .ant-layout-sider-children > :first-child {
+			background-color: #fe0095 !important;
+		}
+	}
+}

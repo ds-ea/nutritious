@@ -1,7 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { DateAdapter } from '@angular/material/core';
 import { Router } from '@angular/router';
 import { MenuController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
+import { de, enGB } from 'date-fns/locale';
+import { DateFnsConfigurationService } from 'ngx-date-fns';
 import { ApiService } from './core/api.service';
 import { ConfigService } from './core/config.service';
 import { CoreService } from './core/core.service';
@@ -65,7 +68,7 @@ import { StudyService } from './study/study.service';
 
 		</ion-app>
 		<div class="scanner-ui">
-			<ng-template [cdkPortalOutlet]="core.scannerUIPortal"></ng-template>
+			<ng-template [cdkPortalOutlet]="$any(core.scannerUIPortal)"></ng-template>
 		</div>
 	`,
 } )
@@ -81,8 +84,16 @@ export class AppComponent implements OnInit{
 		public config:ConfigService,
 		public translate:TranslateService,
 		private menu:MenuController,
+		private dateAdapter:DateAdapter<unknown>,
+		private dateFNSConfiguration:DateFnsConfigurationService,
 	){
 		this.deployENV = config.get( 'NX_DEPLOYMENT_ENV' ) || process.env['NX_DEPLOYMENT_ENV'] || 'unknown';
+
+		this.translate.onLangChange.subscribe( change => {
+			this.dateAdapter.setLocale( change.lang );
+			this.dateFNSConfiguration.setLocale( change.lang === 'de' ? de : enGB );
+		} );
+
 	}
 
 	public async ngOnInit(){

@@ -9,13 +9,12 @@ import { AbstractInput } from './abstract-input';
 	template: `
 		<div [formGroup]="formGroup" *ngIf="item" class="form-control">
 			<mat-slider
-
-
 				[min]="config?.min ?? null"
 				[max]="config?.max ?? null"
 				[step]="config?.step ?? null"
 
 				[showTickMarks]="true"
+				[discrete]="true"
 			>
 				<input matSliderThumb
 					   [id]="ctrlId" [attr.aria-labelledby]="labelId"

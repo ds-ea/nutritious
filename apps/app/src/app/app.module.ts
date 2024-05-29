@@ -3,6 +3,7 @@ import { PortalModule } from '@angular/cdk/portal';
 import { LOCATION_INITIALIZED } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { APP_INITIALIZER, Injector, NgModule } from '@angular/core';
+import { DateAdapter, MAT_DATE_LOCALE, NativeDateModule } from '@angular/material/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouteReuseStrategy } from '@angular/router';
@@ -14,8 +15,9 @@ import { Drivers } from '@ionic/storage';
 import { IonicStorageModule } from '@ionic/storage-angular';
 import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { de, enGB } from 'date-fns/locale';
 import CordovaSQLiteDriver from 'localforage-cordovasqlitedriver';
-import { DateFnsModule } from 'ngx-date-fns';
+import { DateFnsConfigurationService, DateFnsModule } from 'ngx-date-fns';
 import { MarkdownModule } from 'ngx-markdown';
 import { EMPTY, lastValueFrom } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
@@ -34,7 +36,7 @@ export function createTranslateLoader( http:HttpClient ){
 	return new TranslateHttpLoader( http, './assets/i18n/', '.json' );
 }
 
-export function appInitializerFactory( injector:Injector, translate:TranslateService, platform:Platform, configService:ConfigService ){
+export function appInitializerFactory( injector:Injector, translate:TranslateService, platform:Platform, configService:ConfigService, dateAdapter:DateAdapter<unknown>, dateFNSConfiguration:DateFnsConfigurationService ){
 	return () => new Promise<any>( async ( resolve ) => {
 		// waiting for the platform to be rrrready first
 		await platform.ready();
@@ -53,6 +55,8 @@ export function appInitializerFactory( injector:Injector, translate:TranslateSer
 		}else{
 			await lastValueFrom( translate.use( langToSet ).pipe(
 				tap( () => {
+					dateAdapter.setLocale( langToSet );
+					dateFNSConfiguration.setLocale( langToSet === 'de' ? de : enGB );
 					console.info( `Successfully initialized '${ langToSet }' language.'` );
 				} ),
 				catchError( err => {
@@ -95,14 +99,16 @@ export function appInitializerFactory( injector:Injector, translate:TranslateSer
 		UserModule,
 		StudyModule,
 		AppRoutingModule,
+		NativeDateModule,
 	],
 	providers: [
 		CoreService,
 		ApiService,
+		{ provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
 		{
 			provide: APP_INITIALIZER,
 			useFactory: appInitializerFactory,
-			deps: [ Injector, TranslateService, Platform, ConfigService ],
+			deps: [ Injector, TranslateService, Platform, ConfigService, DateAdapter, DateFnsConfigurationService ],
 			multi: true,
 		},
 		{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy },

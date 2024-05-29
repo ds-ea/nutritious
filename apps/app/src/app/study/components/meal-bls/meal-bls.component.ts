@@ -46,7 +46,7 @@ export type MealBLSSubmitResult = {
 				<mat-expansion-panel [expanded]="formStep === 1" (opened)="showControl(1)" hideToggle>
 					<mat-expansion-panel-header>
 						<mat-panel-title>{{ 'LOG.MEAL.DATE_LBL' | translate }}</mat-panel-title>
-						<mat-panel-description>{{ mealForm.get('date')?.value | dfnsParseIso | dfnsFormatRelativePure : now }}</mat-panel-description>
+						<mat-panel-description>{{ mealForm.get('date')?.value | dfnsParseIso | dfnsFormatRelative : now }}</mat-panel-description>
 					</mat-expansion-panel-header>
 
 					@if (dateSelection === 'locked') {
@@ -60,7 +60,9 @@ export type MealBLSSubmitResult = {
 										  : dateSelection === 'time' ? 'time'
 										  : 'date-time'
 										 "
-						></ion-datetime>
+						>
+							<span slot="time-label">{{ 'STUDY.LBL_TIME' | translate }}</span>
+						</ion-datetime>
 					}
 
 					<div class="step-actions">

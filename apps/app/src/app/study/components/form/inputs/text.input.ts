@@ -15,20 +15,20 @@ import { AbstractInput } from './abstract-input';
 						   [id]="ctrlId" [attr.aria-labelledby]="labelId"
 						   [formControlName]="item.key"
 
-						   [minLength]="config?.minLength ?? null"
-						   [maxLength]="config?.maxLength ?? null"
+						   [minlength]="config?.minLength ?? ''"
+						   [maxlength]="config?.maxLength ?? ''"
 
 					/>
 
 				} @else {
 
-					<textarea
-						matInput
-						[id]="ctrlId" [attr.aria-labelledby]="labelId"
-						[formControlName]="item.key"
-
-						[minLength]="config?.minLength ?? null"
-						[maxLength]="config?.maxLength ?? null"
+					<textarea matInput
+							  [id]="ctrlId" [attr.aria-labelledby]="labelId"
+							  [formControlName]="item.key"
+							  [minlength]="config?.minLength ?? ''"
+							  [maxlength]="config?.maxLength ?? ''"
+							  [rows]="4"
+							  cdkTextareaAutosize
 					></textarea>
 
 				}

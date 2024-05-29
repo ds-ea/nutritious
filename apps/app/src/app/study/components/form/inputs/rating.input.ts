@@ -18,6 +18,7 @@ import { AbstractInput } from './abstract-input';
 						[step]="config.step ?? null"
 
 						[showTickMarks]="true"
+						[discrete]="true"
 					>
 						<input matSliderThumb
 							   [id]="ctrlId" [attr.aria-labelledby]="labelId"

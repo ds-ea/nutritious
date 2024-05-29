@@ -204,7 +204,8 @@ type ScheduleActions = {
 														>
 															<!--[routerLink]="['slot', item.study!.id, item.slot!.id ]"-->
 															{{
-																item.type === 'action' ? 'log' : item.type === 'content' ? 'read' : ''
+																(item.type === 'action' ? 'SCHEDULE.BTN_OPEN_ACTION' : item.type === 'content' ? 'SCHEDULE.BTN_OPEN_CONTENT' : '')
+																	| translate
 															}}
 														</button>
 													}
@@ -373,6 +374,10 @@ export class DashboardView implements OnInit, OnDestroy{
 			.subscribe( data => {
 				this.refreshLogs( data.map( r => r.study ) );
 			} );
+
+		this.translate.onLangChange
+			.subscribe( lang => this.processStudies() );
+
 
 		// trigger optional refresh every 30 minutes
 		interval( this.automaticRefreshRange.auto * 60 * 1000 )
@@ -676,7 +681,7 @@ export class DashboardView implements OnInit, OnDestroy{
 			type: 'marker',
 			time: startOfDay,
 			timeLabel: minutesToTime( startOfDay ),
-			title: 'Start of Day',
+			title: translate?.instant( 'SCHEDULE.MARKER_START_OF_DAY' ) ?? 'Start of Day',
 			study,
 		} );
 
@@ -684,7 +689,7 @@ export class DashboardView implements OnInit, OnDestroy{
 			type: 'marker',
 			time: endOfDay < startOfDay ? endOfDay + 24 * 60 : endOfDay,
 			timeLabel: minutesToTime( endOfDay === 24 * 60 ? 23 * 60 + 59 : endOfDay ),
-			title: 'End of Day',
+			title: translate?.instant( 'SCHEDULE.MARKER_END_OF_DAY' ) ?? 'End of Day',
 			study,
 		} );
 

@@ -83,6 +83,12 @@ study-form {
 					grid-template-columns: 1fr 1fr;
 				}
 			}
+
+
+			&.ng-pristine .mdc-slider {
+				--mdc-slider-active-track-color: #ccc;
+				--mdc-slider-handle-color: #ccc;
+			}
 		}
 
 		&.invalid.touched {

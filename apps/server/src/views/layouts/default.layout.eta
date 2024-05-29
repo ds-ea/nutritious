@@ -7,9 +7,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <% if( it.page ){ %>
-            <title><%= it.page.title %></title>
+            <title>Food App <%= it.page.name && it.page.name !== 'Food App' ? ' - ' + it.page.name : '' %></title>
         <% } %>
-
 
         <% /*
         <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -24,15 +23,15 @@
 
         <!-- Fonts -->
         <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet">
-        */%>
+        */ %>
 
         <!-- Styles -->
         <link rel="stylesheet" type="text/css" href="/public/css/app.css">
     </head>
     <body>
-        <%~ it.nav ? include('../elements/nav', {nav: it.nav}) : '' %>
+        <% ~it.nav ? include('../elements/nav', {nav: it.nav}) : '' %>
         <main class="main-content">
-            <%~ it.body %>
+            <% ~it.body %>
         </main>
     </body>
 </html>

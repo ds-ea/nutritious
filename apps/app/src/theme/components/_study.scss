@@ -6,3 +6,13 @@ day-selector-component {
 		font-weight: bold;
 	}
 }
+
+
+.step-actions {
+	display: flex;
+	justify-content: space-evenly;
+	justify-items: center;
+	flex-wrap: wrap;
+
+	margin-block-start: $gutter;
+}

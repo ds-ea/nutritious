@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { EntityState, Participant, UpdateGroupAssignmentsDTO } from '@nutritious/core';
+import { hash } from 'argon2';
+import generatePassword from 'omgopass';
 import { PrismaService } from '../core/services/db/prisma.service';
 import { JsxTranslatedCrudService } from '../core/services/jsx-translated-crud.service';
 
@@ -9,6 +12,7 @@ export class ParticipantsService extends JsxTranslatedCrudService<Participant>{
 
 	constructor(
 		private readonly prisma:PrismaService,
+		private readonly config:ConfigService,
 	){
 		super( {
 			model: 'participant',
@@ -54,4 +58,20 @@ export class ParticipantsService extends JsxTranslatedCrudService<Participant>{
 
 		return Promise.resolve( undefined );
 	}
+
+	public async resetPassword( participantId:string ):Promise<{ plainPassword:string }>{
+		const plainPassword = generatePassword( { syllablesCount: 4 } );
+
+		const secret = Buffer.from( this.config.getOrThrow<string>( 'PW_SECRET' ), 'utf-8' );
+		const hashedPass = await hash( plainPassword, { secret } );
+
+
+		await this.prisma.participant.update( {
+			where: { id: participantId },
+			data: { password: hashedPass },
+		} );
+
+		return { plainPassword };
+	}
+
 }

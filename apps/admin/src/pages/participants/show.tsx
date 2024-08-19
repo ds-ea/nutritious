@@ -1,15 +1,16 @@
 import { EyeOutlined, IdcardOutlined, LinkOutlined, UserAddOutlined, UsergroupDeleteOutlined, UserSwitchOutlined } from '@ant-design/icons';
 import { EntityState, ExportableResponse, Group, GroupMember, ParticipantWithMemberships, PublicStudy, SafeGroup, Study, StudyResponse } from '@nutritious/core';
 import { Show, useTable } from '@refinedev/antd';
-import { IResourceComponentsProps, useApiUrl, useCustomMutation, useExport, useGetToPath, useGo, useList, useNotification, useOne, useParsed, useShow } from '@refinedev/core';
-import { Button, Card, Col, Descriptions, Divider, Empty, Input, List, Modal, Row, Space, Spin, Table, Tag } from 'antd';
+import { IResourceComponentsProps, useApiUrl, useCustomMutation, useDataProvider, useExport, useGetToPath, useGo, useList, useNotification, useOne, useParsed, useShow } from '@refinedev/core';
+import { Button, Card, Col, Descriptions, Divider, Empty, Input, List, Modal, Row, Skeleton, Space, Spin, Table, Tag } from 'antd';
+import Paragraph from 'antd/lib/typography/Paragraph';
 import dayjs from 'dayjs';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { DetailsHeader } from '../../components/header/DetailsHeader';
 import { ExportButton } from '../../components/header/ExportButton';
 import { resources } from '../../data/resources';
-import { responseExportOptions } from '../../services/exporter';
+import { exportStudyResponses, responseExportOptions } from '../../services/exporter';
 
 
 type GroupAssignmentState = 'add' | 'remove';
@@ -26,6 +27,7 @@ type GroupAssignment = {
 
 export const ParticipantShow:React.FC<IResourceComponentsProps> = () => {
 	const getToPath = useGetToPath();
+	const getDataProvider = useDataProvider();
 	const go = useGo();
 
 	const { id: participantId, params } = useParsed<{ studyId?:string }>();
@@ -68,19 +70,22 @@ export const ParticipantShow:React.FC<IResourceComponentsProps> = () => {
 		useTable<StudyResponse>( {
 			resource: 'responses',
 			filters: { permanent: [ { field: 'participantId', operator: 'eq', value: participantId } ] },
+			sorters: { permanent: [ { field: 'createdAt', order: 'desc' } ] },
 		} );
 
 	const [ exportSettings, setExportSettings ] = useState<ReturnType<typeof responseExportOptions>>();
+
 	useEffect( () => {
 		if( !participant )
 			return;
-
 		setMemberships( participant?.memberships || [] );
 		setExportSettings( responseExportOptions( { participant } ) );
 	}, [ participant ] );
 
 	const { triggerExport, isLoading: exportPending } = useExport<ExportableResponse>( exportSettings );
-
+	const triggerExportJSON = useCallback( () => {
+		exportStudyResponses( getDataProvider(), { participant }, 'json' );
+	}, [ getDataProvider, participant ] );
 
 	const [ selectedResponse, setSelectedResponse ] = useState<StudyResponse>();
 
@@ -178,7 +183,25 @@ export const ParticipantShow:React.FC<IResourceComponentsProps> = () => {
 
 	const apiUrl = useApiUrl();
 	const { mutate: commitAssignments, isLoading: isUpdatingAssignments } = useCustomMutation<ParticipantWithMemberships>();
+	//	const { mutate: , isLoading: isUpdatingAssignments } = useCustomMutation<ParticipantWithMemberships>();
 	const { open, close } = useNotification();
+
+	const { mutate: getPasswordReset, isLoading: isResettingPassword } = useCustomMutation<{ password?:string }>();
+	const [ showPasswordResetForm, setShowPasswordResetForm ] = useState( false );
+	const [ newPassword, setNewPassword ] = useState<string | undefined>( undefined );
+
+	function resetPassword(){
+		getPasswordReset( {
+			url: apiUrl + '/participants/' + participantId + '/reset-password',
+			method: 'post',
+			values: {},
+		}, {
+			onSuccess: response => {
+				if( response.data?.password?.length )
+					setNewPassword( response.data?.password );
+			},
+		} );
+	}
 
 
 	function finishGroupAssignments( commit?:boolean ){
@@ -321,12 +344,48 @@ export const ParticipantShow:React.FC<IResourceComponentsProps> = () => {
 				}
 			</Modal>
 
+			<Modal open={ !!showPasswordResetForm }
+				   closable={ !isResettingPassword }
+				   onCancel={ () => {
+					   setNewPassword( undefined );
+					   if( !isResettingPassword )
+						   setShowPasswordResetForm( false );
+				   } }
+				   onOk={ () => setNewPassword( undefined ) }
+				   cancelText={ 'Close' }
+				   okButtonProps={ { style: { display: 'none' } } }
+				   centered width={ 600 }
+				   title={ 'Login Credentials' }
+			>
+				<Space direction={ 'vertical' } className={ 'stretch' }>
+					<Descriptions size={ 'small' } bordered={ true } layout={ 'vertical' }>
+						<Descriptions.Item label={ 'Login (username)' }>
+							<Paragraph copyable>{ participant?.login }</Paragraph>
+						</Descriptions.Item>
+
+						{ !isResettingPassword && !newPassword &&
+							<Descriptions.Item label={ 'Password' }>
+								<Button onClick={ () => resetPassword() }>retrieve new password</Button>
+							</Descriptions.Item>
+						}
+						{ isResettingPassword ? <Descriptions.Item> <Skeleton active /> </Descriptions.Item> : <></> }
+						{ newPassword &&
+							<Descriptions.Item label={ 'The participant\'s new password' }>
+								<Paragraph copyable>{ newPassword }</Paragraph>
+							</Descriptions.Item>
+						}
+					</Descriptions>
+
+				</Space>
+			</Modal>
+
 			<Show isLoading={ isLoading }
 				  contentProps={ { className: 'card-transparent' } }
 				  canEdit={ false }
 				  headerButtons={ ( { defaultButtons } ) => (
 					  <>
 						  <ExportButton triggerExport={ triggerExport } exportContext={ 'participant' } />
+						  <Button onClick={ () => triggerExportJSON() }>export responses (JSON)</Button>
 						  <Space direction="vertical"></Space>
 						  { defaultButtons }
 					  </>
@@ -341,9 +400,12 @@ export const ParticipantShow:React.FC<IResourceComponentsProps> = () => {
 							<DetailsHeader study={ study! } participant={ participant } />
 							<Divider />
 
-							<Descriptions bordered={ true } column={ 4 }>
+							<Descriptions bordered={ true } column={ 2 }>
 								<Descriptions.Item label={ 'Key' } labelStyle={ { width: 140 } }>{ participant.key }</Descriptions.Item>
 								<Descriptions.Item label={ 'State' } labelStyle={ { width: 140 } }>{ participant.state }</Descriptions.Item>
+								<Descriptions.Item label={ 'Login' } labelStyle={ { width: 140 } }>
+									<Button onClick={ () => setShowPasswordResetForm( true ) }>reset password</Button>
+								</Descriptions.Item>
 								<Descriptions.Item label={ 'Created' } labelStyle={ { width: 140 } }>
 									{ participant.createdAt ? dayjs( participant.createdAt ).format( 'YYYY-MM-DD HH:mm' ) : '' }
 								</Descriptions.Item>

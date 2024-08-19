@@ -1,5 +1,5 @@
 import { Group, PublicStudy, SafeParticipant } from '@nutritious/core';
-import { CrudFilters, useExport } from '@refinedev/core';
+import { CrudFilters, DataProvider, useExport } from '@refinedev/core';
 import dayjs from 'dayjs';
 
 
@@ -20,8 +20,9 @@ export function flattenNestedRecord<T extends Record<PropertyKey, unknown>>( rec
 type UseExportOptionsType = Parameters<typeof useExport>[0];
 type validFilterKeys = 'studyId' | 'groupId' | 'participantId';
 
+type ResponseExportContext = { group:Group | undefined } | { study:PublicStudy | undefined } | { participant:SafeParticipant | undefined };
 
-export function responseExportOptions<T>( context:{ group:Group | undefined } | { study:PublicStudy | undefined } | { participant:SafeParticipant | undefined } ):UseExportOptionsType{
+function prepExport( context:ResponseExportContext ):{ filters:CrudFilters, fileName:string }{
 	const [ key, contextData ] = Object.entries( context )?.[0];
 	if( !contextData )
 		throw new Error( 'missing or empty export context' );
@@ -37,7 +38,36 @@ export function responseExportOptions<T>( context:{ group:Group | undefined } | 
 		{ field, operator: 'eq', value },
 	];
 
-	let filename = [ 'responses', fileNameAddon, dayjs().format() ].join( ' - ' );
+	let fileName = [ 'responses', fileNameAddon, dayjs().format() ].join( ' - ' );
+
+	return { filters, fileName };
+}
+
+export async function exportStudyResponses( dp:DataProvider, context:ResponseExportContext, format:'json' ){
+	if( !dp )
+		throw new Error( 'invalid data provider' );
+
+	const { filters, fileName } = prepExport( context );
+
+	const data = await dp.getList( {
+		resource: 'responses/json-export',
+		filters,
+		pagination: { mode: 'off' },
+	} );
+
+	const dataStr = JSON.stringify( data, null, 2 );
+	const blob = new Blob( [ dataStr ], { type: 'application/json' } );
+	const url = URL.createObjectURL( blob );
+	const link = document.createElement( 'a' );
+	link.href = url;
+	link.download = `${ fileName }.json`;
+	link.click();
+	URL.revokeObjectURL( url );
+}
+
+export function responseExportOptions<T>( context:ResponseExportContext ):UseExportOptionsType{
+
+	const { filters, fileName: filename } = prepExport( context );
 
 	const options:UseExportOptionsType = {
 		resource: 'responses/for-export',

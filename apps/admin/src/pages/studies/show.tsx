@@ -1,16 +1,18 @@
 import { ExportableResponse, Group, Schedule, Study, StudyContent, StudyForm } from '@nutritious/core';
 import { CreateButton, EditButton, Show, ShowButton, TextField, useTable } from '@refinedev/antd';
-import { IResourceComponentsProps, useExport, useParsed, useShow } from '@refinedev/core';
-import { Card, Col, Divider, Row, Space, Table, Typography } from 'antd';
-import React, { useEffect, useState } from 'react';
+import { IResourceComponentsProps, useDataProvider, useExport, useParsed, useShow } from '@refinedev/core';
+import { Button, Card, Col, Divider, Row, Space, Table, Typography } from 'antd';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ExportButton } from '../../components/header/ExportButton';
 import { StateColumnRenderer } from '../../components/list/StateColumn';
-import { responseExportOptions } from '../../services/exporter';
+import { exportStudyResponses, responseExportOptions } from '../../services/exporter';
 
 
 const { Title } = Typography;
 
 export const StudyShow:React.FC<IResourceComponentsProps> = () => {
+	const getDataProvider = useDataProvider();
+
 	const { id: studyId } = useParsed();
 
 	const { queryResult } = useShow<Study>( {
@@ -29,6 +31,9 @@ export const StudyShow:React.FC<IResourceComponentsProps> = () => {
 			setExportSettings( responseExportOptions( { study } ) );
 	}, [ study ] );
 	const { triggerExport, isLoading: exportPending } = useExport<ExportableResponse>( exportSettings );
+	const triggerExportJSON = useCallback( () => {
+		exportStudyResponses( getDataProvider(), { study }, 'json' );
+	}, [ getDataProvider, study ] );
 
 	// get groups
 	const { tableProps: groupTableProps, setFilters } = useTable( {
@@ -109,6 +114,7 @@ export const StudyShow:React.FC<IResourceComponentsProps> = () => {
 					  <>
 
 						  <ExportButton triggerExport={ triggerExport } exportContext={ 'study' } />
+						  <Button onClick={ () => triggerExportJSON() }>export responses (JSON)</Button>
 						  <Space direction="vertical"></Space>
 						  { defaultButtons }
 					  </>

@@ -64,4 +64,11 @@ export class ParticipantsController{
 
 		return this.findOne( participantId, {} );
 	}
+
+	@Post( ':id/reset-password' )
+	async resetPassword( @Param( 'id' ) participantId:string ){
+		const { plainPassword } = await this.participantsService.resetPassword( participantId );
+		return { password: plainPassword };
+	}
+
 }

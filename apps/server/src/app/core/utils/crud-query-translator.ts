@@ -19,7 +19,8 @@ export type QuerySearchPart = {
 };
 
 export type CrudQueryTranslatorOptions = {
-	injectNotDeleted?:boolean
+	injectNotDeleted?:boolean,
+	noLimiting?:boolean
 };
 
 export class CrudQueryTranslator{
@@ -44,6 +45,12 @@ export class CrudQueryTranslator{
 		if( 'page' in query )
 			crud.page = Number( query.page );
 
+		if( options.noLimiting ){
+			delete crud.page;
+			delete crud.pageSize;
+		}
+
+
 		// CONTINUE: unsure what 'offset' does if page and pageSize are also set?
 		//		if( 'offset' in query )
 		//			crud. = query.limit;
@@ -52,6 +59,14 @@ export class CrudQueryTranslator{
 		// TODO: add proper query parsing I guess? this thing currently doesn't parse keys properly
 		if( 'join[0]' in query && query['join[0]'] )
 			crud.joins = [ query['join[0]'] ];
+
+
+		if( 'sort[0]' in query && query['sort[0]'] ){
+			if( typeof query['sort[0]'] === 'string' ){
+				const parts = query['sort[0]'].split( ',' );
+				crud.orderBy = [ { [parts[0]]: parts[1].toLowerCase() } ];
+			}
+		}
 
 		return crud;
 	}

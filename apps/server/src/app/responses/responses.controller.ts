@@ -72,7 +72,7 @@ export class ResponsesController{
 	}
 
 	@Get( 'for-export' )
-	async listForExport( @CrudQuery( { injectNotDeleted: false } ) crudQuery:CrudQueryData ){
+	async listForExport( @CrudQuery( { injectNotDeleted: false, noLimiting: true } ) crudQuery:CrudQueryData, format:'json' | 'csv' = 'csv' ){
 		const crudResponse = await this.responsesService.findMany<StudyResponse & { member?:GroupMember | ExportableMember }>( { crudQuery } );
 
 		const dataKeys = new Set<string>();
@@ -82,24 +82,35 @@ export class ResponsesController{
 				if( response.member )
 					response.member = Sanitize.exportableMember( response.member );
 
-				response.data = flattenNestedRecord( response.data as any );
 
-				Object.keys( response.data ).forEach( k => dataKeys.add( k ) );
+				if( format === 'csv' ){
+					response.data = flattenNestedRecord( response.data as any );
+					Object.keys( response.data ).forEach( k => dataKeys.add( k ) );
+				}
 
 				return response;
 			} ) as ExportableResponse[];
 
-
-			const itemData = crudResponse.data[0]?.data as Record<string, unknown>;
-			if( itemData )
-				for( const key of dataKeys ){
-					if( !( key in itemData ) )
-						itemData[key] = null;
-				}
+			if( format === 'csv' ){
+				const itemData = crudResponse.data[0]?.data as Record<string, unknown>;
+				if( itemData )
+					for( const key of dataKeys ){
+						if( !( key in itemData ) )
+							itemData[key] = null;
+					}
+			}
 		}
 
+		if( format === 'json' ){
+			return crudResponse.data;
+		}
 
 		return crudResponse;
+	}
+
+	@Get( 'json-export' )
+	async jsonExport( @CrudQuery( { injectNotDeleted: false, noLimiting: true } ) crudQuery:CrudQueryData ){
+		return this.listForExport( crudQuery, 'json' );
 	}
 
 }

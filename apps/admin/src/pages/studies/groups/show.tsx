@@ -1,13 +1,13 @@
 import { ExportableResponse, Group, GroupMember, Schedule, Study, xorEncryptDecrypt } from '@nutritious/core';
 import { Show, ShowButton, useTable } from '@refinedev/antd';
-import { IResourceComponentsProps, useExport, useGetToPath, useGo, useOne, useParsed, useShow } from '@refinedev/core';
+import { IResourceComponentsProps, useDataProvider, useExport, useGetToPath, useGo, useOne, useParsed, useShow } from '@refinedev/core';
 import { Alert, Button, Card, Col, Descriptions, Divider, QRCode, Row, Space, Statistic, Table, Typography } from 'antd';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { DetailsHeader } from '../../../components/header/DetailsHeader';
 import { ExportButton } from '../../../components/header/ExportButton';
 import { resources } from '../../../data/resources';
-import { responseExportOptions } from '../../../services/exporter';
+import { exportStudyResponses, responseExportOptions } from '../../../services/exporter';
 
 
 const { Title } = Typography;
@@ -20,6 +20,8 @@ function getShortenedDomain( url:string ){
 }
 
 export const GroupShow:React.FC<IResourceComponentsProps> = () => {
+	const getDataProvider = useDataProvider();
+
 	const getToPath = useGetToPath();
 	const go = useGo();
 
@@ -52,10 +54,10 @@ export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 			setExportSettings( responseExportOptions( { group } ) );
 	}, [ group ] );
 
-	const { triggerExport, isLoading: exportPending } = useExport<ExportableResponse>(
-		exportSettings,
-	);
-
+	const { triggerExport, isLoading: exportPending } = useExport<ExportableResponse>( exportSettings );
+	const triggerExportJSON = useCallback( () => {
+		exportStudyResponses( getDataProvider(), { group }, 'json' );
+	}, [ getDataProvider, group ] );
 
 	const domain = import.meta.env['VITE_API_URL'];
 
@@ -134,8 +136,8 @@ export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 			  contentProps={ { className: 'card-transparent' } }
 			  headerButtons={ ( { defaultButtons } ) => (
 				  <>
-
 					  <ExportButton triggerExport={ triggerExport } exportContext={ 'group' } />
+					  <Button onClick={ () => triggerExportJSON() }>export responses (JSON)</Button>
 					  <Space direction="vertical"></Space>
 					  { defaultButtons }
 				  </>
@@ -196,7 +198,6 @@ export const GroupShow:React.FC<IResourceComponentsProps> = () => {
 											value={ qrcValue }
 										/>
 									</div>
-									{ qrcValue }
 									<Row gutter={ [ 40, 20 ] } wrap={ true } className={ 'signup-credentials-wrap' }>
 										<Col xs={ 24 } md={ 12 }>
 											<Statistic title="Key" value={ group.regKey! } />

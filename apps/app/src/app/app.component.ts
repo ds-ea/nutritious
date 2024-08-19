@@ -87,7 +87,7 @@ export class AppComponent implements OnInit{
 		private dateAdapter:DateAdapter<unknown>,
 		private dateFNSConfiguration:DateFnsConfigurationService,
 	){
-		this.deployENV = config.get( 'NX_DEPLOYMENT_ENV' ) || process.env['NX_DEPLOYMENT_ENV'] || 'unknown';
+		this.deployENV = config.get( 'DEPLOYMENT_ENV' ) || 'unknown';
 
 		this.translate.onLangChange.subscribe( change => {
 			this.dateAdapter.setLocale( change.lang );

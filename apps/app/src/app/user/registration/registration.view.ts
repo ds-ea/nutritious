@@ -9,6 +9,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ParticipantCredentials, SignupCheckResponse, SignupResponse, xorEncryptDecrypt } from '../../../../../../libs/core/src';
+import { ConfigService } from '../../core/config.service';
 import { CoreService } from '../../core/core.service';
 
 
@@ -215,6 +216,7 @@ export class RegistrationView implements OnInit, OnDestroy{
 		public loading:LoadingController,
 		public router:Router,
 		private cdr:ChangeDetectorRef,
+		private readonly config:ConfigService,
 	){
 		this.canScan = platform.is( 'hybrid' );
 
@@ -405,7 +407,7 @@ export class RegistrationView implements OnInit, OnDestroy{
 			const [ version, ...rawParts ] = content.split( '█' );
 
 			if( version === '0x' ){ // decrypt when necessary
-				const qrKey = process.env['NX_QR_CODE_HASH'];
+				const qrKey = this.config.get( 'QR_CODE_HASH' );
 				const qrSalt = 'asdoufawejasdifya0w3y-r8werfwe7gbR&#_(*&H#Q0u';
 
 				rawParts.forEach( ( value, key, parts ) =>

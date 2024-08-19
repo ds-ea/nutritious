@@ -13,6 +13,7 @@
 				"compiler": "tsc",
 				"outputPath": "dist/apps/server",
 				"main": "apps/server/src/main.ts",
+				"generatePackageJson": true,
 				"tsConfig": "apps/server/tsconfig.app.json",
 				"assets": [
 					"apps/server/src/assets",

@@ -1,5 +1,5 @@
 import { fastifyHelmet } from '@fastify/helmet';
-import { Logger } from '@nestjs/common';
+import { ConsoleLogger, Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
@@ -10,11 +10,31 @@ import { join } from 'path';
 import { ServerModule } from './app/server.module';
 
 
+export class IgnoreStartupLogsLogger extends ConsoleLogger{
+	public override log( message:any, ...optionalParams:unknown[] ){
+		const context:unknown | undefined = optionalParams?.length ? optionalParams[optionalParams.length - 1] : undefined;
+		if(
+			context && typeof context === 'string' && [
+				'InstanceLoader',
+				'RoutesResolver',
+				'RouterExplorer',
+				'NestFactory',
+			].includes( context )
+		)
+			return;
+		super.log( message, ...optionalParams );
+	}
+}
+
+
 async function bootstrap(){
 
 	const app = await NestFactory.create<NestFastifyApplication>(
 		ServerModule,
 		new FastifyAdapter(),
+		{
+			logger: new IgnoreStartupLogsLogger,
+		},
 	);
 
 	const adapter = app.getHttpAdapter();

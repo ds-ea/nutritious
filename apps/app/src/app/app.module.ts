@@ -21,7 +21,6 @@ import { DateFnsConfigurationService, DateFnsModule } from 'ngx-date-fns';
 import { MarkdownModule } from 'ngx-markdown';
 import { EMPTY, lastValueFrom } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { environment } from '../environments/environment';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -41,7 +40,7 @@ export function appInitializerFactory( injector:Injector, translate:TranslateSer
 		// waiting for the platform to be rrrready first
 		await platform.ready();
 
-		const config = await configService.loadConfig( environment.build as any ).catch( e => null );
+		const config = await configService.loadConfig().catch( e => null );
 		if( !config )
 			console.error( 'configuration not available' );
 

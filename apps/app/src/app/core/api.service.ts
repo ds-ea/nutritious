@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { EventEmitter, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { ConfigService } from './config.service';
 
 
@@ -46,6 +47,8 @@ export class ApiService{
 	protected _refreshToken:string | undefined;
 
 	public url:string | undefined;
+
+	public unauthorized:EventEmitter<Error> = new EventEmitter<Error>();
 
 	constructor(
 		protected http:HttpClient,
@@ -127,7 +130,15 @@ export class ApiService{
 			delete options.ignore401;
 		}
 
-		return this.http.request( method as string, url, options );
+		return this.http.request( method as string, url, options )
+			.pipe(
+				catchError( error => {
+					if( error.status === 401 && !ignore401 )
+						this.unauthorized.emit( error );
+
+					throw error;
+				} ),
+			);
 	}
 
 

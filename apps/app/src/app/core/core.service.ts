@@ -48,6 +48,16 @@ export class CoreService{
 			Preferences.set( { key: 'lang', value: change.lang } );
 		} );
 
+		this.api.unauthorized.subscribe( () => {
+			this.alertController.create( {
+				message: this.translate.instant( 'USER.MSG_SESSION_EXPIRED' ),
+				cssClass: 'center-buttons',
+				buttons: [ 'OK' ],
+			} ).then( alert => alert.present() );
+
+			this.logout( true );
+		} );
+
 		// Get the time zone set on the user's device
 		//		const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 		//		this.currentLocale = 'de-DE';
@@ -152,18 +162,19 @@ export class CoreService{
 		);
 	}
 
+	public async logout( skipConfirm = false ){
+		if( !skipConfirm ){
+			const alert = await this.alertController.create( {
+				message: this.translate.instant( 'USER.LOGOUT_CONFIRM' ),
+				cssClass: 'center-buttons',
+				buttons: [ 'Cancel', 'OK' ],
+			} );
 
-	public async logout(){
-		const alert = await this.alertController.create( {
-			message: this.translate.instant( 'USER.LOGOUT_CONFIRM' ),
-			cssClass: 'center-buttons',
-			buttons: [ 'Cancel', 'OK' ],
-		} );
-
-		await alert.present();
-		const { role } = await alert.onDidDismiss();
-		if( role === 'cancel' )
-			return;
+			await alert.present();
+			const { role } = await alert.onDidDismiss();
+			if( role === 'cancel' )
+				return;
+		}
 
 		this.logout$.next( true );
 

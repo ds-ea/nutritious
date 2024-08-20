@@ -6,7 +6,7 @@ import { TranslateService } from '@ngx-translate/core';
 import dayjs, { Dayjs } from 'dayjs';
 
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { EMPTY, filter, finalize, interval, ReplaySubject, Subject } from 'rxjs';
+import { delay, EMPTY, filter, finalize, interval, ReplaySubject, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { containsActionStep, containsOnlyContentSteps, humanReadableDays, minutesToTime, PreparedSchedule, PreparedStudy, PublicStudy, ResponseLog, ResponseLogEntry, ResponseLogState, SafeSlot } from '../../../../../../libs/core/src';
 import { CoreService } from '../../core/core.service';
@@ -114,175 +114,183 @@ type ScheduleActions = {
 				</div>
 			}
 
-			<div class="view-content" *ngIf="!busy && studies?.length; else nostudy">
+			@if (!busy && studies?.length) {
+				<div class="view-content">
 
-				<div class="dashboard-container">
+					<div class="dashboard-container">
 
 
-					@if (false) {
-						@for (study of studies; track study.study.id) {
-							<mat-card>
+						@if (false) {
+							@for (study of studies; track study.study.id) {
+								<mat-card>
+									<mat-card-header>
+										<mat-card-subtitle>{{ 'STUDY.CURRENT_STUDY_MSG' | translate }}</mat-card-subtitle>
+										<mat-card-title>
+											<h1>{{ study.study.name }}</h1>
+										</mat-card-title>
+									</mat-card-header>
+
+								</mat-card>
+							}
+						}
+
+						@if (overdueActions.length) {
+							<mat-card class="overdue">
 								<mat-card-header>
-									<mat-card-subtitle>{{ 'STUDY.CURRENT_STUDY_MSG' | translate }}</mat-card-subtitle>
-									<mat-card-title>
-										<h1>{{ study.study.name }}</h1>
-									</mat-card-title>
+									<mat-card-subtitle>{{ 'STUDY.OVERDUE_LBL' | translate }}</mat-card-subtitle>
 								</mat-card-header>
 
+								<ul class="overdue-actions">
+									@for (overdue of overdueActions; track overdue.date) {
+										<li>
+											<span class="date">{{ overdue.date | date: 'EEEE MMM d.' }}</span>
+											<ul class="overdue-actions">
+												@for (action of overdue.actions; track action) {
+													<li [title]="action.hint||''">
+														@if (action.slot?.id) {
+															<button mat-flat-button color="accent"
+																	[disabled]="!action.available"
+																	(click)="openAction(action)"
+															>
+																{{ action.title || action.key }}
+															</button>
+														}
+													</li>
+												}
+											</ul>
+										</li>
+									}
+								</ul>
 							</mat-card>
 						}
-					}
 
-					@if (overdueActions.length) {
-						<mat-card class="overdue">
-							<mat-card-header>
-								<mat-card-subtitle>{{ 'STUDY.OVERDUE_LBL' | translate }}</mat-card-subtitle>
-							</mat-card-header>
+						<div>
 
-							<ul class="overdue-actions">
-								@for (overdue of overdueActions; track overdue.date) {
-									<li>
-										<span class="date">{{ overdue.date | date: 'EEEE MMM d.' }}</span>
-										<ul class="overdue-actions">
-											@for (action of overdue.actions; track action) {
-												<li [title]="action.hint||''">
-													@if (action.slot?.id) {
-														<button mat-flat-button color="accent"
-																[disabled]="!action.available"
-																(click)="openAction(action)"
-														>
-															{{ action.title || action.key }}
-														</button>
-													}
-												</li>
-											}
-										</ul>
-									</li>
-								}
-							</ul>
-						</mat-card>
-					}
+							@if (!emptySchedule) {
+								<mat-card class="schedule">
+									<mat-card-header>
+										<mat-card-subtitle>{{ 'STUDY.DAY_SCHEDULE_LBL' | translate }} {{ nowDate }}</mat-card-subtitle>
+									</mat-card-header>
 
-					<div>
+									<ul class="timeline">
+										<li class="trail"></li>
+										@for (item of timeline; track item.time) {
+											<li [ngClass]="[item.type, 'state-'+item.state]" [title]="item.hint||''">
+												<span class="time">{{ item.timeLabel }}</span>
+												<span class="bullet"></span>
+												<span class="title" *ngIf="item.title">{{ item.title }}</span>
 
-						@if (!emptySchedule) {
-							<mat-card class="schedule">
-								<mat-card-header>
-									<mat-card-subtitle>{{ 'STUDY.DAY_SCHEDULE_LBL' | translate }} {{ nowDate }}</mat-card-subtitle>
-								</mat-card-header>
+												@if (item.doneCount) {
+													<span class="states">
+														@if (item.doneCount > 3) {
+															<span class="done">
+																✓
+																<small>×</small>
+																{{ item.doneCount }}
+															</span>
+														} @else {
+															@for (num of [].constructor(item.doneCount); track num) {
+																<span class="done">✓</span>
+															}
+														}
+													</span>
+												}
 
-								<ul class="timeline">
-									<li class="trail"></li>
-									@for (item of timeline; track item.time) {
-										<li [ngClass]="[item.type, 'state-'+item.state]" [title]="item.hint||''">
-											<span class="time">{{ item.timeLabel }}</span>
-											<span class="bullet"></span>
-											<span class="title" *ngIf="item.title">{{ item.title }}</span>
+												@if (item.type === 'action' || item.type === 'content') {
+													<span class="actions">
+														@if (item.slot?.id) {
+															<button mat-flat-button color="primary"
+																	[disabled]="!item.available"
+																	(click)="openAction(item)"
+															>
+																<!--[routerLink]="['slot', item.study!.id, item.slot!.id ]"-->
+																{{
+																	(item.type === 'action' ? 'SCHEDULE.BTN_OPEN_ACTION' : item.type === 'content' ? 'SCHEDULE.BTN_OPEN_CONTENT' : '')
+																		| translate
+																}}
+															</button>
+														}
+													</span>
+												}
+											</li>
+										}
+										<li class="trail"></li>
+									</ul>
+								</mat-card>
+							}
 
-											@if (item.doneCount) {
-												<span class="states">
-													@if (item.doneCount > 3) {
-														<span class="done">
-															✓
-															<small>×</small>
-															{{ item.doneCount }}
-														</span>
-													} @else {
-														@for (num of [].constructor(item.doneCount); track num) {
+							@if (emptySchedule && !allDayActions.length && !allDayContent.length) {
+								<mat-card>
+									<mat-card-content>
+										{{ 'STUDY.NOTHING_TO_DO'|translate }}
+									</mat-card-content>
+								</mat-card>
+							}
+
+							<footer class="view-footer">
+								@if (allDayActions) {
+									<ul class="available-actions">
+										@for (action of allDayActions; track action.slot) {
+											<li [title]="action.hint||''">
+												@if (action.slot?.id) {
+													<button mat-flat-button color="accent"
+															[disabled]="!action.available"
+															(click)="openAction(action)"
+													>
+														<!--[routerLink]="['slot', action.study!.id,  action.slot!.id ]"-->
+														{{ action.title || action.key }}
+													</button>
+												}
+
+												@if (action.doneCount) {
+													<div class="states">
+														@for (num of [].constructor(action.doneCount); track num) {
 															<span class="done">✓</span>
 														}
-													}
-												</span>
-											}
-
-											@if (item.type === 'action' || item.type === 'content') {
-												<span class="actions">
-													@if (item.slot?.id) {
-														<button mat-flat-button color="primary"
-																[disabled]="!item.available"
-																(click)="openAction(item)"
-														>
-															<!--[routerLink]="['slot', item.study!.id, item.slot!.id ]"-->
-															{{
-																(item.type === 'action' ? 'SCHEDULE.BTN_OPEN_ACTION' : item.type === 'content' ? 'SCHEDULE.BTN_OPEN_CONTENT' : '')
-																	| translate
-															}}
-														</button>
-													}
-												</span>
-											}
-										</li>
-									}
-									<li class="trail"></li>
-								</ul>
-							</mat-card>
-						}
-
-						@if (emptySchedule && !allDayActions.length && !allDayContent.length) {
-							<mat-card>
-								<mat-card-content>
-									{{ 'STUDY.NOTHING_TO_DO'|translate }}
-								</mat-card-content>
-							</mat-card>
-						}
-
-						<footer class="view-footer">
-							@if (allDayActions) {
-								<ul class="available-actions">
-									@for (action of allDayActions; track action.slot) {
-										<li [title]="action.hint||''">
-											@if (action.slot?.id) {
-												<button mat-flat-button color="accent"
-														[disabled]="!action.available"
-														(click)="openAction(action)"
-												>
-													<!--[routerLink]="['slot', action.study!.id,  action.slot!.id ]"-->
-													{{ action.title || action.key }}
-												</button>
-											}
-
-											@if (action.doneCount) {
-												<div class="states">
-													@for (num of [].constructor(action.doneCount); track num) {
-														<span class="done">✓</span>
-													}
-												</div>
-											}
-										</li>
-									}
-								</ul>
-							}
-							@if (allDayContent) {
-								<ul class="available-content">
-									@for (action of allDayContent; track action.slot) {
-										<li [title]="action.hint||''">
-											@if (action.slot?.id) {
-												<button mat-flat-button color="default"
-														[disabled]="!action.available"
-														(click)="openContent(action)"
-												>
-													<!--[routerLink]="['slot', action.study!.id,  action.slot!.id ]"-->
-													{{ action.title || action.key }}
-												</button>
-											}
-										</li>
-									}
-								</ul>
-							}
-							<!--<a routerLink="/log/new"
-							   mat-flat-button color="accent"
-							>{{ 'STUDY.ENTER_DATA_BTN' | translate }}
-							</a>-->
-						</footer>
+													</div>
+												}
+											</li>
+										}
+									</ul>
+								}
+								@if (allDayContent) {
+									<ul class="available-content">
+										@for (action of allDayContent; track action.slot) {
+											<li [title]="action.hint||''">
+												@if (action.slot?.id) {
+													<button mat-flat-button color="default"
+															[disabled]="!action.available"
+															(click)="openContent(action)"
+													>
+														<!--[routerLink]="['slot', action.study!.id,  action.slot!.id ]"-->
+														{{ action.title || action.key }}
+													</button>
+												}
+											</li>
+										}
+									</ul>
+								}
+								<!--<a routerLink="/log/new"
+								   mat-flat-button color="accent"
+								>{{ 'STUDY.ENTER_DATA_BTN' | translate }}
+								</a>-->
+							</footer>
+						</div>
 					</div>
+
 				</div>
-
-
-			</div>
-
-			<ng-template #nostudy>
-				<div class="callout mat-primary">{{ 'STUDY.NO_STUDY_ERR' | translate }}</div>
-			</ng-template>
+			} @else {
+				<div class="callout mat-primary">
+					@if (busy) {
+						<ion-spinner />
+					} @else {
+						<p>{{ 'STUDY.NO_STUDY_ERR' | translate }}</p>
+						<button mat-flat-button color="success" (click)="forceRefresh()">
+							{{ 'GENERIC.REFRESH_BTN'|translate }}
+						</button>
+					}
+				</div>
+			}
 
 		</ion-content>
 	`,
@@ -398,7 +406,6 @@ export class DashboardView implements OnInit, OnDestroy{
 				){
 					this.refreshStudies()
 						.subscribe( () => {
-
 						} );
 				}
 			} );
@@ -406,7 +413,7 @@ export class DashboardView implements OnInit, OnDestroy{
 
 		// force refresh when returning from outside the app
 		App.addListener( 'resume', () => {
-			this.triggerRefresh$.next( true );
+			this.forceRefresh();
 		} );
 	}
 
@@ -420,13 +427,14 @@ export class DashboardView implements OnInit, OnDestroy{
 			return EMPTY;
 
 		this.busy = true;
-		this.loader.present();
 		this.cdr.markForCheck();
+		this.loader.present();
 
 		this._lastRefresh = dayjs();
 
 		return this.studyService.refreshStudies()
 			.pipe(
+				delay( 500 ),
 				tap( data => {
 					this.studies = data.map( ( { study } ) => study );
 					this.logs = data.reduce( (
@@ -443,7 +451,7 @@ export class DashboardView implements OnInit, OnDestroy{
 				} ),
 				finalize( () => {
 					this.busy = false;
-					this.cdr.markForCheck();
+					this.cdr.detectChanges();
 					this.loader.dismiss();
 				} ),
 			);
@@ -863,5 +871,9 @@ export class DashboardView implements OnInit, OnDestroy{
 		}
 
 		this.router.navigate( [ 'study', 'slot', action.study!.id, action.slot!.id, date || 'now' ] );
+	}
+
+	public forceRefresh(){
+		this.triggerRefresh$.next( true );
 	}
 }

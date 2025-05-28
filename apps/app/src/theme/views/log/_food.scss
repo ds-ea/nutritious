@@ -1,19 +1,19 @@
 @use 'sass:math';
 
 .log-meal-food-panel {
-	
+
 	&.mat-expanded {
 		.mat-expansion-panel-content {
 		}
-		
+
 	}
 }
 
 
-log-meal{
+log-meal {
 	@extend .log-step;
-	
-	ion-datetime{
+
+	ion-datetime {
 		margin-left: -24px;
 		margin-right: -24px;
 	}
@@ -27,97 +27,97 @@ app-food-list {
 	min-height: 30vh;
 	//max-height: calc( 80vh - #{$gutter * 2} );
 	max-height: 650px;
-	
+
 	max-width: $grid-width-minor;
-	
-	.mat-expanded &{
+
+	.mat-expanded & {
 		min-height: 50vh;
 		height: 500px;
 	}
-	
-	.meal-items{
+
+	.meal-items {
 		background: transparent;
 		overflow-y: auto;
-		
-		.meal-item{
-			padding: math.div($gutter,2) $gutter;
-			margin-bottom: math.div($gutter,2);
-			
+
+		.meal-item {
+			padding: math.div($gutter, 2) $gutter;
+			margin-bottom: math.div($gutter, 2);
+
 			background: color(body);
 			color: contrast-color(body);
-			
+
 			cursor: pointer;
-			
+
 			border-radius: $border-radius;
-			
+
 			display: flex;
 			justify-content: space-between;
 			align-items: flex-start;
-			
-			> *{
+
+			> * {
 				pointer-events: none;
 			}
-			
-			.name{
+
+			.name {
 				white-space: nowrap;
 				overflow: hidden;
 				text-overflow: ellipsis;
 			}
-			
-			.quantity{
+
+			.quantity {
 				flex-shrink: 0;
-				margin-left: math.div($gutter,2);
+				margin-left: math.div($gutter, 2);
 			}
-			
-			@include hover{
+
+			@include hover {
 			}
 		}
 	}
-	
-	
+
+
 	.search {
 		margin-top: auto;
 	}
-	
+
 	.results-anchor {
 		width: 100%;
 		margin-bottom: $gutter;
 	}
-	
+
 	.search-results {
 		flex-grow: 1;
-		
+
 		display: flex;
 		flex-direction: column;
 		//justify-content: flex-end;
-		
+
 		margin-top: $gutter;
-		
+
 		overflow: auto;
-		
+
 		position: absolute;
 		//bottom: 0;
 		width: 100%;
 		max-height: 90%;
 		transform: translateY(-100%);
 		//bottom: 6rem;
-		
+
 		border-radius: 10px;
 		box-shadow: 0 0 10px rgba(#000, .3);
-		
-		.item{
+
+		.item {
 			cursor: pointer;
-			@include hover{
+			@include hover {
 				color: color(primary);
 			}
 		}
-		
+
 	}
-	
+
 	.cdk-virtual-scroll-viewport {
 		flex-grow: 1;
 	}
-	
+
 	ion-searchbar {
 		padding-bottom: 0 !important;
 		padding-left: 0 !important;
@@ -128,41 +128,65 @@ app-food-list {
 }
 
 
-.meal-item-editor{
-	
-	.mat-card-header{
+.meal-item-editor {
+
+	.mat-card-header {
 		justify-content: center;
 		text-align: center;
 	}
-	.mat-card-header-text{
+
+	.mat-card-header-text {
 		margin: 0;
 	}
-	
-	.mat-card-content{
+
+	.mat-card-content {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		
+
 		margin-top: $gutter;
 	}
-	
-	.in-quantity{
+
+	.in-quantity {
 		text-align: center;
 	}
 }
 
 
-nutri-food-list-meal-item-editor{
+nutri-food-list-meal-item-editor {
 	//min-width: 350px;
+
+
+	.mat-mdc-card-content {
+		margin-block-start: $gutter;
+
+		> .mat-mdc-form-field {
+			width: 100%;
+		}
+
+		.mat-mdc-form-field-has-icon-suffix .mat-mdc-text-field-wrapper {
+			padding-right: $gutter;
+		}
+
+		.mat-mdc-form-field-subscript-wrapper {
+			display: none;
+		}
+	}
+
+
+	.mat-mdc-card-actions {
+		justify-content: space-between;
+	}
 }
-.popover-content{
+
+.popover-content {
 }
 
 ion-popover {
 	--width: 350px;
-	
+
 	&::part(content) {
 		min-width: 350px;
-		
+
 	}
 }

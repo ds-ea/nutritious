@@ -1,8 +1,10 @@
 {
 	"name": "@nutritious/core",
 	"version": "0.0.1",
-	"dependencies": {},
-	"type": "commonjs",
-	"main": "./index.cjs",
-	"module": "./index.js"
+	"dependencies": {
+		"@nestjs/common": "*",
+		"@prisma/client": "^5.9.1",
+		"prisma": "^5.9.1"
+	},
+	"types": "./index.cjs.d.ts"
 }

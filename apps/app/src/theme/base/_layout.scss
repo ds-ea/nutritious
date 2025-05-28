@@ -1,26 +1,52 @@
 
-.nutri-main-menu{
+ion-app.env-unknown {
+	ion-toolbar {
+		--ion-toolbar-color: white;
+		--color: white;
+		--background: blue;
+		//--border-color: blue;
+		//--border-width: 0 0 3px 0;
+	}
+}
+
+ion-app.env-dev {
+	ion-toolbar {
+		--background: #a1ff00;
+		//--border-color: #a1ff00;
+		//--border-width: 3px 0;
+	}
+}
+
+ion-app.env-staging {
+	ion-toolbar {
+		--border-color: #fe0095;
+		--border-width: 3px 0;
+	}
+}
+
+
+.nutri-main-menu {
 
 	user-select: none;
 
-	ion-content{
+	ion-content {
 		height: auto;
 		max-height: 400px;
 	}
 
-	.inner-scroll{
+	.inner-scroll {
 	}
 
-	a{
+	a {
 		color: inherit;
 		cursor: pointer;
 
-		@include hover{
+		@include hover {
 			color: color(accent) !important;
 		}
 	}
 
-	::part(scroll){
+	::part(scroll) {
 		display: flex;
 		width: 100%;
 
@@ -30,7 +56,7 @@
 		padding-left: $gutter*2;
 	}
 
-	&::part(container){
+	&::part(container) {
 		max-height: 300px;
 		margin-top: auto;
 		margin-bottom: auto;

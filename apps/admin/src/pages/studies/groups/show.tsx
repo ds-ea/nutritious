@@ -1,0 +1,267 @@
+import { ExportableResponse, Group, GroupMember, Schedule, Study, xorEncryptDecrypt } from '@nutritious/core';
+import { Show, ShowButton, useTable } from '@refinedev/antd';
+import { IResourceComponentsProps, useDataProvider, useExport, useGetToPath, useGo, useOne, useParsed, useShow } from '@refinedev/core';
+import { Alert, Button, Card, Col, Descriptions, Divider, QRCode, Row, Space, Statistic, Table, Typography } from 'antd';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { DetailsHeader } from '../../../components/header/DetailsHeader';
+import { ExportButton } from '../../../components/header/ExportButton';
+import { resources } from '../../../data/resources';
+import { exportStudyResponses, responseExportOptions } from '../../../services/exporter';
+
+
+const { Title } = Typography;
+
+
+
+function getShortenedDomain( url:string ){
+	const [ scheme, domain ] = url.split( '://' );
+	return ( scheme === 'https' ? '1' : '0' ) + domain;
+}
+
+export const GroupShow:React.FC<IResourceComponentsProps> = () => {
+	const getDataProvider = useDataProvider();
+
+	const getToPath = useGetToPath();
+	const go = useGo();
+
+	const { id: groupId, params } = useParsed<{ studyId?:string }>();
+	// get study
+	const studyId = params?.studyId;
+	const { data: studyData, isLoading: isLoadingStudy } =
+		useOne<Study>( {
+			resource: 'studies',
+			id: studyId,
+		} );
+	const study = studyData?.data;
+
+
+	// get group -> show
+	const { queryResult } =
+		useShow<Group & { schedule?:Schedule }>( {
+			meta: {
+				fields: [ 'id', 'name', 'state', 'signupPeriod', 'responsePeriod' ],
+				operation: 'groups',
+			},
+		} );
+
+	const { data: groupData, status, isLoading } = queryResult;
+	const group = groupData?.data;
+
+	const [ exportSettings, setExportSettings ] = useState<ReturnType<typeof responseExportOptions>>();
+	useEffect( () => {
+		if( group )
+			setExportSettings( responseExportOptions( { group } ) );
+	}, [ group ] );
+
+	const { triggerExport, isLoading: exportPending } = useExport<ExportableResponse>( exportSettings );
+	const triggerExportJSON = useCallback( () => {
+		exportStudyResponses( getDataProvider(), { group }, 'json' );
+	}, [ getDataProvider, group ] );
+
+	const domain = import.meta.env['VITE_API_URL'];
+
+	const [ includeDomain, setIncludeDomain ] = useState<boolean>( true );
+	const [ qrcValue, setQrcValue ] = useState<string | null>( null );
+
+	useEffect( () => {
+		let code:string | null = null;
+
+		const qrKey = import.meta.env['VITE_QR_CODE_HASH'];
+		const qrSalt = 'asdoufawejasdifya0w3y-r8werfwe7gbR&#_(*&H#Q0u';
+
+		if( group?.regKey && group?.regPass ){
+			const crypt = true;
+			code = [
+				'0' + ( crypt ? 'x' : '' ),
+				...[
+					group.regKey,
+					group.regPass,
+					getShortenedDomain( domain ),
+				].map( v => crypt ? xorEncryptDecrypt( v, qrKey, qrSalt ) : v ),
+			].join( '█' );
+		}
+
+		setQrcValue( code );
+
+	}, [ group, includeDomain ] );
+
+	// get participants
+	const { tableProps: groupTableProps } =
+		useTable<GroupMember>( {
+			syncWithLocation: true,
+			resource: 'group-members',
+			meta: {
+				fields: [ 'id', 'name', 'state' ],
+				operation: 'group-members',
+			},
+			pagination: { pageSize: 10 },
+			filters: {
+				permanent: [ { field: 'groupId', operator: 'eq', value: groupId } ],
+			},
+		} );
+
+	const downloadQRCodePNG = () => {
+		const canvas = document.getElementById( 'signupQRCode' )?.querySelector<HTMLCanvasElement>( 'canvas' );
+		if( canvas ){
+			const url = canvas.toDataURL();
+			const a = document.createElement( 'a' );
+			a.href = url;
+			a.download = 'Signup QR Code ' + study?.name + ' - ' + group!.name + '.png';
+			document.body.appendChild( a );
+			a.click();
+			document.body.removeChild( a );
+		}
+	};
+
+	const downloadQRCodeSVG = () => {
+		const svgEl = document.getElementById( 'signupQRCode' )?.querySelector<SVGElement>( 'svg' );
+		if( svgEl ){
+			svgEl.setAttribute( 'xmlns', 'http://www.w3.org/2000/svg' );
+			const svgData = svgEl.outerHTML;
+			const preface = '<?xml version="1.0" standalone="no"?>\r\n';
+			const svgBlob = new Blob( [ preface, svgData ], { type: 'image/svg+xml;charset=utf-8' } );
+			const svgUrl = URL.createObjectURL( svgBlob );
+			const downloadLink = document.createElement( 'a' );
+			downloadLink.href = svgUrl;
+			downloadLink.download = 'Signup QR Code ' + study?.name + ' - ' + group!.name + '.svg';
+			document.body.appendChild( downloadLink );
+			downloadLink.click();
+			document.body.removeChild( downloadLink );
+		}
+	};
+
+	return (
+		<Show isLoading={ isLoading || exportPending }
+			  contentProps={ { className: 'card-transparent' } }
+			  headerButtons={ ( { defaultButtons } ) => (
+				  <>
+					  <ExportButton triggerExport={ triggerExport } exportContext={ 'group' } />
+					  <Button onClick={ () => triggerExportJSON() }>export responses (JSON)</Button>
+					  <Space direction="vertical"></Space>
+					  { defaultButtons }
+				  </>
+			  ) }
+		>
+			<Space direction="vertical" className={ 'stretch' } size={ 'middle' }>
+
+				<Card>
+					<DetailsHeader study={ study! } group={ group } />
+					<Divider />
+
+					{ group &&
+						<Descriptions bordered={ true } column={ 4 } size={ 'small' }>
+
+							<Descriptions.Item label={ 'Schedule' } span={ 4 } labelStyle={ { width: 140 } }>
+								{ group.schedule?.name }
+							</Descriptions.Item>
+
+							{ group.notes &&
+								<Descriptions.Item label={ 'Notes' } span={ 4 } labelStyle={ { width: 140 } }>
+									{ group.notes }
+								</Descriptions.Item>
+							}
+						</Descriptions>
+					}
+
+				</Card>
+
+
+				<Row gutter={ [ 20, 20 ] } style={ { marginBlockStart: 20 } }>
+					<Col xs={ 24 } lg={ { span: 6, order: 2 } }>
+						<Card
+							title={ 'Signup Info' }
+							className={ 'group-signup-card' }
+							extra={ qrcValue ? (
+								<Space>
+									download
+									<Button type="default" onClick={ downloadQRCodePNG }>PNG</Button>
+									<Button type="default" onClick={ downloadQRCodeSVG }>SVG</Button>
+								</Space>
+							) : undefined }
+						>
+
+							{ qrcValue && group ? ( <>
+								<Space direction={ 'vertical' } size={ 20 } style={ { width: '100%' } }>
+									<div id="signupQRCode">
+										<QRCode
+											type={ 'canvas' } style={ { display: 'none' } }
+											bgColor={ '#fff' }
+											size={ 800 }
+											errorLevel={ 'Q' }
+											value={ qrcValue }
+										/>
+										<QRCode
+											type={ 'svg' }
+											size={ '100%' as any }
+											errorLevel={ 'Q' }
+											value={ qrcValue }
+										/>
+									</div>
+									<Row gutter={ [ 40, 20 ] } wrap={ true } className={ 'signup-credentials-wrap' }>
+										<Col xs={ 24 } md={ 12 }>
+											<Statistic title="Key" value={ group.regKey! } />
+										</Col>
+										<Col xs={ 24 } md={ 12 }>
+											<Statistic title="Password" value={ group.regPass! } />
+										</Col>
+										<Col xs={ 24 }>
+											<Statistic title="Domain" value={ domain } />
+										</Col>
+									</Row>
+								</Space>
+							</> ) : ( <>
+								<Alert type={ 'warning' } message={ 'Signup Key and or Password are missing.' } />
+							</> ) }
+
+						</Card>
+					</Col>
+
+					<Col xs={ 24 } lg={ 18 }>
+						<Card title={ 'Participants' }>
+							{
+								<Table { ...groupTableProps } rowKey="id">
+									<Table.Column dataIndex="participantId" title="Participant" width={ 1 }
+												  render={ ( _, member:GroupMember ) =>
+													  <Link to={ getToPath( {
+														  resource: resources.participants,
+														  meta: { id: member.participantId },
+														  action: 'show',
+													  } ) || '#' }
+													  >{ member.participantId }</Link>
+												  }
+									/>
+									<Table.Column dataIndex="badge" title="Badge" />
+									<Table.Column
+										title="Actions"
+										dataIndex="actions"
+										width={ 1 }
+										render={ ( _, member:GroupMember ) => (
+											<Space>
+												{/*<EditButton
+													hideText
+													size="small"
+													resource={ 'participants' }
+													recordItemId={ member.participantId }
+												/>*/ }
+												<ShowButton
+													hideText
+													size="small"
+													resource={ 'participants' }
+													recordItemId={ member.participantId }
+												/>
+											</Space>
+										) }
+									/>
+								</Table>
+							}
+						</Card>
+
+					</Col>
+				</Row>
+
+			</Space>
+		</Show>
+	);
+};
+export default GroupShow;

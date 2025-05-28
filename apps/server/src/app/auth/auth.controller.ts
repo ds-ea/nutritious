@@ -1,5 +1,7 @@
-import { Body, Controller, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UnauthorizedException } from '@nestjs/common';
+import type { AuthCredentials, AuthLoginResponse, AuthUserInfo } from '@nutritious/core';
 import { FastifyRequest } from 'fastify';
+import { Sanitize } from '../../../../../libs/core/src/lib/data/sanitize';
 import { Public } from '../core/decorators/public.decorator';
 import { AuthedRequest } from '../types/server.types';
 import { AuthService } from './auth.service';
@@ -14,27 +16,27 @@ export class AuthController{
 
 	@Public()
 	@Post( 'login' )
-	public async login( @Req() req:FastifyRequest, @Body() credentials:Partial<{ password:string, username:string }> ){
+	public async login( @Req() req:FastifyRequest, @Body() credentials:AuthCredentials ):Promise<AuthLoginResponse>{
 
-		const { username, password } = credentials;
-		const authed = username && password
-					   ? await this.auth.signIn(  username, password )
-					   : undefined;
+		const authed = await this.auth.signIn( credentials );
 
-		if( !authed?.access_token )
+		if( !authed?.token )
 			throw new UnauthorizedException();
 
 		return authed;
 	}
 
 
-	@Post('me')
-	public async userinfo( @Req() req:AuthedRequest ){
+	@Get( 'me' )
+	public async userinfo( @Req() req:AuthedRequest ):Promise<AuthUserInfo>{
 
-		if( !req.user )
-			throw new UnauthorizedException();
+		if( req.participant )
+			return { participant: Sanitize.safeParticipant( req.participant ) };
 
-		return req.user;
+		if( req.user )
+			return { user: Sanitize.safeUser( req.user ) };
+
+		throw new UnauthorizedException();
 
 	}
 

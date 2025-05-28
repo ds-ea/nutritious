@@ -18,23 +18,6 @@ export type LogEntryMeal = {
 	attend?:string | number;
 }
 
-export type LogEntryFood = MealItem[];
-
-export type LogEntryCatalogAnswers = {
-	[groupID:string]: {
-		[questionKey:string]:any
-	}
-};
-
-export interface LogEntry{
-	
-	date:string;
-	
-	meal?:LogEntryMeal;
-	food?:LogEntryFood;
-	
-	answers?:LogEntryCatalogAnswers;
-}
 
 
 export interface FoodLibraryItem{
@@ -42,7 +25,7 @@ export interface FoodLibraryItem{
 	key:string;
 	de?:string;
 	en?:string;
-	
+
 	_fuzzy?:any;
 }
 
@@ -50,9 +33,29 @@ export interface FoodLibraryItem{
 export interface MealItem{
 	foodID:number;
 	foodKey:string;
-	
+
 	quantity?:number;
 	unit?:string;
-	
+
 	_food?:FoodLibraryItem;
+}
+
+
+
+export type LogEntryFood = MealItem[];
+
+export type LogEntryCatalogAnswers = {
+	[groupID:string]:{
+		[questionKey:string]:any
+	}
+};
+
+export interface LogEntry{
+
+	date:string;
+
+	meal?:LogEntryMeal;
+	food?:LogEntryFood;
+
+	answers?:LogEntryCatalogAnswers;
 }

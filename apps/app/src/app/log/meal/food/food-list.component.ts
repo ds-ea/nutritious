@@ -1,68 +1,68 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, OnDestroy, ViewChild, Input, EventEmitter, Output } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { AlertController, PopoverController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
-import { BehaviorSubject, ReplaySubject, Subject } from 'rxjs';
-import { catchError, debounce, debounceTime, takeUntil, tap } from 'rxjs/operators';
 
 import Fuse from 'fuse.js';
 import * as fuzzysort from 'fuzzysort';
+import { ReplaySubject, Subject } from 'rxjs';
+import { catchError, debounceTime, takeUntil } from 'rxjs/operators';
 import { FoodLibraryItem, MealItem } from '../../../../interfaces/log.interface';
 import { FoodListMealItemEditorComponent } from './food-list-meal-item-editor.component';
 
 
 
 @Component( {
-	            selector: 'app-food-list',
-	            changeDetection: ChangeDetectionStrategy.OnPush,
-	            template: `
-					<ion-list class="meal-items">
-						<ion-item-sliding *ngFor="let item of mealItems" (click)="editFood(item, $event)">
-							<div class="meal-item">
-								<span class="name">{{ item._food?.[ this.langKey ] || item.foodKey }}</span>
-								<span class="quantity">
-									<span class="value">{{ item.quantity }}</span>
-									<span class="unit">{{ item.unit || '' }}</span>
-								</span>
-							</div>
-						</ion-item-sliding>
+	selector: 'app-food-list',
+	changeDetection: ChangeDetectionStrategy.OnPush,
+	template: `
+		<ion-list class="meal-items">
+			<ion-item-sliding *ngFor="let item of mealItems" (click)="editFood(item, $event)">
+				<div class="meal-item">
+					<span class="name">{{ item._food?.[this.langKey] || item.foodKey }}</span>
+					<span class="quantity">
+						<span class="value">{{ item.quantity }}</span>
+						<span class="unit">{{ item.unit || '' }}</span>
+					</span>
+				</div>
+			</ion-item-sliding>
+		</ion-list>
+
+		<ion-skeleton-text animated *ngIf="busy"></ion-skeleton-text>
+
+		<div class="search" *ngIf="available?.length">
+			<div class="results-anchor">
+				<div class="search-results" *ngIf="matches?.length">
+					<ion-list>
+						<ion-item *ngFor="let food of matches"
+								  (click)="selectFood(food)"
+						>
+							<ion-label> {{ food[langKey] }}</ion-label>
+						</ion-item>
 					</ion-list>
+					<!--
+					<cdk-virtual-scroll-viewport itemSize="30" >
+						<ion-item *cdkVirtualFor="let food of matches"></ion-item>
+					</cdk-virtual-scroll-viewport>-->
+				</div>
+			</div>
 
-					<ion-skeleton-text animated *ngIf="busy"></ion-skeleton-text>
+			<ion-searchbar #searchBar
+						   autocorrect="off" mode="ios"
+						   [(ngModel)]="searchTerm"
+						   (ionChange)="searchTrigger.next($event)"
+						   (keyup)="searchTrigger.next($event)"
+						   (ionClear)="resetSearch()"
+						   [placeholder]="'LOG.MEAL.LOOKUP_FOOD_PHOLD'|translate"
+			></ion-searchbar>
+		</div>
 
-					<div class="search" *ngIf="available?.length">
-						<div class="results-anchor">
-							<div class="search-results" *ngIf="matches?.length">
-								<ion-list>
-									<ion-item *ngFor="let food of matches"
-											  (click)="selectFood(food)"
-									>
-										<ion-label> {{ food[ langKey ] }} </ion-label>
-									</ion-item>
-								</ion-list>
-								<!--
-								<cdk-virtual-scroll-viewport itemSize="30" >
-								    <ion-item *cdkVirtualFor="let food of matches"></ion-item>
-								</cdk-virtual-scroll-viewport>-->
-							</div>
-						</div>
+		<div class="alert" *ngIf="!busy && !available?.length">
+			{{ 'LOG.MEAL.FOOD_LIBRARY_UNAVAILABLE_ERR' | translate }}
+		</div>
 
-						<ion-searchbar #searchBar
-									   autocorrect="off" mode="ios"
-									   [(ngModel)]="searchTerm"
-									   (ionChange)="searchTrigger.next($event)"
-									   (keyup)="searchTrigger.next($event)"
-									   (ionClear)="resetSearch()"
-									   [placeholder]="'LOG.MEAL.LOOKUP_FOOD_PHOLD'|translate"
-						></ion-searchbar>
-					</div>
-
-					<div class="alert" *ngIf="!busy && !available?.length">
-						{{'LOG.MEAL.FOOD_LIBRARY_UNAVAILABLE_ERR' | translate}}
-					</div>
-
-	            `,
-            } )
+	`,
+} )
 export class FoodListComponent implements OnInit, OnDestroy{
 	private _destroyed$ = new ReplaySubject<boolean>( 1 );
 
@@ -127,7 +127,6 @@ export class FoodListComponent implements OnInit, OnDestroy{
 			.pipe(
 				takeUntil( this._destroyed$ ),
 				debounceTime( 100 ),
-				tap(e=>console.log('se', e))
 			)
 			.subscribe( () => this.search( this.searchTerm ) );
 
@@ -148,12 +147,12 @@ export class FoodListComponent implements OnInit, OnDestroy{
 			.toPromise();
 
 		if( !data ){
-			console.error('no food library data');
+			console.error( 'no food library data' );
 			return;
 		}
 
 		// exported food list might not include english desc, in which case we fall back to German
-		if( this.langKey === 'en' && data && data[ 0 ].en === undefined )
+		if( this.langKey === 'en' && data && data[0].en === undefined )
 			this.langKey = 'de';
 
 		this.fuse = new Fuse<FoodLibraryItem>( data, {
@@ -164,7 +163,7 @@ export class FoodListComponent implements OnInit, OnDestroy{
 			shouldSort: true,
 		} );
 
-		this.fuzzyPrepared = data.forEach( item => item._fuzzy = fuzzysort.prepare( item[ this.langKey ] as any ) );
+		this.fuzzyPrepared = data.forEach( item => item._fuzzy = fuzzysort.prepare( item[this.langKey] as any ) );
 
 		this.available = data ?? [];
 		this.busy = false;
@@ -205,8 +204,8 @@ export class FoodListComponent implements OnInit, OnDestroy{
 		};
 		this.mealItems.push( item );
 		this.mealItems.sort( ( a, b ) => {
-			const aName = a._food?.[ this.langKey ] || a.foodKey;
-			const bName = b._food?.[ this.langKey ] || b.foodKey;
+			const aName = a._food?.[this.langKey] || a.foodKey;
+			const bName = b._food?.[this.langKey] || b.foodKey;
 			return aName?.localeCompare( bName );
 		} );
 
@@ -220,14 +219,14 @@ export class FoodListComponent implements OnInit, OnDestroy{
 		let popover:HTMLIonPopoverElement;
 
 		popover = await this.popoverController.create( {
-			                                               component: FoodListMealItemEditorComponent,
-			                                               componentProps: {
-				                                               langKey: this.langKey,
-				                                               mealItem: item,
-			                                               },
-			                                               event,
-			                                               size: 'cover',
-		                                               } );
+			component: FoodListMealItemEditorComponent,
+			componentProps: {
+				langKey: this.langKey,
+				mealItem: item,
+			},
+			event,
+			size: 'cover',
+		} );
 
 		await popover.present();
 		const result = await popover.onDidDismiss();
@@ -242,12 +241,12 @@ export class FoodListComponent implements OnInit, OnDestroy{
 
 	public async removeFood( itemToRemove:MealItem ){
 		const alert = await this.alertController.create( {
-			                                                 message: this.translate.instant(
-				                                                 'LOG.MEAL.CONFIRM_REMOVE_MEAL_ITEM_MSG',
-				                                                 { name: itemToRemove._food?.[ this.langKey ] || itemToRemove.foodKey },
-			                                                 ),
-			                                                 buttons: [ 'Cancel', 'OK' ],
-		                                                 } );
+			message: this.translate.instant(
+				'LOG.MEAL.CONFIRM_REMOVE_MEAL_ITEM_MSG',
+				{ name: itemToRemove._food?.[this.langKey] || itemToRemove.foodKey },
+			),
+			buttons: [ 'Cancel', 'OK' ],
+		} );
 
 		await alert.present();
 		const { role } = await alert.onDidDismiss();

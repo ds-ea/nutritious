@@ -11,34 +11,29 @@
 				"outputPath": "dist/libs/core",
 				"main": "libs/core/src/index.ts",
 				"tsConfig": "libs/core/tsconfig.lib.json",
-				"assets": [],
+				"assets": [
+					{
+						"glob": "*",
+						"input": "libs/core/prisma",
+						"output": "./prisma"
+					}
+				],
 				"project": "libs/core/package.json",
 				"compiler": "swc",
-				"format": ["cjs", "esm"]
+				"format": ["cjs", "esm"],
+				"generateExportsFields": true,
+				"rootDir": "libs/core/src"
 			}
 		},
 		"lint": {
 			"executor": "@nx/eslint:lint",
-			"outputs": ["{options.outputFile}"],
-			"options": {
-				"lintFilePatterns": [
-					"libs/core/**/*.ts",
-					"libs/core/package.json"
-				]
-			}
+			"outputs": ["{options.outputFile}"]
 		},
 		"test": {
 			"executor": "@nx/jest:jest",
 			"outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
 			"options": {
-				"jestConfig": "libs/core/jest.config.ts",
-				"passWithNoTests": true
-			},
-			"configurations": {
-				"ci": {
-					"ci": true,
-					"codeCoverage": true
-				}
+				"jestConfig": "libs/core/jest.config.ts"
 			}
 		},
 		"prisma": {
@@ -55,9 +50,7 @@
 			},
 			"configurations": {
 				"push": {
-					"commands": [
-						"prisma db push"
-					]
+					"commands": ["prisma db push"]
 				},
 				"migrate-dev": {
 					"commands": [
@@ -68,21 +61,26 @@
 					]
 				},
 				"format": {
-					"commands": [
-						"prisma format"
-					]
+					"commands": ["prisma format"]
 				},
 				"generate": {
 					"commands": [
 						{
-							"command": "prisma generate",
+							"command": "prisma generate --schema prisma/schema.prisma",
+							"forwardAllArgs": true
+						}
+					]
+				},
+				"generate-legacy": {
+					"commands": [
+						{
+							"command": "prisma generate --schema prisma/schema-legacy.prisma",
 							"forwardAllArgs": true
 						}
 					]
 				}
 			}
 		}
-
 	},
 	"tags": []
 }

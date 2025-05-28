@@ -27,14 +27,14 @@
 //@import "../../../node_modules/@ionic/angular/css/text-transformation.css";
 //@import "../../../node_modules/@ionic/angular/css/flex-utils.css";
 
-ion-content.content-centered{
+ion-content.content-centered {
 	&::part(scroll) {
-		
+
 		display: flex;
 		//align-items: center;
 		justify-content: center;
 	}
-	
+
 	> * {
 		margin-top: auto;
 		margin-bottom: auto;
@@ -49,13 +49,13 @@ ion-datetime {
 
 
 ion-alert {
-	
+
 	.alert-button {
 		&.danger {
 			color: color(danger);
 		}
 	}
-	
+
 	&.center-buttons {
 		.alert-button-group {
 			justify-content: center;
@@ -66,4 +66,13 @@ ion-alert {
 ion-toolbar {
 	//--background: transparent;
 	--opacity: .8;
+}
+
+
+ion-modal.centered {
+	--width: fit-content;
+	--min-width: 250px;
+	--height: fit-content;
+	--border-radius: 4px;
+	//--box-shadow: 0 10px 0 rgba(0, 0, 0, 0.4);
 }

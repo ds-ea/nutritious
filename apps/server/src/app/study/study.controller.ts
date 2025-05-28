@@ -1,64 +1,72 @@
-import { Body, Controller, ForbiddenException, Get, NotFoundException, Param, Post, Req, UnprocessableEntityException } from '@nestjs/common';
-import { LegacyFoodLog, LogEntryCatalogAnswers } from '@nutritious/core';
-import { Study } from '@prisma/client';
+import { Body, Controller, ForbiddenException, Get, Post, Req, UnprocessableEntityException } from '@nestjs/common';
+import { PreparedStudy, SignupCheckPayload, SignupPayload, SubmitResponsesPayload } from '@nutritious/core';
 import { FastifyRequest } from 'fastify';
+import { ParticipantAccess } from '../core/decorators/participant-access.decorator';
 import { Public } from '../core/decorators/public.decorator';
 import { AuthedRequest } from '../types/server.types';
 import { StudyService } from './study.service';
 
 
-@Controller( [ 'study', 'foodstudy' ] )
+@Controller( [ 'study' ] )
 export class StudyController{
 
 	constructor(
-		private readonly fsService:StudyService,
+		private readonly studyService:StudyService,
 	){}
 
-	@Get( 'study' )
+	// TODO: these are probably obsolete
+	/*@Get( 'study' )
 	public async getDefaultStudy( @Req() req:AuthedRequest ){
 
-		const defaultStudyId = req.user?.fs_study;
-		if( !defaultStudyId )
-			throw new NotFoundException( 'no study assigned' );
+		throw new NotFoundException( 'no study assigned' );
 
-		return this.getStudy( req, defaultStudyId );
+		//		return this.getStudy( req, defaultStudyId );
 	}
 
 	@Get( 'study/:studyId' )
-	public async getStudy( @Req() req:AuthedRequest, @Param( 'studyId' ) studyId:Study['id'] ){
+	public async getStudy( @Req() req:AuthedRequest, @Param( 'studyId' ) studyId:string ){
 
-		const data = await this.fsService.getStudyData( studyId, req.user );
+		const data = await this.studyService.getStudyData( studyId, req.user );
 		if( !data )
 			throw new NotFoundException( 'no such study' );
 
 		return data;
-	}
-
-
-	@Post( 'food' )
-	public async logFood( @Req() req:AuthedRequest, @Body() data:LegacyFoodLog ){
-		const recorded = await this.fsService.recordFood( data, req.user );
-		return !!recorded;
-	}
-
-	@Post( 'log' )
-	public async logAnswers( @Req() req:AuthedRequest, @Body() data:LogEntryCatalogAnswers ){
-		const recorded = await this.fsService.recordAnswers( data, req.user );
-		return !!recorded;
-	}
+	}*/
 
 
 	@Public()
 	@Post( 'signup' )
-	public async signup( @Req() req:FastifyRequest | AuthedRequest, @Body() data:{ key:string, response:string, participant?:string, signup?:boolean } ){
+	public async signup( @Req() req:FastifyRequest | AuthedRequest, @Body() data:SignupCheckPayload | SignupPayload ){
 		if( 'user' in req )
 			throw new ForbiddenException( 'you are already logged in' );
 
-		if( !data?.key?.length || !data?.response?.length )
+		if( !data?.key?.length || !data?.code?.length )
 			throw new UnprocessableEntityException( 'signup key and or password missing' );
 
-		return this.fsService.studySignup( data.key, data.response, data.signup, data.participant );
+		if( 'signup' in data )
+			return this.studyService.studySignup( data.key, data.code, data.signup, data.participant );
+		else
+			return this.studyService.studySignup( data.key, data.code );
 	}
 
+
+
+	@ParticipantAccess()
+	@Get( 'studies' )
+	public async getPreparedStudies( @Req() req:AuthedRequest ):Promise<PreparedStudy[] | undefined>{
+		if( !( 'participant' in req ) || !req.participant )
+			throw new ForbiddenException( 'you are not logged in' );
+
+		return this.studyService.prepareStudies( req.participant.id );
+	}
+
+	@ParticipantAccess()
+	@Post( 'responses' )
+	public async submitResponses( @Req() req:AuthedRequest, @Body() data:SubmitResponsesPayload ){
+		if( !( 'participant' in req ) || !req.participant )
+			throw new ForbiddenException( 'you are not logged in' );
+
+		return this.studyService.recordResponses( req.participant.id, data );
+	}
 
 }

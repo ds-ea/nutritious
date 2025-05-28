@@ -1,7 +1,202 @@
-app-dashboard{
-	.mat-card{
+app-dashboard {
+	--base-width: 250px;
+	--base-width-minor: var(--base-width);
+
+	@media only screen and (min-width: 500px) {
+		--base-width: 300px;
+		--base-width-minor: 200px;
+	}
+
+	.mat-card {
 		width: $grid-width-minor;
 		max-width: 100%;
 		margin-bottom: $gutter *2;
+
+	}
+
+	.mat-mdc-card-subtitle {
+	}
+
+
+	.dashboard-container {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		gap: $gutter;
+
+		@media only screen and (min-width: 500px) {
+			flex-direction: row;
+			align-items: flex-start;
+			flex-wrap: wrap;
+			> * {
+				//width: 50%;
+			}
+		}
+	}
+
+
+	.timeline {
+		--timline-trail-color: #{color(light)};
+		--timeline-bullet-size: 10px;
+		--timline-trail-width: 2px;
+
+		list-style-type: none;
+		margin: 0;
+		padding: $gutter;
+
+		li {
+			position: relative;
+
+			display: grid;
+			grid-template-columns: 60px auto 1fr;
+			grid-gap: $gutter*.5 $gutter;
+
+			padding-inline-end: $gutter;
+
+			+ li:not(:last-child) {
+				padding-block: 10px;
+			}
+
+			&::before {
+				content: '';
+				position: absolute;
+				grid-column: 2;
+				height: 100%;
+				width: 1px;
+				z-index: 1;
+
+
+				border-right: var(--timline-trail-width) solid var(--timline-trail-color);
+				margin-inline-start: calc((var(--timeline-bullet-size) * .5) - 1px - (var(--timline-trail-width) * .5));
+			}
+
+			.time {
+				grid-column: 1;
+				display: flex;
+				justify-content: flex-end;
+			}
+
+			.bullet {
+				grid-column: 2;
+
+				display: flex;
+				justify-content: center;
+
+				position: relative;
+				z-index: 2;
+
+				&::before {
+					content: '';
+					display: block;
+
+					border-radius: 50%;
+					width: var(--timeline-bullet-size, 10px);
+					height: var(--timeline-bullet-size, 10px);
+
+					margin-block-start: 0.3rem;
+
+					background-color: color(secondary);
+				}
+
+			}
+
+			.title {
+				grid-column: 3;
+			}
+
+			.states {
+				grid-column: 1;
+				display: flex;
+				justify-content: flex-end;
+				flex-wrap: wrap;
+			}
+
+			.actions {
+				grid-column: 3;
+
+				display: flex;
+				flex-direction: column;
+			}
+
+			.title + .actions {
+				margin-block-start: $gutter * .5;
+			}
+
+			&.trail {
+				height: 5px;
+			}
+
+			&.boundary {
+				.time {
+					color: var(--timline-trail-color);
+				}
+
+				.bullet {
+					&::before {
+						background-color: var(--timline-trail-color);
+					}
+				}
+			}
+
+			&.now {
+				padding-block: 0 !important;
+
+				.bullet::before {
+					background-color: #00b99c;
+				}
+			}
+
+
+			&.state-done {
+				.title, .states {
+					color: color(success);
+				}
+
+				.bullet::before {
+					background-color: color(success);
+				}
+			}
+		}
+	}
+
+
+	.available-actions, .available-content, .overdue-actions {
+		list-style-type: none;
+		margin: 0;
+		padding: 0;
+
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		grid-gap: $gutter;
+
+		li {
+			display: flex;
+			flex-direction: column;
+		}
+
+		.states {
+			display: flex;
+			margin-block-start: $gutter *.5;
+		}
+	}
+
+	.mdc-card.schedule {
+		min-width: var(--base-width);
+	}
+
+	.mdc-card.overdue {
+		min-width: var(--base-width-minor);
+
+		.mat-mdc-card-subtitle {
+			color: color(danger);
+		}
+	}
+
+	.overdue-actions {
+		padding: $gutter;
+		grid-template-columns: 1fr;
 	}
 }
+
+

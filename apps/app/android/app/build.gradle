@@ -4,11 +4,11 @@ android {
     namespace "net.dsea.foodstudyapp"
     compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "net.dsea.foodstudyapp"
+        applicationId 'de.dife.foodapp'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 231031006
-        versionName '2.5.2'
+        versionCode 240820095
+        versionName '3.0.1'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

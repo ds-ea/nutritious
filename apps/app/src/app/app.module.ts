@@ -3,6 +3,7 @@ import { PortalModule } from '@angular/cdk/portal';
 import { LOCATION_INITIALIZED } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { APP_INITIALIZER, Injector, NgModule } from '@angular/core';
+import { DateAdapter, MAT_DATE_LOCALE, NativeDateModule } from '@angular/material/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouteReuseStrategy } from '@angular/router';
@@ -10,19 +11,23 @@ import { Preferences } from '@capacitor/preferences';
 import { SplashScreen } from '@capacitor/splash-screen';
 
 import { IonicModule, IonicRouteStrategy, Platform } from '@ionic/angular';
+import { Drivers } from '@ionic/storage';
 import { IonicStorageModule } from '@ionic/storage-angular';
 import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { DateFnsModule } from 'ngx-date-fns';
-import { EMPTY } from 'rxjs';
+import { de, enGB } from 'date-fns/locale';
+import CordovaSQLiteDriver from 'localforage-cordovasqlitedriver';
+import { DateFnsConfigurationService, DateFnsModule } from 'ngx-date-fns';
+import { MarkdownModule } from 'ngx-markdown';
+import { EMPTY, lastValueFrom } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { environment } from '../environments/environment';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ApiService } from './core/api.service';
 import { ConfigService } from './core/config.service';
 import { CoreService } from './core/core.service';
+import { StudyModule } from './study/study.module';
 import { UserModule } from './user/user.module';
 
 
@@ -30,12 +35,12 @@ export function createTranslateLoader( http:HttpClient ){
 	return new TranslateHttpLoader( http, './assets/i18n/', '.json' );
 }
 
-export function appInitializerFactory( injector:Injector, translate:TranslateService, platform:Platform, configService:ConfigService ){
+export function appInitializerFactory( injector:Injector, translate:TranslateService, platform:Platform, configService:ConfigService, dateAdapter:DateAdapter<unknown>, dateFNSConfiguration:DateFnsConfigurationService ){
 	return () => new Promise<any>( async ( resolve ) => {
 		// waiting for the platform to be rrrready first
 		await platform.ready();
 
-		const config = await configService.loadConfig( environment.build as any ).catch( e => null );
+		const config = await configService.loadConfig().catch( e => null );
 		if( !config )
 			console.error( 'configuration not available' );
 
@@ -47,15 +52,17 @@ export function appInitializerFactory( injector:Injector, translate:TranslateSer
 		if( !langToSet ){
 			console.warn( 'no language to initialize' );
 		}else{
-			await translate.use( langToSet ).pipe(
+			await lastValueFrom( translate.use( langToSet ).pipe(
 				tap( () => {
+					dateAdapter.setLocale( langToSet );
+					dateFNSConfiguration.setLocale( langToSet === 'de' ? de : enGB );
 					console.info( `Successfully initialized '${ langToSet }' language.'` );
 				} ),
 				catchError( err => {
 					console.error( `Problem with '${ langToSet }' language initialization.'` );
 					return EMPTY;
 				} ),
-			).toPromise();
+			) );
 		}
 
 		await SplashScreen.hide();
@@ -70,11 +77,14 @@ export function appInitializerFactory( injector:Injector, translate:TranslateSer
 	imports: [
 		BrowserModule,
 		IonicModule.forRoot(),
-		AppRoutingModule,
+		IonicStorageModule.forRoot( {
+			name: 'nutri',
+			driverOrder: [ CordovaSQLiteDriver._driver, Drivers.IndexedDB ],
+		} ),
+
 		BrowserAnimationsModule,
 		HttpClientModule,
 		PlatformModule,
-		IonicStorageModule,
 		DateFnsModule.forRoot(),
 		PortalModule,
 		TranslateModule.forRoot( {
@@ -84,15 +94,20 @@ export function appInitializerFactory( injector:Injector, translate:TranslateSer
 				deps: [ HttpClient ],
 			},
 		} ),
+		MarkdownModule.forRoot(),
 		UserModule,
+		StudyModule,
+		AppRoutingModule,
+		NativeDateModule,
 	],
 	providers: [
 		CoreService,
 		ApiService,
+		{ provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
 		{
 			provide: APP_INITIALIZER,
 			useFactory: appInitializerFactory,
-			deps: [ Injector, TranslateService, Platform, ConfigService ],
+			deps: [ Injector, TranslateService, Platform, ConfigService, DateAdapter, DateFnsConfigurationService ],
 			multi: true,
 		},
 		{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy },

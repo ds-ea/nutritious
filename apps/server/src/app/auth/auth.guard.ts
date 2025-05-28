@@ -1,10 +1,13 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '@nutritious/core';
+import { EntityState } from '@nutritious/core';
 import { FastifyRequest } from 'fastify';
+import { ALLOW_PARTICIPANT_ACCESS_KEY } from '../core/decorators/participant-access.decorator';
 import { IS_PUBLIC_KEY } from '../core/decorators/public.decorator';
+import { PrismaService } from '../core/services/db/prisma.service';
+import { AuthedRequest } from '../types/server.types';
 
 
 @Injectable()
@@ -17,15 +20,11 @@ export class AuthGuard implements CanActivate{
 	){}
 
 	async canActivate( context:ExecutionContext ):Promise<boolean>{
-		const isPublic = this.reflector.getAllAndOverride<boolean>( IS_PUBLIC_KEY, [
-			context.getHandler(),
-			context.getClass(),
-		] );
-
+		const isPublic = this.reflector.getAllAndOverride<boolean>( IS_PUBLIC_KEY, [ context.getHandler(), context.getClass() ] );
 		if( isPublic )
 			return true;
 
-		const request = context.switchToHttp().getRequest();
+		const request = context.switchToHttp().getRequest() as AuthedRequest;
 		const token = this.extractTokenFromHeader( request );
 		if( !token ){
 			throw new UnauthorizedException();
@@ -39,18 +38,39 @@ export class AuthGuard implements CanActivate{
 				{ secret },
 			);
 
-			const userId = payload.sub;
-			const user = userId
-						 ? await this.prisma.user.findUnique( { where: { id: userId } } )
-						 : undefined;
-			if( !user )
+			if( !payload.exp || payload.exp < ( Date.now() / 1000 ) )
 				throw new UnauthorizedException();
 
-			request['user'] = user;
+			const participantId = payload.sub?.participant;
+			const userId = payload.sub?.user;
+
+			let authed = false;
+
+			if( participantId ){
+				const participant = await this.prisma.participant.findUnique( { where: { id: participantId } } );
+				request.participant = participant || undefined;
+				authed = participant?.state === EntityState.Enabled;
+
+			}else if( userId ){
+				const user = await this.prisma.user.findUnique( { where: { id: userId } } );
+				request.user = user || undefined;
+				authed = user?.state === EntityState.Enabled;
+			}
+
+			if( !authed )
+				throw new UnauthorizedException();
 
 		}catch{
 			throw new UnauthorizedException();
 		}
+
+
+		if( !request.user ){
+			const allowParticipantAccess = this.reflector.getAllAndOverride<boolean>( ALLOW_PARTICIPANT_ACCESS_KEY, [ context.getHandler(), context.getClass() ] );
+			if( !allowParticipantAccess )
+				throw new ForbiddenException( 'needs user level access' );
+		}
+
 		return true;
 	}
 

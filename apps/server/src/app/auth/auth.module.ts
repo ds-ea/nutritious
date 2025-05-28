@@ -23,7 +23,7 @@ import { AuthService } from './auth.service';
 				return {
 					secret,
 					global: true,
-					signOptions: { expiresIn: 604800 },
+					signOptions: { expiresIn: 1800 },
 				};
 			},
 		} ),

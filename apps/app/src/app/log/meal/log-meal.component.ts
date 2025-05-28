@@ -1,17 +1,17 @@
-import { Component, OnInit, ChangeDetectionStrategy, EventEmitter, Output, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { MatLegacySelectionListChange as MatSelectionListChange } from '@angular/material/legacy-list';
+import { MatSelectionListChange } from '@angular/material/list';
 import { ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
-import { addHours, addMinutes, parseISO, formatISO } from 'date-fns';
+import { addMinutes, formatISO, parseISO } from 'date-fns';
 import { Subject } from 'rxjs';
 import { AttendanceOption, LogEntry, MealItem, MealType } from '../../../interfaces/log.interface';
 import { CoreService } from '../../core/core.service';
 
 
 @Component( {
-	            selector: 'log-meal',
-	            template: `
+	selector: 'log-meal',
+	template: `
 					<form [formGroup]="mealLogForm" (ngSubmit)="confirmStep()" autocomplete="off">
 						<mat-accordion class="accordion-desc-right">
 
@@ -75,9 +75,9 @@ import { CoreService } from '../../core/core.service';
 					</form>
 
 	            `,
-	            styles: [],
-	            changeDetection: ChangeDetectionStrategy.OnPush,
-            } )
+	styles: [],
+	changeDetection: ChangeDetectionStrategy.OnPush,
+} )
 export class LogMealComponent implements OnInit{
 	public formStep = 0;
 
@@ -88,10 +88,10 @@ export class LogMealComponent implements OnInit{
 	public attendanceOptions = Object.entries( AttendanceOption );
 
 	public mealLogForm = new UntypedFormGroup( {
-		                                    date: new UntypedFormControl( '', Validators.required ),
-		                                    meal: new UntypedFormControl( '', Validators.required ),
-		                                    attend: new UntypedFormControl( '', Validators.required ),
-	                                    } );
+		date: new UntypedFormControl( '', Validators.required ),
+		meal: new UntypedFormControl( '', Validators.required ),
+		attend: new UntypedFormControl( '', Validators.required ),
+	} );
 
 	public mealItems:MealItem[] = [];
 
@@ -99,7 +99,7 @@ export class LogMealComponent implements OnInit{
 
 
 	@Input() log:LogEntry | undefined;
-	@Output() done = new EventEmitter<LogEntry|undefined>();
+	@Output() done = new EventEmitter<LogEntry | undefined>();
 
 	constructor(
 		public core:CoreService,
@@ -113,10 +113,10 @@ export class LogMealComponent implements OnInit{
 	ngOnInit():void{
 		const now = new Date();
 		this.mealLogForm.patchValue( {
-			                             date: formatISO(now),
-			                             meal: '',
-			                             attend: undefined,
-		                             } );
+			date: formatISO( now ),
+			meal: '',
+			attend: undefined,
+		} );
 	}
 
 	public confirmStep(){
@@ -131,10 +131,10 @@ export class LogMealComponent implements OnInit{
 		const maxDate = addMinutes( new Date(), 20 );
 		if( parseISO( this.log!.meal!.date ) > maxDate ){
 			this.toastController.create( {
-				                             color: 'danger',
-				                             message: this.translate.instant( 'LOG.MEAL.FUTURE_DATE_ERROR' ),
-				                             duration: 3000,
-			                             } ).then( toast => toast.present() );
+				color: 'danger',
+				message: this.translate.instant( 'LOG.MEAL.FUTURE_DATE_ERROR' ),
+				duration: 3000,
+			} ).then( toast => toast.present() );
 			return;
 		}
 
@@ -157,16 +157,16 @@ export class LogMealComponent implements OnInit{
 	}
 
 	public selectMeal( change:MatSelectionListChange ){
-		this.mealLogForm.patchValue( { meal: change.options[ 0 ]?.value } );
+		this.mealLogForm.patchValue( { meal: change.options[0]?.value } );
 		this.nextControl();
 	}
 
 	public selectAttendance( change:MatSelectionListChange ){
-		this.selectedAttendance = change.options[ 0 ]?.value;
+		this.selectedAttendance = change.options[0]?.value;
 		if( !this.selectedAttendance )
 			return;
 
-		this.mealLogForm.patchValue( { attend: this.selectedAttendance[ 1 ] } );
+		this.mealLogForm.patchValue( { attend: this.selectedAttendance[1] } );
 		this.nextControl();
 	}
 

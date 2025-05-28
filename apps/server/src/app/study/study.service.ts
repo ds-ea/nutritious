@@ -1,11 +1,20 @@
-import { ForbiddenException, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { LegacyFoodLog, LogEntryCatalogAnswers, PickByType, PrismaService, StudyCatalog, StudyCatalogQuestionGroup } from '@nutritious/core';
-import { Prisma, Study, User } from '@prisma/client';
+
+import { EntityState, type Group, type GroupMember, InputPreset, type Participant, type ParticipantCredentials, type PreparedSchedule, PreparedSlot, type PreparedStudy, type Prisma, SafeSlot, Sanitize, type Schedule, type SignupCheckResponse, type  SignupResponse, type Slot, type Step, StepResponse, type Study, StudyStepType, StudyStepTypes, SubmitResponsesPayload, type TimeFrame, type User } from '@nutritious/core';
 import { hash } from 'argon2';
 import dayjs from 'dayjs';
+import { nanoid } from 'nanoid';
 import generatePassword from 'omgopass';
+import { Nullable } from 'vitest';
+import { PrismaService } from '../core/services/db/prisma.service';
 
+
+type StepRefMap = {
+	[type:StudyStepTypes | string]:{
+		[ref:string]:unknown
+	}
+};
 
 @Injectable()
 export class StudyService{
@@ -15,197 +24,336 @@ export class StudyService{
 		private readonly config:ConfigService,
 	){}
 
-	public async hasStudyAccess( userId:User['id'], studyId:Study['id'], role:'participant' = 'participant' ):Promise<boolean>{
-		if( role === 'participant' ){
-			const user = await this.prisma.user.findUnique( { where: { id: userId } } );
-			return user?.fs_study == studyId;
-		}
+	public async hasStudyAccess( studyId:string
+		//Study[ 'id' ]
+		, userId?:User[ 'id' ], role:'participant' = 'participant' ):Promise<boolean>{
+		//		if( role === 'participant' ){
+		//			const user = await this.prisma.user.findUnique( { where: { id: userId } } );
+		//			return user?.fs_study == studyId;
+		//		}
 
 		return false;
 	}
 
-	public async requireStudyAccess( userId:User['id'], studyId:Study['id'], role:'participant' = 'participant' ):Promise<void>{
-		if( !( await this.hasStudyAccess( userId, studyId ) ) )
+	public async requireStudyAccess( studyId:string, userId?:User[ 'id' ], role:'participant' = 'participant' ):Promise<void>{
+		if( !( await this.hasStudyAccess( studyId, userId ) ) )
 			throw new ForbiddenException( 'not participating in study' );
 	}
 
-	public async getStudyData( studyId:Study['id'], user:User ):Promise<{
+	public async getStudyData( studyId:string, user?:User ):Promise<{
 		study:{
-			name:Study['name']
+			name:string
 		},
 		catalog?:unknown
-	}>{
+	} | void>{
 
-		const study = await this.prisma.study.findUnique( { where: { id: studyId } } );
+		const study = null; // await this.prisma.study.findUnique( { where: { id: studyId } } );
 		if( !study )
 			throw new NotFoundException( 'no such study' );
 
-		await this.requireStudyAccess( user.id, study.id );
-
-		const catalogRaw = typeof study.question_catalog === 'string' ? JSON.parse( study.question_catalog ) : study.question_catalog;
-		const catalog = this.transformLegacyCatalog( catalogRaw );
-
-
-		return {
-			study: { name: study.name },
-			catalog,
-		};
-	}
-
-	public transformLegacyCatalog( legacyData:StudyCatalog ):StudyCatalog{
-		const catalog = { ...legacyData };
-
-		if( catalog.groups?.length ){
-			for( const group of catalog.groups ){
-
-				const processBooleanProperty = ( property:keyof PickByType<StudyCatalogQuestionGroup, boolean> ) => {
-					const v = typeof group[property] === 'string' ? ( group[property] as unknown as string ) !== 'false' : group[property];
-					if( group[property] !== undefined && group[property] ){
-						group[property] = true;
-					}else{
-						delete group[property];
-						if( `${ property }-time` in group )
-							delete group[<keyof StudyCatalogQuestionGroup> `${ property }-time`];
-					}
-				};
-
-				processBooleanProperty( 'askafter-enabled' );
-				processBooleanProperty( 'reminder-enabled' );
-				processBooleanProperty( 'ask-missed' );
-				processBooleanProperty( 'questions-first' );
-
-				if( group.questions?.length ){
-					for( const question of group.questions ){
-						if( question.type === 'slider' && question.config ){
-							question.config.min = parseInt( question.config.min, 10 );
-							question.config.max = parseInt( question.config.max, 10 );
-						}
-					}
-				}
-			}
-		}
-
-		return catalog;
+		//		await this.requireStudyAccess( study.id, user?.id );
+		//
+		//		const catalog = {};
+		//
+		//
+		//		return {
+		//			study: { name: study.name },
+		//			catalog,
+		//		};
 	}
 
 
-	public async recordFood( data:LegacyFoodLog, user:User ){
-		const studyId = user.fs_study || 0;
+	public timeframeAvailable( period:TimeFrame, now:dayjs.Dayjs = dayjs() ){
 
-		if( studyId )
-			await this.requireStudyAccess( user.id, studyId );
+		if( period.state !== EntityState.Enabled )
+			return false;
 
-		const foodData = data['data'];
+		if( period.from && now.isBefore( period.from ) )
+			return false;
 
-		const result =
-			await this.prisma.logFood.create( {
-				data: {
-					user: user.id,
-					study: studyId,
-					date: data.date,
-					people: Number( data.people ),
-					data: JSON.stringify( foodData ),
-				},
-			} );
+		if( period.until && now.isAfter( period.until ) )
+			return false;
 
-
-		return result?.id;
+		return true;
 	}
 
-	public async recordAnswers( data:LogEntryCatalogAnswers, user:User ){
-		const studyId = user.fs_study || 0;
-
-		if( studyId )
-			await this.requireStudyAccess( user.id, studyId );
-
-
-		const result =
-			await this.prisma.log.create( {
-				data: {
-					user: user.id,
-					study: studyId,
-					data: data,
-				},
-			} );
-
-
-		return result?.id;
-	}
-
-
-	public studyAvailable( study:Study ):boolean{
+	public async studyAvailable( group:Group, study:Study ):Promise<boolean>{
 		try{
-			const now = dayjs();
-			if( !study?.reg_public
-				|| ( study.reg_limit && study.user_count > study.reg_limit )
-				|| ( study.from && now.isBefore( study.from ) )
-				|| ( study.until && now.isAfter( study.until ) )
+
+			if( group?.state !== EntityState.Enabled ||
+				study?.state !== EntityState.Enabled
 			)
 				return false;
 
+			if( group.regLimit ){
+				const participantCount = await this.prisma.groupMember.count( { where: { groupId: group.id } } );
+				if( participantCount && participantCount >= group.regLimit )
+					return false;
+			}
+
+			const now = dayjs();
+			if( group.signupPeriod && !this.timeframeAvailable( group.signupPeriod, now ) )
+				return false;
+
+
+			if( study.signupPeriod && !this.timeframeAvailable( study.signupPeriod, now ) )
+				return false;
+
 		}catch( err ){
-			Logger.error( 'error parsing study date', study );
+			Logger.error( 'error parsing study date', group, study );
 			return false;
 		}
 
 		return true;
 	}
 
-	public async getStudyForSignup( key:string, regPass:string ):Promise<Study>{
-		const study = await this.prisma.study.findUnique( { where: { reg_key: key } } );
+	public async getStudyForSignup( key:string, regPass:string ):Promise<{ group:Group, study:Study }>{
+
+		const group = await this.prisma.group.findUnique( { where: { regKey: key } } );
+		if( !group || !group.studyId )
+			throw new NotFoundException( 'study was not found' );
+
+		const study = await this.prisma.study.findUnique( { where: { id: group.studyId } } );
 		if( !study )
 			throw new NotFoundException( 'study not found' );
 
-		if( !this.studyAvailable( study ) )
+		if( !await this.studyAvailable( group, study ) )
 			throw new ServiceUnavailableException( 'study signup not available' );
 
-		if( study.reg_pass?.length && study.reg_pass !== regPass )
-			throw new ForbiddenException( 'invalid signup key/pass' );
 
-		return study;
+		return { group, study };
 	}
 
-	public async studySignup( key:string, regPass:string, signup?:boolean, participantIdentifier?:User['fs_participant'] ){
+	public async studySignup( key:string, regPass:string, signup?:false ):Promise<SignupCheckResponse>
+	public async studySignup( key:string, regPass:string, signup:true, participantBadge?:string ):Promise<SignupResponse>
+	public async studySignup( key:string, regPass:string, signup?:boolean, participantBadge?:string ):Promise<SignupCheckResponse | SignupResponse>{
 
-		const study = await this.getStudyForSignup( key, regPass );
+		const { study, group } = await this.getStudyForSignup( key, regPass );
 
-		const publicStudy = { name: study.name };
+		if( !study || !group )
+			throw new InternalServerErrorException( 'study or group unavailable' );
+
+		const publicStudy = Sanitize.publicStudy( study );
+
 		if( !signup )
-			return { study: publicStudy };
+			return { study: publicStudy, instructions: group.instructions ?? undefined } as SignupCheckResponse;
 
-		const { username, password } = await this.createParticipant( study.id, participantIdentifier );
+		const { participant, plainPassword } = await this.createParticipant();
+		const member = await this.assignParticipantToGroup( study.id, group.id, participant.id, participantBadge );
+
+		const credentials:ParticipantCredentials = {
+			login: participant.login,
+			password: plainPassword,
+		};
 
 		return {
-			credentials: { username, password },
 			study: publicStudy,
-		};
+			credentials,
+			participant: participant.id,
+			badge: participantBadge,
+		} as SignupResponse;
 	}
 
-	private async createParticipant( studyId:Study['id'], participantIdentifier?:User['fs_participant'] | undefined ){
+	private async assignParticipantToGroup( studyId:Study['id'], groupId:Group['id'], participantId:Participant['id'], participantBadge?:string ):Promise<GroupMember>{
 
-		await this.prisma.study.update( { where: { id: studyId }, data: { user_count: { increment: 1 } } } );
-		const study = await this.prisma.study.findUniqueOrThrow( { where: { id: studyId } } );
+		const existing = await this.prisma.groupMember.findFirst( { where: { groupId, participantId, studyId } } );
+		if( existing )
+			throw new ConflictException( 'participant is already part of this study exists' );
 
-		const username = study.prefix + '_' + study.user_count;
-		const password = generatePassword( { syllablesCount: 2 } );
+		const data:Prisma.GroupMemberCreateInput = {
+			study: { connect: { id: studyId } },
+			group: { connect: { id: groupId } },
+			participant: { connect: { id: participantId } },
+		};
+
+		if( participantBadge )
+			data.badge = participantBadge;
+
+		const member = await this.prisma.groupMember.create( { data } );
+
+		return member;
+	}
+
+	private async createParticipant():Promise<{
+		plainPassword:string,
+		participant:Participant
+	}>{
+
+		const login = nanoid( 16 );
+		const plainPassword = generatePassword( { syllablesCount: 4 } );
 
 		const secret = Buffer.from( this.config.getOrThrow<string>( 'PW_SECRET' ), 'utf-8' );
-		const hashedPass = await hash( password, { secret } );
+		const hashedPass = await hash( plainPassword, { secret } );
 
-		const data:Prisma.UserCreateInput = {
-			name: username,
-			username,
+
+		const data:Prisma.ParticipantCreateInput = {
+			login,
 			password: hashedPass,
-			fs_study: studyId,
-			fs_participant: participantIdentifier,
-			roles: { connect: { id: 2 } },
 		};
 
-		const participant:User = await this.prisma.user.create( { data } );
+		const participant = await this.prisma.participant.create( { data } );
 
-		return { username, password, participant };
+		return { participant, plainPassword };
+	}
+
+	public async prepareStudies( participantId:Participant['id'] ):Promise<PreparedStudy[]>{
+
+		const memberships = await this.prisma.groupMember.findMany( {
+			where: { participantId, state: EntityState.Enabled },
+			include: { study: true, group: true },
+		} );
+		//		const groups = await this.prisma.group.findMany({where: {id: {in: memberships.map(m=>m.groupId)}}});
+		//		const studies = await this.prisma.study.findMany({where: {id: {in: memberships.map(m=>m.studyId)}}});
+
+		const studies:PreparedStudy[] = [];
+
+		for( const membership of memberships ){
+			if( membership.study.state !== EntityState.Enabled ||
+				membership.group.state !== EntityState.Enabled
+			)
+				continue;
+
+			const schedule = await this.prepareSchedule( membership.group.scheduleId );
+
+
+			const prepared:PreparedStudy = {
+				study: Sanitize.publicStudy( membership.study ),
+				badge: membership.badge,
+				schedule,
+			};
+
+			studies.push( prepared );
+
+		}
+
+		return studies;
+	}
+
+	public prepareSlot( slot:Slot & { steps?:Step[] }, stepRefs:StepRefMap ):PreparedSlot{
+		const prepared:PreparedSlot = Sanitize.safeSlot( slot );
+
+		if( slot.steps ){
+			prepared.steps = slot.steps
+				.filter( step => step.state === EntityState.Enabled )
+				.map( Sanitize.safeStep );
+
+			for( const step of prepared.steps )
+				if( step.ref ){
+					if( !stepRefs[step.type] )
+						stepRefs[step.type] = {};
+
+					stepRefs[step.type][step.ref] = null;
+				}
+		}
+
+
+		return prepared;
+	}
+
+	public async prepareSchedule( scheduleId:Nullable<Schedule['id']> ):Promise<PreparedSchedule | undefined>{
+
+		if( !scheduleId )
+			return undefined;
+
+		const schedule = await this.prisma.schedule.findUnique( {
+			where: { id: scheduleId },
+		} );
+
+		if( !schedule )
+			return undefined;
+
+		const stepRefs:StepRefMap = {};
+
+		const slots:SafeSlot[] = await this.prisma.slot.findMany( { where: { scheduleId, state: EntityState.Enabled }, include: { steps: true } } )
+			.then( slots =>
+				slots.map( slot => this.prepareSlot( slot, stepRefs ),
+				) );
+
+
+		const prepared:PreparedSchedule = {
+			schedule: Sanitize.safeSchedule( schedule ),
+			slots,
+		};
+
+		if( Object.keys( stepRefs ).length ){
+			const preparedRefs:PreparedSchedule['refs'] = {};
+
+			for( const [ refType, refs ] of Object.entries( stepRefs ) ){
+				if( refType === StudyStepType.Form )
+					preparedRefs[refType] = await this.prisma.studyForm.findMany( { where: { id: { in: Object.keys( refs ) } } } )
+						.then( forms => forms.map( Sanitize.safeStudyForm ) );
+				else if( refType === StudyStepType.Content )
+					preparedRefs[refType] = await this.prisma.studyContent.findMany( { where: { id: { in: Object.keys( refs ) } } } )
+						.then( contents => contents.map( Sanitize.safeStudyContent ) );
+			}
+
+			// extract and merge form input presets
+			if( preparedRefs[StudyStepType.Form]?.length ){
+				const presets:Record<InputPreset['id'], InputPreset | undefined> = {};
+				for( const form of preparedRefs[StudyStepType.Form] ){
+					for( const item of form.setup.items )
+						if( item.type === 'question' && item.preset )
+							presets[item.preset] = undefined;
+				}
+				const presetIds = Object.keys( presets );
+				if( presetIds.length )
+					preparedRefs.inputPresets = await this.prisma.formInputPreset.findMany( { where: { id: { in: presetIds } } } )
+						.then( presets => presets.map( Sanitize.safeFormInputPreset ) );
+			}
+
+			prepared.refs = preparedRefs;
+		}
+
+		return prepared;
+
 	}
 
 
+	public async recordResponses( participantId:Participant['id'], payload:SubmitResponsesPayload ){
 
+		const studyIds = payload.responses
+			.map( r => r._study )
+			.filter( ( v, i, a ) => a.indexOf( v ) == i );
+
+		const participantGroups = await this.prisma.groupMember.findMany( {
+			where: {
+				participantId,
+				studyId: { in: studyIds },
+			},
+		} );
+		const groupStudyMap = participantGroups.reduce( ( map, group ) =>
+			(
+				map[group.studyId] = group.groupId    ,
+					map
+			), {} as { [studyId:string]:string } );
+
+		const data:Prisma.StudyResponseCreateManyInput[] = [];
+
+		const recordedUids:StepResponse['uid'][] = [];
+		for( const submittedResponse of payload.responses ){
+			const { _study: studyId, ...response } = submittedResponse;
+			const groupId = groupStudyMap[studyId];
+
+			data.push( {
+				studyId,
+				groupId,
+				stepId: response.step,
+				slotId: response.slot,
+				participantId,
+				type: response.type,
+				uid: response.uid,
+				suid: response.suid,
+				forDay: response.forDay,
+				data: response.data as Prisma.InputJsonValue,
+			} );
+
+			recordedUids.push( response.uid );
+		}
+
+		const created = await this.prisma.studyResponse.createMany( { data: data } );
+
+		return Promise.resolve( { success: recordedUids } );
+	}
 }
+
+

@@ -4,14 +4,19 @@
 @import "ionic";
 @import "ng-material";
 
-@import "base/form";
 @import "base/elements";
 @import "base/layout";
 
 @import "views/login_signup";
 @import "views/log";
 @import "views/study";
+
+@import "steps/content";
+@import "steps/form";
+
 @import "components/scanner";
+@import "components/markdown";
+@import "components/study";
 
 html, body {
 	height: 100%;

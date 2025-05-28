@@ -1,0 +1,461 @@
+import { ClockCircleOutlined, EditOutlined, PlusCircleOutlined, RollbackOutlined } from '@ant-design/icons';
+import { EmojiFoodBeverageOutlined, NewspaperOutlined, QuizOutlined } from '@mui/icons-material';
+import { EntityState, hoursToTime, Prisma, Schedule, ScheduleCustomizability, Slot, Step, Study, StudyContent, StudyForm, StudyStepType } from '@nutritious/core';
+import { useList } from '@refinedev/core';
+import { Button, Card, Col, Descriptions, Divider, Empty, Flex, Form, FormProps, Input, List, Modal, Popconfirm, Row, Select, Space, Tag, Timeline } from 'antd';
+import { TimeLineItemProps } from 'antd/lib/timeline/TimelineItem';
+import { DefaultOptionType } from 'rc-select/lib/Select';
+import React, { useEffect, useState } from 'react';
+import { WeekdayPicker } from '../form-components/WeekdayPicker';
+import { parseSchedule } from './ScheduleTimeline';
+import { StudyStepTypeMeta } from './shared';
+import { SlotShortEditor } from './SlotShortEditor';
+
+
+
+export type SlotUpdateDto = Partial<Slot> & { steps?:Partial<Step & { _remove?:boolean, _listId?:string }>[] };
+
+export type SlotWithListData<T extends SlotUpdateDto = SlotUpdateDto> = T & { _listId:string, _onlyOnDays?:string[] };
+
+
+export function SlotItemContent( props:{
+	slot:SlotWithListData,
+	formMap:Record<string, StudyForm> | undefined,
+	contentMap:Record<string, StudyContent> | undefined
+	onEdit?:( slot:SlotWithListData ) => void,
+	hideSteps?:boolean
+} ){
+	const { slot } = props;
+	return <Space direction={ 'vertical' }>
+		<Space>
+			<Button size="small" shape="round" type="default">{ slot.name as string }</Button>
+			{ props.onEdit != null &&
+				<Button size="small" shape="circle" type="default" icon={ <EditOutlined /> }
+						onClick={ () => props.onEdit?.( slot ) }
+				/>
+			}
+
+			{ slot._onlyOnDays && <small>{ slot._onlyOnDays.join( ', ' ) }</small> }
+
+		</Space>
+		{ props.hideSteps ? <></> :
+		  <ol>
+			  { slot.steps?.map( step => (
+				  <li key={ step._listId ?? step.id }>
+					  <Space align={ 'center' }>
+						  { step.type === StudyStepType.Content && <NewspaperOutlined fontSize={ 'small' } /> }
+						  { step.type === StudyStepType.Form && <QuizOutlined fontSize={ 'small' } /> }
+						  { step.type === StudyStepType.BlsFood && <EmojiFoodBeverageOutlined fontSize={ 'small' } /> }
+
+						  <Tag>
+							  { step.type === StudyStepType.Content && ( props.contentMap?.[step.ref ?? 0]?.name ?? '?' ) }
+							  { step.type === StudyStepType.Form && ( props.formMap?.[step.ref ?? 0]?.name ?? '?' ) }
+							  { step.type === StudyStepType.BlsFood && StudyStepTypeMeta['bls-food-entry'].name }
+						  </Tag>
+					  </Space>
+				  </li>
+			  ) ) }
+		  </ol>
+		}
+	</Space>;
+}
+
+
+
+export const ScheduleFormElements:React.FC<{
+	formProps:FormProps<Prisma.ScheduleCreateInput> | FormProps<Prisma.ScheduleUpdateInput>,
+	study:Study,
+	isCreate?:boolean
+}> = ( { study, isCreate, formProps } ) => {
+	let createCount = 0;
+
+	const startOfWeek = formProps?.form?.getFieldValue( [ 'weekSetup', 'startOfWeek' ] );
+
+	const dayHoursOptions:DefaultOptionType[] = Array.from(
+		{ length: 24 },
+		( v, h ) => ( {
+			label: hoursToTime( h ),
+			value: h * 60,
+		} ),
+	);
+
+	const graceOptions:DefaultOptionType[] = [
+		{ label: 'no grace period', value: 0 },
+		...Array.from(
+			{ length: 48 },
+			( v, h ) => ( {
+				label: `${ h + 1 } hour${ h ? 's' : '' }`,
+				value: ( h + 1 ) * 60,
+			} ),
+		),
+	];
+
+
+	const [ allDaySlots, setAllDaySlots ] = useState<SlotWithListData[]>( [] );
+	const [ removedSlots, setRemovedSlots ] = useState<SlotWithListData[]>( [] );
+	const [ dayStart, setDayStart ] = useState<number>( formProps?.form?.getFieldValue( 'daySetup' )?.[0].start ?? 0 );
+	const [ timeline, setTimeline ] = useState<TimeLineItemProps[]>( [] );
+
+	const { data: availableForms, isLoading: isLoadingForms } =
+		useList<StudyForm>( {
+			resource: 'study-forms',
+			filters: [ { field: 'studyId', operator: 'eq', value: study?.id } ],
+		} );
+	const [ formMap, setFormMap ] = useState<Record<string, StudyForm>>();
+	useEffect( () => {
+		setFormMap( availableForms?.data?.reduce( (
+				map, form ) => (
+				map[form.id] = form,
+					map
+			)
+			, {} as Record<string, StudyForm> ) );
+	}, [ availableForms ] );
+
+	const { data: availableContents, isLoading: isLoadingContents } =
+		useList<StudyContent>( {
+			resource: 'study-contents',
+			filters: [ { field: 'studyId', operator: 'eq', value: study?.id } ],
+		} );
+	const [ contentMap, setContentMap ] = useState<Record<string, StudyContent>>();
+	useEffect( () => {
+		setContentMap( availableContents?.data?.reduce( (
+				map, content ) => (
+				map[content.id] = content,
+					map
+			)
+			, {} as Record<string, StudyContent> ) );
+	}, [ availableContents ] );
+
+
+
+	const updateTimeline = () => {
+
+		const daySetup:Schedule['daySetup'] = formProps.form?.getFieldValue( 'daySetup' );
+		const slots:SlotWithListData[] = formProps.form?.getFieldValue( 'slots' );
+
+		if( !slots?.length )
+			return;
+
+		const { dayStart, allDaySlots, timelineItems, uniqueSlotChecks, removedSlots }
+			= parseSchedule( daySetup, slots, createCount, formMap, contentMap, editSlot );
+
+		setDayStart( dayStart );
+		setAllDaySlots( allDaySlots );
+		setTimeline( timelineItems );
+		setUniqueSlotChecks( uniqueSlotChecks );
+		setRemovedSlots( removedSlots );
+	};
+
+	useEffect( () => {
+		// TODO: this timeout is a workaround for the formProps not being available during init in some situations
+		setTimeout( () => updateTimeline(), 100 );
+	}, [ study, formProps, formMap, contentMap ] );
+	//	updateTimeline();
+
+
+
+	let [ selectedSlot, setSelectedSlot ] = useState<SlotWithListData | undefined | null>();
+	const [ isNewSlot, setIsNewSlot ] = useState( false );
+	const [ submitSlotForm, callSubmitSlotForm ] = useState( 0 );
+
+	const [ uniqueSlotChecks, setUniqueSlotChecks ] = useState<( Pick<SlotWithListData, 'key' | 'name' | '_listId'> & { time?:number } )[]>( [] );
+
+
+
+	const cancelSlotEditing = () => {
+		setSelectedSlot( null );
+	};
+
+	const confirmSlotChanges = ( data:SlotWithListData<SlotUpdateDto> ) => {
+		const slotsValue:( SlotWithListData<SlotUpdateDto> )[] = formProps?.form?.getFieldValue( 'slots' ) ?? [];
+
+		// patch slot
+		const existing = slotsValue.find( slot => ( slot._listId || slot.id ) === ( data?._listId || data?.id ) );
+
+		if( existing )
+			Object.assign( existing, data );
+		else
+			slotsValue.push( data );
+
+		formProps?.form?.setFieldValue( 'slots', slotsValue );
+		updateTimeline();
+
+		setIsNewSlot( false );
+		setSelectedSlot( null );
+	};
+
+	const addSlot = () => {
+		const slot:typeof selectedSlot = {
+			key: '',
+			name: '',
+			state: EntityState.Enabled,
+			availability: { allDay: false } as SlotWithListData['availability'],
+			steps: [ { _listId: 'new_' + Date.now() } ],
+			_listId: 'new_' + ++createCount,
+		};
+		setIsNewSlot( true );
+		setSelectedSlot( slot );
+	};
+
+	const editSlot = ( slot:SlotWithListData ) => {
+		setIsNewSlot( false );
+		setSelectedSlot( slot );
+	};
+
+	const deleteSlot = ( slot?:SlotWithListData | null ) => {
+		if( !slot )
+			return;
+
+		if( !slot.id ){
+			// local
+			let slots:SlotWithListData[] = formProps.form?.getFieldValue( 'slots' );
+			slots = slots.filter( s => s._listId !== slot._listId );
+			formProps.form?.setFieldValue( 'slots', slots );
+
+			setIsNewSlot( false );
+			setSelectedSlot( null );
+
+			updateTimeline();
+		}else{
+			// remote
+			slot.state = EntityState.Deleted;
+			confirmSlotChanges( slot );
+		}
+	};
+
+	const reactivateSlot = ( slot:SlotWithListData ) => {
+		slot.state = EntityState.Enabled;
+		confirmSlotChanges( slot );
+	};
+
+
+	return ( <>
+		<Modal open={ !!selectedSlot } onCancel={ cancelSlotEditing }
+			   centered width={ 600 }
+			   title={ ( selectedSlot && 'id' in selectedSlot && selectedSlot?.id ) ? 'Edit Slot' : 'Add Slot' }
+			   footer={ <Flex justify={ isNewSlot ? 'flex-end' : 'space-between' }>
+				   { !isNewSlot && <Popconfirm
+					   title="Remove slot"
+					   description="Are you sure you want to remove this slot?"
+					   onConfirm={ () => deleteSlot( selectedSlot ) }
+					   okText="Yes"
+					   cancelText="No"
+				   >
+					   <Button type={ 'link' } danger>{ 'remove slot' }</Button>
+				   </Popconfirm>
+				   }
+				   <Button type={ 'primary' } onClick={ () => callSubmitSlotForm( prev => prev + 1 ) }>{ 'Ok' }</Button>
+			   </Flex> }
+		>
+			{ !selectedSlot
+			  ? <></>
+			  : <SlotShortEditor slot={ selectedSlot }
+								 study={ study }
+								 startOfWeek={ startOfWeek }
+								 dayStart={ dayStart }
+								 isCreate={ isNewSlot }
+								 onFinish={ confirmSlotChanges }
+								 uniqueSlotChecks={ uniqueSlotChecks }
+								 submit={ submitSlotForm }
+			  />
+			}
+		</Modal>
+
+
+		<Space direction={ 'vertical' } className={ 'stretch' }>
+			<Card title={ 'Schedule' + ( isCreate ? 'New' : ` ( ${ formProps?.form?.getFieldValue( 'id' ) } )` ) }
+				  extra={
+					  <Descriptions size={ 'small' } bordered={ true }
+									items={ [ { label: 'Study', children: study?.name } ] }
+					  />
+				  }>
+
+				<Row gutter={ [ 50, 50 ] }>
+					<Col xs={ 24 } lg={ 12 }>
+						<Form.Item
+							label="Name" name={ [ 'name' ] }
+							rules={ [ { required: true } ] }
+						>
+							<Input autoFocus={ isCreate } />
+						</Form.Item>
+					</Col>
+					<Col xs={ 24 } lg={ 12 }>
+						<Form.Item label="Notes (private)"
+								   name={ 'notes' }
+						>
+							<Input.TextArea
+								autoSize={ true } style={ { minHeight: 50 } }
+							/>
+						</Form.Item>
+					</Col>
+				</Row>
+
+				<Row>
+					<Col>
+						<Form.Item label={ 'Participant Customizability' } name={ 'customizable' } extra={ 'the extend to which participants are allowed to adjust the schedule' }>
+							<Select
+								allowClear
+								placeholder={ 'not customizable' }
+								options={ [
+									{ label: 'Day Start and End', value: ScheduleCustomizability.DayStartEnd },
+									{ label: 'Time of individual slots', value: ScheduleCustomizability.SlotsOnly },
+									{ label: 'Day Start/End and Time of Slots', value: ScheduleCustomizability.All },
+								] } />
+						</Form.Item>
+					</Col>
+				</Row>
+			</Card>
+
+			<Card title={ 'Week' }>
+				<Space direction={ 'vertical' }>
+
+					<Space align={ 'start' }>
+
+						<Form.Item
+							label="Week Starts on" name={ [ 'weekSetup', 'startOfWeek' ] }
+							rules={ [ { required: true } ] }
+						>
+							<Select options={ [ { label: 'Sunday', value: 0 }, { label: 'Monday', value: 1 } ] } />
+						</Form.Item>
+
+						<Divider type={ 'vertical' } />
+
+
+						<Form.List name="daySetup">
+							{ ( fields, { add, remove } ) => (
+								<>
+									{ fields.map( ( { key, name, ...restField } ) => (
+										<Space key={ key } style={ { display: 'flex', marginBottom: 8 } } align="baseline">
+
+											<Form.Item { ...restField }
+													   label={ 'On days' }
+													   name={ [ name, 'days' ] }
+													   rules={ [ { required: true } ] }
+											>
+												<WeekdayPicker startOfWeek={ startOfWeek } readOnly />
+											</Form.Item>
+
+											<Form.Item
+												{ ...restField }
+												label={ 'Day begins' }
+												name={ [ name, 'start' ] }
+											>
+												<Select
+													options={ dayHoursOptions }
+													allowClear={ true }
+													placeholder={ 'at midnight' }
+													suffixIcon={ <ClockCircleOutlined /> }
+													onChange={ updateTimeline }
+												/>
+											</Form.Item>
+
+											<Form.Item
+												{ ...restField }
+												label={ 'Day ends' }
+												name={ [ name, 'end' ] }
+											>
+												<Select options={ dayHoursOptions }
+														allowClear={ true }
+														placeholder={ 'at midnight' }
+														suffixIcon={ <ClockCircleOutlined /> }
+														onChange={ updateTimeline }
+												/>
+											</Form.Item>
+
+											<Form.Item
+												{ ...restField }
+												label={ 'Response grace period' }
+												name={ [ name, 'grace' ] }
+											>
+												<Select options={ graceOptions } allowClear={ true } placeholder={ 'no limit (forever)' } />
+											</Form.Item>
+
+											{/*<MinusCircleOutlined onClick={ () => remove( name ) } />*/ }
+										</Space>
+									) ) }
+
+									{/*<Form.Item>
+										<Button type="dashed" onClick={ () => add() } block icon={ <PlusOutlined /> }>
+											Add field
+										</Button>
+									</Form.Item>*/ }
+								</>
+							) }
+						</Form.List>
+					</Space>
+
+				</Space>
+
+				<Row gutter={ [ 50, 50 ] }>
+					<Col xs={ 24 } lg={ 12 }>
+
+					</Col>
+
+					<Col xs={ 24 } lg={ 12 }>
+
+					</Col>
+				</Row>
+			</Card>
+
+
+			{ isCreate
+			  ? <Card title={ 'Schedule' }>
+				  <Empty description={ 'Please save the schedule once before adding items to it' } />
+			  </Card>
+
+			  : <Card title={ 'Schedule' } extra={
+					<Button type={ 'primary' } icon={ <PlusCircleOutlined /> }
+							onClick={ addSlot }
+					>{ 'add slot to schedule' }</Button>
+				}>
+
+				  <Row gutter={ [ 50, 50 ] }>
+					  <Col xs={ 24 } lg={ { span: 12, order: 2 } }>
+
+						  <Divider orientation={ 'left' }>All Day Slots</Divider>
+						  <List
+							  dataSource={ allDaySlots }
+							  split={ false }
+							  renderItem={ ( slot:SlotWithListData ) => (
+								  <List.Item
+									  /*actions={ [ <a key="list-loadmore-edit">edit</a>, <a key="list-loadmore-more">more</a> ] }*/
+								  >
+									  <SlotItemContent slot={ slot } onEdit={ editSlot } contentMap={ contentMap } formMap={ formMap } />
+								  </List.Item>
+							  ) }
+						  />
+
+						  { !removedSlots?.length ? <></> :
+							<>
+								<Divider orientation={ 'left' }>Removed Slots</Divider>
+								<List
+									dataSource={ removedSlots }
+									split={ false }
+									renderItem={ ( slot:SlotWithListData ) => (
+										<List.Item>
+											<Space>
+												<SlotItemContent slot={ slot } contentMap={ contentMap } formMap={ formMap } hideSteps={ true } />
+												<Button size="small" shape="circle" type="default" icon={ <RollbackOutlined /> }
+														onClick={ () => reactivateSlot( slot ) } title={ 'recover' }
+												/>
+											</Space>
+										</List.Item>
+									) }
+								/>
+							</>
+						  }
+
+					  </Col>
+
+					  <Col xs={ 24 } lg={ 12 }>
+						  <Divider>Scheduled Slots</Divider>
+
+						  <Timeline mode={ 'left' } items={ timeline } />
+					  </Col>
+				  </Row>
+			  </Card>
+			}
+
+		</Space>
+	</> );
+};

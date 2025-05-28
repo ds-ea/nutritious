@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Nutritious</string>
-    <string name="title_activity_main">Nutritious</string>
-    <string name="package_name">net.dsea.foodstudyapp</string>
-    <string name="custom_url_scheme">net.dsea.foodstudyapp</string>
+    <string name="app_name">FoodApp</string>
+    <string name="title_activity_main">FoodApp</string>
+    <string name="package_name">de.dife.foodapp</string>
+    <string name="custom_url_scheme">app.foodapp.dife.de</string>
 </resources>

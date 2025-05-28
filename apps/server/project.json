@@ -13,18 +13,37 @@
 				"compiler": "tsc",
 				"outputPath": "dist/apps/server",
 				"main": "apps/server/src/main.ts",
+				"generatePackageJson": true,
 				"tsConfig": "apps/server/tsconfig.app.json",
 				"assets": [
 					"apps/server/src/assets",
 					"apps/server/src/public",
-					"apps/server/src/views"
+					"apps/server/src/views",
+					{
+						"glob": "**/*",
+						"input": "libs/core/prisma",
+						"output": "./prisma"
+					},
+					{
+						"glob": "**/*",
+						"input": "apps/admin/dist",
+						"output": "./admin"
+					},
+					{
+						"glob": "**/*",
+						"input": "dist/apps/app",
+						"output": "./app"
+					}
 				],
-				"isolatedConfig": true,
 				"webpackConfig": "apps/server/webpack.config.js"
 			},
 			"configurations": {
-				"development": {},
-				"production": {}
+				"development": {
+					"sourceMap": true
+				},
+				"production": {
+					"generatePackageJson": true
+				}
 			}
 		},
 		"serve": {
@@ -44,23 +63,13 @@
 		},
 		"lint": {
 			"executor": "@nx/eslint:lint",
-			"outputs": ["{options.outputFile}"],
-			"options": {
-				"lintFilePatterns": ["apps/server/**/*.ts"]
-			}
+			"outputs": ["{options.outputFile}"]
 		},
 		"test": {
 			"executor": "@nx/jest:jest",
 			"outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
 			"options": {
-				"jestConfig": "apps/server/jest.config.ts",
-				"passWithNoTests": true
-			},
-			"configurations": {
-				"ci": {
-					"ci": true,
-					"codeCoverage": true
-				}
+				"jestConfig": "apps/server/jest.config.ts"
 			}
 		}
 	},

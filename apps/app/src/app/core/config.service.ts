@@ -1,57 +1,58 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
-export interface AppConfig{
-	API_URL: string;
-	
+
+export type AppConfig = {
+	DEPLOYMENT_ENV?:string;
+	PROJECT_NAME?:string;
+	API_URL?:string;
 	PRIVACY_URL?:string;
 	SUPPORT_URL?:string;
-	SUPPORT_EMAIL?:string;
-	SUPPORT_CONTACT?:string;
+	QR_CODE_HASH?:string;
 }
+type AppConfigKeys = keyof AppConfig;
+const appConfigKeys:AppConfigKeys[] = [ 'DEPLOYMENT_ENV', 'PROJECT_NAME', 'API_URL', 'PRIVACY_URL', 'SUPPORT_URL', 'QR_CODE_HASH' ];
 
 @Injectable( {
-	             providedIn: 'root',
-             } )
+	providedIn: 'root',
+} )
 export class ConfigService{
 	protected _loaded = false;
-	
-	protected config:AppConfig|undefined;
-	
-	constructor(
-		private http:HttpClient
-	){ }
-	
-	public async loadConfig( env:'DEV'|'PROD' ):Promise<AppConfig>{
+
+	protected config:AppConfig | undefined;
+
+	constructor(){ }
+
+	public async loadConfig():Promise<AppConfig>{
 		if( this._loaded )
 			throw new Error( 'can\'t load config twice' );
-		
-		const data = await this.http.get<Record<string, AppConfig>>('app.config.json').toPromise();
-		if( !data )
-			throw new Error('can not load app config file');
-		
-		const config = data[ env ] || undefined;
-		if( !config )
-			throw new Error('app config does not include data for env '+ env );
-		
+
+		const config:AppConfig = {
+			DEPLOYMENT_ENV: process.env['NX_DEPLOYMENT_ENV'],
+			PROJECT_NAME: process.env['NX_PROJECT_NAME'],
+			API_URL: process.env['NX_API_URL'],
+			PRIVACY_URL: process.env['NX_PRIVACY_URL'],
+			SUPPORT_URL: process.env['NX_SUPPORT_URL'],
+			QR_CODE_HASH: process.env['NX_QR_CODE_HASH'],
+		};
+
 		this.config = config;
 		this._loaded = true;
-		
+
 		return config;
 	}
-	
-	public get( key:string ):any{
-		let parts = key.split('.');
-		
+
+	public get( key:keyof AppConfig ):any{
+		let parts = key.split( '.' );
+
 		let value:any = this.config;
 		for( const k of parts ){
 			if( value[k] === undefined )
 				return undefined;
-			
+
 			value = value[k];
 		}
-		
+
 		return value;
 	}
-	
+
 }

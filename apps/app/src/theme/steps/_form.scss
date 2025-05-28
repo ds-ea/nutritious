@@ -1,0 +1,100 @@
+@use '@angular/material' as mat;
+
+.form-vertical {
+	display: flex;
+	flex-direction: column;
+}
+
+
+input.mat-input-element,
+textarea.mat-input-element {
+	//border-bottom: 1px solid ;
+}
+
+nutri-step-form {
+	display: flex;
+	max-width: 100%;
+}
+
+study-form {
+	display: flex;
+	flex-direction: column;
+
+	width: $grid-width-minor;
+	max-width: 100%;
+
+
+	.intro {
+		max-width: $grid-width;
+		margin-bottom: $gutter * 5;
+	}
+
+}
+
+.study-form {
+
+	.question {
+		display: flex;
+		flex-direction: column;
+		justify-content: stretch;
+
+		margin-block: 2rem;
+		padding-block-start: 2rem;
+
+		+ .question {
+			border-block-start: 1px solid #eee;
+		}
+
+		> label {
+			font-size: 1.2rem;
+			margin-block-end: 1rem;
+		}
+
+		> .description {
+			margin-block-end: 1rem;
+		}
+
+		.form-control {
+			display: flex;
+			flex-direction: column;
+
+			mat-form-field {
+				flex-grow: 1;
+			}
+
+			mat-slider {
+				flex-grow: 1;
+			}
+
+			mat-button-toggle-group {
+				width: min-content;
+			}
+
+			.form-choice-checkboxes {
+				list-style-type: none;
+				padding: 0;
+				margin: 0;
+
+				display: grid;
+				grid-template-columns: 1fr;
+
+				@media only screen and (min-width: 450px) {
+
+					grid-template-columns: 1fr 1fr;
+				}
+			}
+
+
+			&.ng-pristine .mdc-slider {
+				--mdc-slider-active-track-color: #ccc;
+				--mdc-slider-handle-color: #ccc;
+			}
+		}
+
+		&.invalid.touched {
+			> label {
+				color: mat.get-theme-color($light-theme, warn, text);
+			}
+		}
+	}
+}

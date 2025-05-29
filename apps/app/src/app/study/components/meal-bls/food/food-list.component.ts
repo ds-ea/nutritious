@@ -22,9 +22,9 @@ interface FoodLibraryItem{
 }
 
 @Component( {
-	selector: 'app-food-list',
-	changeDetection: ChangeDetectionStrategy.OnPush,
-	template: `
+    selector: 'app-food-list',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `
 		<ion-list class="meal-items">
 			<ion-item-sliding *ngFor="let item of mealItems" (click)="editFood(item, $event)">
 				<div class="meal-item">
@@ -71,6 +71,7 @@ interface FoodLibraryItem{
 		</div>
 
 	`,
+    standalone: false
 } )
 export class FoodListComponent implements OnInit, OnDestroy{
 	private _destroyed$ = new ReplaySubject<boolean>( 1 );

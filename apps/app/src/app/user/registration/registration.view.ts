@@ -20,8 +20,8 @@ enum SignupStep{
 }
 
 @Component( {
-	selector: 'app-registration',
-	template: `
+    selector: 'app-registration',
+    template: `
 		<ion-content class="content-centered" [ngClass]="['step-'+step]">
 			<div class="">
 				<mat-card>
@@ -170,8 +170,9 @@ enum SignupStep{
 			</ng-template>
 		</ion-content>
 	`,
-	styles: [],
-	changeDetection: ChangeDetectionStrategy.OnPush,
+    styles: [],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 } )
 export class RegistrationView implements OnInit, OnDestroy{
 	public SignupStep = SignupStep;

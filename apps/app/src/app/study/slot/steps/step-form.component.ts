@@ -5,9 +5,9 @@ import { AbstractStepComponent, StepProgress } from './abstract-step.component';
 
 
 @Component( {
-	changeDetection: ChangeDetectionStrategy.OnPush,
-	selector: 'nutri-step-form',
-	template: `
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'nutri-step-form',
+    template: `
 
 		<study-form [form]="ref" [data]="data"
 					[refs]="slot.refs"
@@ -17,6 +17,7 @@ import { AbstractStepComponent, StepProgress } from './abstract-step.component';
 		/>
 
 	`,
+    standalone: false
 } )
 export class StepFormComponent extends AbstractStepComponent<SafeStudyForm, FormResponseData>{
 

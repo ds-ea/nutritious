@@ -4,9 +4,9 @@ import { AbstractInput } from './abstract-input';
 
 
 @Component( {
-	selector: 'nutri-slider-input',
-	changeDetection: ChangeDetectionStrategy.OnPush,
-	template: `
+    selector: 'nutri-slider-input',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `
 		<div [formGroup]="formGroup" *ngIf="item" class="form-control">
 			<mat-slider
 				[min]="config?.min ?? null"
@@ -29,6 +29,7 @@ import { AbstractInput } from './abstract-input';
 			}
 		</div>
 	`,
+    standalone: false
 } )
 export class SliderInput extends AbstractInput<FormInputType.Slider>{
 }

@@ -2,7 +2,7 @@ import { PlatformModule } from '@angular/cdk/platform';
 import { PortalModule } from '@angular/cdk/portal';
 import { LOCATION_INITIALIZED } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { APP_INITIALIZER, Injector, NgModule } from '@angular/core';
+import { Injector, NgModule, inject, provideAppInitializer } from '@angular/core';
 import { DateAdapter, MAT_DATE_LOCALE, NativeDateModule } from '@angular/material/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -104,12 +104,10 @@ export function appInitializerFactory( injector:Injector, translate:TranslateSer
 		CoreService,
 		ApiService,
 		{ provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
-		{
-			provide: APP_INITIALIZER,
-			useFactory: appInitializerFactory,
-			deps: [ Injector, TranslateService, Platform, ConfigService, DateAdapter, DateFnsConfigurationService ],
-			multi: true,
-		},
+		provideAppInitializer(() => {
+        const initializerFn = (appInitializerFactory)(inject(Injector), inject(TranslateService), inject(Platform), inject(ConfigService), inject(DateAdapter), inject(DateFnsConfigurationService));
+        return initializerFn();
+      }),
 		{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
 	],
 	bootstrap: [ AppComponent ],

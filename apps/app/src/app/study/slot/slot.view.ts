@@ -33,9 +33,9 @@ function parseEntryDate( dateStr?:string | null ){
 }
 
 @Component( {
-	selector: 'slot-view',
-	changeDetection: ChangeDetectionStrategy.OnPush,
-	template: `
+    selector: 'slot-view',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `
 		<ion-content class="content-centered">
 
 			<div class="view-content">
@@ -84,6 +84,7 @@ function parseEntryDate( dateStr?:string | null ){
 			</div>
 		</ion-content>
 	`,
+    standalone: false
 } )
 
 export class SlotView implements OnInit, OnDestroy{

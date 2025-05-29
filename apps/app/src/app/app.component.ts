@@ -12,8 +12,8 @@ import { StudyService } from './study/study.service';
 
 
 @Component( {
-	selector: 'app-root',
-	template: `
+    selector: 'app-root',
+    template: `
 		<ion-app [ngClass]="'env-'+deployENV">
 			<ion-router-outlet id="main"></ion-router-outlet>
 
@@ -71,6 +71,7 @@ import { StudyService } from './study/study.service';
 			<ng-template [cdkPortalOutlet]="$any(core.scannerUIPortal)"></ng-template>
 		</div>
 	`,
+    standalone: false
 } )
 export class AppComponent implements OnInit{
 

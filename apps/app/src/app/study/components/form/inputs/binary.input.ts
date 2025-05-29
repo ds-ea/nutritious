@@ -4,9 +4,9 @@ import { AbstractInput } from './abstract-input';
 
 
 @Component( {
-	selector: 'nutri-binary-input',
-	changeDetection: ChangeDetectionStrategy.OnPush,
-	template: `
+    selector: 'nutri-binary-input',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `
 		<div [formGroup]="formGroup" *ngIf="item" class="form-control">
 			<!--<mat-slide-toggle
 				[id]="ctrlId" [attr.aria-labelledby]="labelId"
@@ -20,6 +20,7 @@ import { AbstractInput } from './abstract-input';
 
 		</div>
 	`,
+    standalone: false
 } )
 export class BinaryInput extends AbstractInput<FormInputType.Binary>{
 }

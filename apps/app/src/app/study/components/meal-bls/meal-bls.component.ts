@@ -19,9 +19,9 @@ export type MealBLSSubmitResult = {
 
 
 @Component( {
-	selector: 'meal-bls',
-	changeDetection: ChangeDetectionStrategy.OnPush,
-	template: `
+    selector: 'meal-bls',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `
 		<form [formGroup]="mealForm" (ngSubmit)="submit" autocomplete="off">
 			<mat-accordion class="accordion-desc-right">
 
@@ -104,6 +104,7 @@ export type MealBLSSubmitResult = {
 		</form>
 
 	`,
+    standalone: false
 } )
 export class MealBlsComponent implements OnInit{
 

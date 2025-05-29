@@ -75,8 +75,8 @@ type ScheduleActions = {
 
 
 @Component( {
-	selector: 'app-dashboard',
-	template: `
+    selector: 'app-dashboard',
+    template: `
 		<ion-content class="content-centered">
 
 			@if (dateDebug) {
@@ -294,8 +294,9 @@ type ScheduleActions = {
 
 		</ion-content>
 	`,
-	styles: [],
-	changeDetection: ChangeDetectionStrategy.OnPush,
+    styles: [],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 } )
 export class DashboardView implements OnInit, OnDestroy{
 	private _destroyed$ = new ReplaySubject<boolean>( 1 );

@@ -4,8 +4,8 @@
 	"projectType": "application",
 	"prefix": "nutritious",
 	"sourceRoot": "apps/app/src",
-	"implicitDependencies": ["core", "api-client"],
 	"tags": [],
+	"implicitDependencies": ["core", "api-client"],
 	"targets": {
 		"build": {
 			"executor": "@nx/angular:webpack-browser",
@@ -32,7 +32,12 @@
 				],
 				"styles": ["apps/app/src/theme/app.scss"],
 				"scripts": [],
-				"allowedCommonJsDependencies": ["fuzzysort", "localforage", "localforage-cordovasqlitedriver", "dayjs"],
+				"allowedCommonJsDependencies": [
+					"fuzzysort",
+					"localforage",
+					"localforage-cordovasqlitedriver",
+					"dayjs"
+				],
 				"customWebpackConfig": {
 					"path": "apps/app/webpack.config.js"
 				}
@@ -103,7 +108,8 @@
 					"buildTarget": "app:build:production"
 				}
 			},
-			"defaultConfiguration": "development"
+			"defaultConfiguration": "development",
+			"continuous": true
 		},
 		"extract-i18n": {
 			"executor": "@angular-devkit/build-angular:extract-i18n",

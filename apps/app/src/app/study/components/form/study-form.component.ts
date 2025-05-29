@@ -42,12 +42,12 @@ function emptyValue( control:AbstractControl ):boolean | undefined{
 
 
 @Component( {
-	selector: 'study-form',
-	changeDetection: ChangeDetectionStrategy.OnPush,
-	providers: [
-		//		{ provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline' } },
-	],
-	template: `
+    selector: 'study-form',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [
+    //		{ provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline' } },
+    ],
+    template: `
 		<mat-card *ngIf="form?.setup">
 			<mat-card-content>
 				@if (form?.intro?.length) {
@@ -99,6 +99,7 @@ function emptyValue( control:AbstractControl ):boolean | undefined{
 			</mat-card-content>
 		</mat-card>
 	`,
+    standalone: false
 } )
 
 export class StudyFormComponent implements OnInit, OnDestroy, OnChanges{

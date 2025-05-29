@@ -20,7 +20,7 @@ PODS:
     - Capacitor
   - CapacitorStatusBar (5.0.7):
     - Capacitor
-  - CordovaPlugins (5.7.0):
+  - CordovaPlugins (6.2.1):
     - CapacitorCordova
   - SQLCipher (4.5.0):
     - SQLCipher/standard (= 4.5.0)
@@ -82,7 +82,7 @@ SPEC CHECKSUMS:
   CapacitorPreferences: 77ac427e98db83bace772455f8ba447430382c4c
   CapacitorSplashScreen: dd3de3f3644710fa2a697cfb91ec262eece4d242
   CapacitorStatusBar: f390fbb49b82ffb754ea4b3cf71dc8b048baf3e7
-  CordovaPlugins: a707edf6d79ba00bd300f341fe9e1ada032d211f
+  CordovaPlugins: 074313bc9da856291f0bce4e201eb19ed3caf995
   SQLCipher: 98dc22f27c0b1790d39e710d440f22a466ebdb59
   ZIPFoundation: ae5b4b813d216d3bf0a148773267fff14bd51d37
 

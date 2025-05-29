@@ -3,5 +3,16 @@
 	"appName": "FoodApp",
 	"webDir": "../../dist/apps/app",
 	"bundledWebRuntime": false,
-	"launchAutoHide": false
+	"launchAutoHide": false,
+	"packageClassList": [
+		"BarcodeScanner",
+		"CapacitorSQLitePlugin",
+		"AppPlugin",
+		"HapticsPlugin",
+		"KeyboardPlugin",
+		"PreferencesPlugin",
+		"SplashScreenPlugin",
+		"StatusBarPlugin",
+		"CDVPlugin"
+	]
 }

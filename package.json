@@ -1,6 +1,6 @@
 {
 	"name": "@nutritious/source",
-	"version": "3.0.1",
+	"version": "3.0.2",
 	"license": "UNLICENSED",
 	"scripts": {},
 	"private": true,
@@ -123,7 +123,7 @@
 		"@angular/compiler-cli": "19.2.14",
 		"@angular/language-service": "19.2.14",
 		"@capacitor/assets": "^3.0.5",
-		"@capacitor/cli": "^5.7.0",
+		"@capacitor/cli": "^6.2.1",
 		"@ionic/angular-toolkit": "^11.0.1",
 		"@lit/react": "^1.0.3",
 		"@nestjs/schematics": "^11.0.5",

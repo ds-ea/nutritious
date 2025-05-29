@@ -6,5 +6,7 @@ declare const process:{
 		NX_PRIVACY_URL:string;
 		NX_SUPPORT_URL:string;
 		NX_QR_CODE_HASH:string;
+		NX_APP_BUILD:string;
+		NX_APP_VERSION:string;
 	}
 };

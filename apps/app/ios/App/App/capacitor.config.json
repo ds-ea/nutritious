@@ -5,8 +5,7 @@
 	"bundledWebRuntime": false,
 	"launchAutoHide": false,
 	"packageClassList": [
-		"BarcodeScanner",
-		"CapacitorSQLitePlugin",
+		"BarcodeScannerPlugin",
 		"AppPlugin",
 		"HapticsPlugin",
 		"KeyboardPlugin",

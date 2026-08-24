@@ -14,16 +14,16 @@
 			"Bash(git diff:*)",
 			"Bash(git log:*)",
 			"Bash(git show:*)",
-			"Bash(git blame:*)"
+			"Bash(git blame:*)",
+			"Bash(git add:*)",
+			"Bash(git commit:*)"
 		],
 		"deny": [
 			"Read(./.env)",
 			"Read(./.env.*)",
 			"Edit(./.env)",
 			"Edit(./.env.*)",
-			"Read(./apps/app/android/local.properties)",
-			"Edit(./apps/app/android/capacitor.settings.gradle)",
-			"Edit(./apps/app/ios/App/Podfile.lock)"
+			"Read(./apps/app/android/local.properties)"
 		]
 	},
 	"sandbox": {
@@ -31,8 +31,11 @@
 			"allowWrite": [
 				"~/.gradle",
 				"~/.android",
+				"~/.cocoapods",
 				"~/Library/pnpm/.tools",
-				"~/Library/Caches/CocoaPods"
+				"~/Library/Caches/CocoaPods",
+				"./node_modules/**/.vscode/**",
+				"./node_modules/**/.idea/**"
 			]
 		},
 		"network": {
@@ -45,7 +48,10 @@
 				"binaries.prisma.sh",
 				"fonts.googleapis.com",
 				"fonts.gstatic.com",
-				"cdn.cocoapods.org"
+				"cdn.cocoapods.org",
+				"cdn.jsdelivr.net",
+				"*.githubusercontent.com",
+				"storage.googleapis.com"
 			]
 		}
 	}

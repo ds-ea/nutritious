@@ -210,11 +210,11 @@ importers:
         specifier: ^0.15.4
         version: 0.15.4(supports-color@8.1.1)
       cordova-sqlite-storage:
-        specifier: ^6.1.0
-        version: 6.1.0
+        specifier: ^7.0.0
+        version: 7.0.0
       cordova-sqlite-storage-dependencies:
-        specifier: 4.1.0
-        version: 4.1.0
+        specifier: 5.0.0
+        version: 5.0.0
       date-fns:
         specifier: ^3.3.1
         version: 3.6.0
@@ -8016,11 +8016,11 @@ packages:
     engines: {node: '>=10.3.0'}
     hasBin: true
 
-  cordova-sqlite-storage-dependencies@4.1.0:
-    resolution: {integrity: sha512-D0ZXfNkS3z9GO+Ha2rC2odvOOMcx/moL8lpVDFxXqcsCEZbJimuki4wZfdrQrGlNd/d7r4DNodljRmO20v6Ntg==}
+  cordova-sqlite-storage-dependencies@5.0.0:
+    resolution: {integrity: sha512-WjWm1QX+2JyLxjaNmYX2kNzmhrRk8q6n4GQ1PkUc79xR2bmJeO/m3koSuPemnWJdLdlsqDz8dCEHmgQSxhYjcg==}
 
-  cordova-sqlite-storage@6.1.0:
-    resolution: {integrity: sha512-ko/edy+u9MJVYrXdB6OXUklH0eIRWpa/Rvang7YkvQvsswc9vZr0pM/Ty6eX0MJtLOMJuCXIOiiHZZZbZSZikw==}
+  cordova-sqlite-storage@7.0.0:
+    resolution: {integrity: sha512-BV1KCNtHnFD37ZQmhztStKsaNxniGlLcUSiQ9wieWH2PpZ0gH/tuWeINrrXGKIt9teTukYRnxFyerQ/Lc9x41A==}
 
   core-js-compat@3.50.0:
     resolution: {integrity: sha512-XGpFGbMLHwSt74YLTKho7Ib242qi6O8MSX+sRokV4oz7iKXvQWGYZthjIhjRGMxjzVkAubBO512dKGYcefmX3Q==}
@@ -26276,11 +26276,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  cordova-sqlite-storage-dependencies@4.1.0: {}
+  cordova-sqlite-storage-dependencies@5.0.0: {}
 
-  cordova-sqlite-storage@6.1.0:
+  cordova-sqlite-storage@7.0.0:
     dependencies:
-      cordova-sqlite-storage-dependencies: 4.1.0
+      cordova-sqlite-storage-dependencies: 5.0.0
 
   core-js-compat@3.50.0:
     dependencies:

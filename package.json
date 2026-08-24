@@ -1,6 +1,6 @@
 {
 	"name": "@nutritious/source",
-	"version": "3.0.2",
+	"version": "3.0.3",
 	"license": "UNLICENSED",
 	"scripts": {
 		"dev:app": "nx serve app",
@@ -91,8 +91,8 @@
 		"class-transformer": "^0.5.1",
 		"cookie": "^0.6.0",
 		"cordova-res": "^0.15.4",
-		"cordova-sqlite-storage": "^6.1.0",
-		"cordova-sqlite-storage-dependencies": "4.1.0",
+		"cordova-sqlite-storage": "^7.0.0",
+		"cordova-sqlite-storage-dependencies": "5.0.0",
 		"date-fns": "^3.3.1",
 		"dayjs": "^1.11.10",
 		"eta": "^3.2.0",

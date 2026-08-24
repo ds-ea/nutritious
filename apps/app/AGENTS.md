@@ -65,6 +65,25 @@ it that way, and extend `process-schedule.spec.ts` alongside any change.
 `nutritiousBuild` / `nutritiousVersion` for `android/app/build.gradle`. The iOS
 `CURRENT_PROJECT_VERSION` / `MARKETING_VERSION` in the Xcode project must be updated to match by hand.
 
+## Google Play's 16 KB page size requirement
+
+Play blocks uploads whose native `.so` files are not 16 KB aligned (enforced since the extended
+deadline of 2026-05-31). Only four native libraries ship in this app:
+
+| Library | From |
+|---|---|
+| `libbarhopper_v3.so` | ML Kit barcode scanning |
+| `libimage_processing_util_jni.so`, `libsurface_util_jni.so` | CameraX, pulled in by ML Kit |
+| `libsqlc-ndk-native-driver.so` | `cordova-sqlite-storage` |
+
+The ML Kit and CameraX libraries are already aligned. `cordova-sqlite-storage` was **not** until
+7.0.0, which ships aligned binaries via `cordova-sqlite-storage-dependencies@5.0.0` and raises its
+own floor to Android API 24. Both are pinned together for that reason.
+
+To check an APK rather than trust the emulator warning — which reports "Unknown error" for
+libraries it cannot parse and makes compliant ones look broken — read the ELF program headers and
+confirm every `PT_LOAD` segment has `p_align >= 16384`.
+
 ## Native work
 
 - Change SDK levels and androidx versions in `android/variables.gradle`, AGP in

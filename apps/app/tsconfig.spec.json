@@ -4,7 +4,10 @@
 		"outDir": "../../dist/out-tsc",
 		"module": "commonjs",
 		"target": "es2016",
-		"types": ["jest", "node"]
+		"types": ["jest", "node"],
+		// Ionic and Stencil publish untranspiled ESM in .js files; without allowJs
+		// ts-jest passes them through verbatim and every Ionic import blows up.
+		"allowJs": true
 	},
 	"files": ["src/test-setup.ts"],
 	"include": [

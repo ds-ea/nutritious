@@ -1,0 +1,52 @@
+{
+	"$schema": "https://json.schemastore.org/claude-code-settings.json",
+	"permissions": {
+		"allow": [
+			"Bash(./node_modules/.bin/nx:*)",
+			"Bash(./node_modules/.bin/jest:*)",
+			"Bash(./node_modules/.bin/eslint:*)",
+			"Bash(./node_modules/.bin/tsc:*)",
+			"Bash(./node_modules/.bin/prisma:*)",
+			"Bash(node node_modules/jest/bin/jest.js:*)",
+			"Bash(pnpm ls:*)",
+			"Bash(pnpm why:*)",
+			"Bash(git status:*)",
+			"Bash(git diff:*)",
+			"Bash(git log:*)",
+			"Bash(git show:*)",
+			"Bash(git blame:*)"
+		],
+		"deny": [
+			"Read(./.env)",
+			"Read(./.env.*)",
+			"Edit(./.env)",
+			"Edit(./.env.*)",
+			"Read(./apps/app/android/local.properties)",
+			"Edit(./apps/app/android/capacitor.settings.gradle)",
+			"Edit(./apps/app/ios/App/Podfile.lock)"
+		]
+	},
+	"sandbox": {
+		"filesystem": {
+			"allowWrite": [
+				"~/.gradle",
+				"~/.android",
+				"~/Library/pnpm/.tools",
+				"~/Library/Caches/CocoaPods"
+			]
+		},
+		"network": {
+			"allowedDomains": [
+				"services.gradle.org",
+				"dl.google.com",
+				"repo.maven.apache.org",
+				"repo1.maven.org",
+				"plugins.gradle.org",
+				"binaries.prisma.sh",
+				"fonts.googleapis.com",
+				"fonts.gstatic.com",
+				"cdn.cocoapods.org"
+			]
+		}
+	}
+}

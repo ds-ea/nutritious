@@ -5,7 +5,7 @@
 	"prefix": "nutritious",
 	"sourceRoot": "apps/app/src",
 	"tags": [],
-	"implicitDependencies": ["core", "api-client"],
+	"implicitDependencies": ["core"],
 	"targets": {
 		"build": {
 			"executor": "@nx/angular:webpack-browser",

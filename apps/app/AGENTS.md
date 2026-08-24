@@ -69,6 +69,15 @@ it that way, and extend `process-schedule.spec.ts` alongside any change.
 
 - Change SDK levels and androidx versions in `android/variables.gradle`, AGP in
   `android/build.gradle`, Gradle in `android/gradle/wrapper/gradle-wrapper.properties`.
+- **The iOS deployment target is ours to maintain.** Capacitor 8's Podfile template ships
+  `platform :ios, '15.0'`, but `@capacitor-mlkit/barcode-scanning` pulls in
+  `GoogleMLKit/BarcodeScanning`, which requires **15.5**. On 15.0 `pod install` fails with
+  "Specs satisfying the dependency were found, but they required a higher minimum deployment
+  target". `cap sync` does not rewrite the `platform` line, but re-check it and the four
+  `IPHONEOS_DEPLOYMENT_TARGET` entries in the Xcode project after any Capacitor migration.
+- `pod install` needs `cdn.jsdelivr.net` reachable — that is where the CocoaPods trunk CDN
+  serves podspecs from, not `cdn.cocoapods.org`. CocoaPods also refuses to start unless `LANG`
+  is set to a UTF-8 locale.
 - After any dependency change run `nx run app:sync` — this rewrites `capacitor.settings.gradle` and
   the Podfile with new pnpm-hashed paths.
 - Release steps live in `.claude/skills/mobile-release/SKILL.md`.

@@ -39,4 +39,27 @@ const processConfigXML = false;
 
 	fs.writeFileSync(projectDir + '/.buildversion.json', JSON.stringify({build: buildNumber, version}));
 
+	// Android reads .buildversion.json through variables.gradle. Xcode cannot, so the two
+	// fields have to be written into the project file directly - otherwise every iOS build
+	// silently ships whatever version was last hardcoded there.
+	const pbxprojPath = path.join(projectDir, 'ios/App/App.xcodeproj/project.pbxproj');
+	if( !fs.existsSync(pbxprojPath) ){
+		console.warn('no Xcode project at ' + pbxprojPath + ' - skipping iOS version update');
+		return;
+	}
+
+	const pbxproj = fs.readFileSync(pbxprojPath, 'utf8');
+	const updated = pbxproj
+		.replace(/CURRENT_PROJECT_VERSION = [^;]+;/g, `CURRENT_PROJECT_VERSION = ${buildNumber};`)
+		.replace(/MARKETING_VERSION = [^;]+;/g, `MARKETING_VERSION = ${version};`);
+
+	const bumped = (updated.match(/CURRENT_PROJECT_VERSION = /g) || []).length;
+	if( !bumped ){
+		console.error('no CURRENT_PROJECT_VERSION entries found in the Xcode project');
+		return process.exit(1);
+	}
+
+	fs.writeFileSync(pbxprojPath, updated);
+	console.log(`ios: updated ${bumped} build configurations`);
+
 })();

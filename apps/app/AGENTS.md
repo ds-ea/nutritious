@@ -80,4 +80,9 @@ it that way, and extend `process-schedule.spec.ts` alongside any change.
   is set to a UTF-8 locale.
 - After any dependency change run `nx run app:sync` — this rewrites `capacitor.settings.gradle` and
   the Podfile with new pnpm-hashed paths.
+- CocoaPods emits `${DT_TOOLCHAIN_DIR}` in `LIBRARY_SEARCH_PATHS`, which Xcode 15+ rejects with
+  "DT_TOOLCHAIN_DIR cannot be used to evaluate LIBRARY_SEARCH_PATHS, use TOOLCHAIN_DIR instead".
+  A `post_install` hook in the Podfile rewrites it. `cap sync` only regenerates the
+  `capacitor_pods` block, so the hook survives - but check it is still there after a Capacitor
+  major upgrade.
 - Release steps live in `.claude/skills/mobile-release/SKILL.md`.

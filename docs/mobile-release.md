@@ -75,14 +75,15 @@ a silently broken study.
 nx run app:version-bump
 ```
 
-Writes `apps/app/.buildversion.json` (`build` + `version`), which `android/variables.gradle` feeds
-to `android/app/build.gradle` as `versionCode` / `versionName`. If either field is missing the
-Android build now fails with a clear message rather than emitting an APK with an empty
-`versionName`, which is what used to happen.
+Writes `apps/app/.buildversion.json` (`build` + `version`) and updates **both** platforms:
 
-The iOS side is still manual: in `apps/app/ios/App/App.xcodeproj` set `CURRENT_PROJECT_VERSION` =
-`build` and `MARKETING_VERSION` = `version`, in **both** Debug and Release configurations. Check
-them against `.buildversion.json` before archiving.
+- Android reads it through `android/variables.gradle` into `versionCode` / `versionName`. If
+  either field is missing the build fails with a clear message rather than emitting an APK with
+  an empty `versionName`, which is what used to happen.
+- iOS cannot read JSON, so the script writes `CURRENT_PROJECT_VERSION` and `MARKETING_VERSION`
+  straight into `App.xcodeproj/project.pbxproj`, for every build configuration.
+
+Nothing needs editing by hand any more; the pbxproj diff is expected.
 
 ### 3. Build the web payload
 
@@ -123,8 +124,12 @@ Capacitor `appId` `de.dife.foodapp`, which would orphan the App Store record.
 ### 5. Android
 
 ```bash
-cd apps/app/android && ./gradlew :app:bundleRelease
+nx run app:open:android
 ```
+
+Then *Build → Generate Signed App Bundle*. For an unsigned local check, `nx run app:run:android`
+builds and launches on a connected device or running emulator, and
+`cd apps/app/android && ./gradlew :app:bundleRelease` produces the bundle directly.
 
 There is **no `signingConfig` in `build.gradle`** — the release bundle is signed through Android
 Studio's *Build → Generate Signed App Bundle* wizard against a keystore that is not in the repo.
@@ -135,8 +140,16 @@ Upload the `.aab` to the Play Console.
 
 ### 6. iOS
 
-Open `apps/app/ios/App/App.xcworkspace` in Xcode 26. Automatic signing, team `J2994VK9G3`.
-*Product → Archive*, then distribute to App Store Connect.
+```bash
+nx run app:open:ios
+```
+
+Opens the workspace in Xcode. Automatic signing, team `J2994VK9G3`. *Product → Archive*, then
+distribute to App Store Connect. For a local check without archiving, `nx run app:run:ios` builds
+and launches on a simulator.
+
+Prefer these targets over calling `xcodebuild`, `gradlew` or `pod` directly — they run the
+Capacitor CLI with the right working directory and keep the native projects in step.
 
 ### 7. Smoke test both builds
 

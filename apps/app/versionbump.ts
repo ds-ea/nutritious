@@ -24,7 +24,15 @@ const processConfigXML = false;
 
 
 	const buildNumber = Number(generate());
-	const version = require(projectDir + '/project.json').version;
+	// The app version lives in the workspace package.json - project.json has never had a
+	// `version` field, so this used to write `undefined` and left nutritiousVersion null in
+	// android/variables.gradle.
+	const version = require(path.join(__dirname, '../../package.json')).version;
+
+	if( !version ){
+		console.error('no version found in the workspace package.json');
+		return process.exit(1);
+	}
 
 	console.log('version: ', version);
 	console.log('build: ', buildNumber);

@@ -92,6 +92,7 @@
 		"cookie": "^0.6.0",
 		"cordova-res": "^0.15.4",
 		"cordova-sqlite-storage": "^6.1.0",
+		"cordova-sqlite-storage-dependencies": "4.1.0",
 		"date-fns": "^3.3.1",
 		"dayjs": "^1.11.10",
 		"eta": "^3.2.0",

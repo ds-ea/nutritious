@@ -178,7 +178,7 @@ real interface and calling it directly removes the version coupling entirely.
 in as a build asset, so `nx build server` fails on a clean checkout until admin has been built once,
 even though admin is out of scope here.
 
-**Three dependencies are pinned for non-obvious reasons.**
+**Four dependencies are pinned for non-obvious reasons.**
 
 - `fastify` is pinned to an **exact** version, not a range. `@nestjs/platform-fastify` pins its own
   fastify exactly, so a caret range here resolves to a *second* copy and `app.register(fastifyHelmet)`
@@ -192,6 +192,10 @@ even though admin is out of scope here.
   the copy that `apps/server` does *not* resolve. The server then fails to typecheck with
   "Module '@prisma/client' has no exported member 'Participant'" while the tests still pass. Change
   all four declarations together or none.
+- `cordova-sqlite-storage-dependencies` is declared even though it is only a transitive
+  dependency of `cordova-sqlite-storage`. Capacitor's CLI resolves Cordova plugin dependencies
+  from the workspace root, and pnpm does not hoist transitives there, so `cap sync` fails with
+  "Can't resolve module cordova-sqlite-storage-dependencies".
 - `@ionic/storage` is declared even though `@ionic/storage-angular` already depends on it, because
   `apps/app/src/app/app.module.ts` imports `Drivers` from it directly and
   `@ionic/storage-angular` does not re-export that. Same reason `webpack` is declared: it is

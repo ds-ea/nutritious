@@ -20,9 +20,10 @@ there and are the two things most likely to break a release.
 `StorageService` wraps `@ionic/storage-angular`, configured in `app.module.ts` with
 `driverOrder: [ CordovaSQLiteDriver._driver, Drivers.IndexedDB ]`.
 
-- **Android** has `cordova-sqlite-storage` installed, so it uses SQLite.
-- **iOS** does not — the cordova plugins directory is empty — so it silently falls back to
-  IndexedDB.
+`cap ls` reports `cordova-sqlite-storage` for **both** android and ios, so both are configured to
+use SQLite with an IndexedDB fallback. Note the committed iOS project's
+`capacitor-cordova-ios-plugins/sources` directory is empty while the Android equivalent is
+populated — that is a stale native project awaiting a `cap sync`, not a platform difference.
 
 `@capacitor-community/sqlite` appears in `package.json` and `capacitor.plugins.json` but has **zero
 TypeScript imports**; it is not the storage layer.

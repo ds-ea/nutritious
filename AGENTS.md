@@ -164,6 +164,16 @@ long time. `apps/app` does not import api-client at all, so it was removed from 
 Do not "fix" it by changing `export type *` to `export *` — the type modules import from
 `@prisma/client`, and a value re-export would drag Prisma into the app bundle.
 
+**The Capacitor Nx targets call the CLI directly, on purpose.** `apps/app`'s `cap` / `sync` /
+`copy` / `open` / `run` / `update` / `add` targets use `nx:run-commands` with
+`cwd: apps/app`, not the `@nxext/capacitor` executors. `@nxext/capacitor@19.x` reads
+`context.workspace.projects`, an API Nx 21 removed, so every one of those executors throws
+"Cannot read properties of undefined (reading 'projects')". `.npmrc` sets
+`strict-peer-dependencies=false`, so its `nx: ^19.0.0` peer went unsatisfied silently and this
+stayed hidden from the Nx 21 upgrade until someone next ran a native build. A matching
+`@nxext/capacitor@21.0.0` exists if you would rather go back to the plugin, but the CLI is the
+real interface and calling it directly removes the version coupling entirely.
+
 **Building the server needs the admin app built.** `apps/server/project.json` copies `apps/admin/dist`
 in as a build asset, so `nx build server` fails on a clean checkout until admin has been built once,
 even though admin is out of scope here.

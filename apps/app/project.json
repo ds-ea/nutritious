@@ -5,16 +5,22 @@
 	"prefix": "nutritious",
 	"sourceRoot": "apps/app/src",
 	"tags": [],
-	"implicitDependencies": ["core"],
+	"implicitDependencies": [
+		"core"
+	],
 	"targets": {
 		"build": {
 			"executor": "@nx/angular:webpack-browser",
-			"outputs": ["{options.outputPath}"],
+			"outputs": [
+				"{options.outputPath}"
+			],
 			"options": {
 				"outputPath": "dist/apps/app",
 				"index": "apps/app/src/index.html",
 				"main": "apps/app/src/main.ts",
-				"polyfills": ["zone.js"],
+				"polyfills": [
+					"zone.js"
+				],
 				"tsConfig": "apps/app/tsconfig.app.json",
 				"assets": [
 					"apps/app/src/favicon.ico",
@@ -30,7 +36,9 @@
 						"output": "./svg"
 					}
 				],
-				"styles": ["apps/app/src/theme/app.scss"],
+				"styles": [
+					"apps/app/src/theme/app.scss"
+				],
 				"scripts": [],
 				"allowedCommonJsDependencies": [
 					"fuzzysort",
@@ -119,102 +127,114 @@
 		},
 		"lint": {
 			"executor": "@nx/eslint:lint",
-			"outputs": ["{options.outputFile}"]
+			"outputs": [
+				"{options.outputFile}"
+			]
 		},
 		"test": {
 			"executor": "@nx/jest:jest",
-			"outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+			"outputs": [
+				"{workspaceRoot}/coverage/{projectRoot}"
+			],
 			"options": {
 				"jestConfig": "apps/app/jest.config.ts"
 			}
 		},
 		"cap": {
-			"executor": "@nxext/capacitor:cap",
+			"executor": "nx:run-commands",
 			"options": {
-				"cmd": "--help"
+				"cwd": "apps/app",
+				"command": "node ../../node_modules/@capacitor/cli/bin/capacitor",
+				"forwardAllArgs": true
 			}
 		},
 		"add": {
-			"executor": "@nxext/capacitor:cap",
+			"executor": "nx:run-commands",
 			"options": {
-				"cmd": "add"
+				"cwd": "apps/app",
+				"command": "node ../../node_modules/@capacitor/cli/bin/capacitor add"
 			},
 			"configurations": {
 				"ios": {
-					"cmd": "add ios"
+					"command": "node ../../node_modules/@capacitor/cli/bin/capacitor add ios"
 				},
 				"android": {
-					"cmd": "add android"
+					"command": "node ../../node_modules/@capacitor/cli/bin/capacitor add android"
 				}
 			}
 		},
 		"copy": {
-			"executor": "@nxext/capacitor:cap",
+			"executor": "nx:run-commands",
 			"options": {
-				"cmd": "copy"
+				"cwd": "apps/app",
+				"command": "node ../../node_modules/@capacitor/cli/bin/capacitor copy"
 			},
 			"configurations": {
 				"ios": {
-					"cmd": "copy ios"
+					"command": "node ../../node_modules/@capacitor/cli/bin/capacitor copy ios"
 				},
 				"android": {
-					"cmd": "copy android"
+					"command": "node ../../node_modules/@capacitor/cli/bin/capacitor copy android"
 				}
 			}
 		},
 		"open": {
-			"executor": "@nxext/capacitor:cap",
+			"executor": "nx:run-commands",
 			"options": {
-				"cmd": "open"
+				"cwd": "apps/app",
+				"command": "node ../../node_modules/@capacitor/cli/bin/capacitor open"
 			},
 			"configurations": {
 				"ios": {
-					"cmd": "open ios"
+					"command": "node ../../node_modules/@capacitor/cli/bin/capacitor open ios"
 				},
 				"android": {
-					"cmd": "open android"
+					"command": "node ../../node_modules/@capacitor/cli/bin/capacitor open android"
 				}
 			}
 		},
 		"run": {
-			"executor": "@nxext/capacitor:cap",
+			"executor": "nx:run-commands",
 			"options": {
-				"cmd": "run"
+				"cwd": "apps/app",
+				"command": "node ../../node_modules/@capacitor/cli/bin/capacitor run"
 			},
 			"configurations": {
 				"ios": {
-					"cmd": "run ios"
+					"command": "node ../../node_modules/@capacitor/cli/bin/capacitor run ios"
 				},
 				"android": {
-					"cmd": "run android"
+					"command": "node ../../node_modules/@capacitor/cli/bin/capacitor run android"
 				}
 			}
 		},
 		"sync": {
-			"executor": "@nxext/capacitor:cap",
+			"executor": "nx:run-commands",
 			"options": {
-				"cmd": "sync"
+				"cwd": "apps/app",
+				"command": "node ../../node_modules/@capacitor/cli/bin/capacitor sync"
 			},
 			"configurations": {
 				"ios": {
-					"cmd": "sync ios"
+					"command": "node ../../node_modules/@capacitor/cli/bin/capacitor sync ios"
 				},
 				"android": {
-					"cmd": "sync android"
+					"command": "node ../../node_modules/@capacitor/cli/bin/capacitor sync android"
 				}
 			}
 		},
 		"update": {
-			"executor": "@nxext/capacitor:cap",
+			"executor": "nx:run-commands",
 			"options": {
-				"cmd": "update"
+				"cwd": "apps/app",
+				"command": "node ../../node_modules/@capacitor/cli/bin/capacitor update"
 			},
 			"configurations": {
 				"ios": {
-					"cmd": "update ios"
+					"command": "node ../../node_modules/@capacitor/cli/bin/capacitor update ios"
 				},
 				"android": {
-					"cmd": "update android"
+					"command": "node ../../node_modules/@capacitor/cli/bin/capacitor update android"
 				}
 			}
 		},

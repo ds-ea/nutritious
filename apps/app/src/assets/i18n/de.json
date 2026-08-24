@@ -87,6 +87,7 @@
 	"USER.AUTH.REGISTER_HEADING": "Registrierung",
 	"USER.AUTH.SCAN_SIGNUP_QRCODE_BTN": "QR-Code scannen",
 	"USER.AUTH.SCAN_SIGNUP_QRCODE_INVALID_ERR": "QR-Code konnte nicht gelesen werden",
+	"USER.AUTH.SCAN_SIGNUP_QRCODE_NO_CAMERA_ERR": "Kein Zugriff auf die Kamera",
 	"USER.AUTH.STOP_SCAN_BTN": "abbrechen",
 	"USER.AUTH.STUDY_CODE_LBL": "Passwort",
 	"USER.AUTH.STUDY_KEY_LBL": "Schlüssel",

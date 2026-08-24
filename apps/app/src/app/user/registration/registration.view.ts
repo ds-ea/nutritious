@@ -3,7 +3,8 @@ import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
+import { PluginListenerHandle } from '@capacitor/core';
+import { BarcodeFormat, BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import { LoadingController, Platform, ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
@@ -221,9 +222,6 @@ export class RegistrationView implements OnInit, OnDestroy{
 		private readonly config:ConfigService,
 	){
 		this.canScan = platform.is( 'hybrid' );
-
-		if( this.canScan )
-			BarcodeScanner.prepare();
 	}
 
 	ngOnInit():void{
@@ -240,46 +238,73 @@ export class RegistrationView implements OnInit, OnDestroy{
 		if( 'nutriManualQRCode' in window )
 			delete window['nutriManualQRCode'];
 
-		if( this.canScan ){
-			BarcodeScanner.showBackground();
-			this.document.querySelector( 'html' )?.classList.remove( 'scanner-running' );
-			BarcodeScanner.stopScan();
-		}
+		if( this.canScan )
+			this.stopScan();
 
 	}
 
+	/** live scan listener, held so it can be detached again */
+	private scanListener:PluginListenerHandle | undefined;
+
+
+	/** tears down the transparent-webview overlay, whether the scan succeeded or was cancelled */
 	public async afterScan(){
 		this.core.scannerUIPortal = undefined;
-		BarcodeScanner.showBackground();
 		this.document.querySelector( 'html' )?.classList.remove( 'scanner-running' );
+		this.cdr.markForCheck();
 	}
 
 	public async stopScan(){
-		BarcodeScanner.stopScan();
-		this.afterScan();
+		await this.scanListener?.remove();
+		this.scanListener = undefined;
+
+		await BarcodeScanner.stopScan().catch( () => undefined );
+		await this.afterScan();
 	}
 
 	public async startScan(){
-		if( !this.canScan )
+		if( !this.canScan || this.scanListener )
 			return;
 
-		const status = await BarcodeScanner.checkPermission( { force: true } );
+		const { camera } = await BarcodeScanner.requestPermissions();
+		if( camera !== 'granted' && camera !== 'limited' ){
+			this.toaster.create( {
+				color: 'danger',
+				message: this.translate.instant( 'USER.AUTH.SCAN_SIGNUP_QRCODE_NO_CAMERA_ERR' ),
+				duration: 3000,
+			} ).then( toast => toast.present() );
+			return;
+		}
+
+		// On Android the scanner lives in a Play Services module that is not bundled; without it
+		// startScan never reports anything. It is a no-op on iOS.
+		try{
+			const { available } = await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
+			if( !available )
+				await BarcodeScanner.installGoogleBarcodeScannerModule();
+		}catch{
+			// not Android, or the module is already present
+		}
 
 		if( this.scannerUI )
 			this.core.scannerUIPortal = new TemplatePortal( this.scannerUI, this._viewContainerRef );
 
-		await BarcodeScanner.hideBackground(); // make background of WebView transparent
+		// the camera preview renders *behind* the webview, so the page has to become transparent
 		this.document.querySelector( 'html' )?.classList.add( 'scanner-running' );
 
-		const result = await BarcodeScanner.startScan(); // start scanning and wait for a result
+		// ML Kit streams results rather than resolving once, so take the first usable barcode
+		this.scanListener = await BarcodeScanner.addListener( 'barcodesScanned', async ( { barcodes } ) => {
+			const content = barcodes.find( barcode => !!barcode.rawValue )?.rawValue;
+			if( !content )
+				return;
 
+			await this.stopScan();
 
-		// if the result has content
-		if( result.hasContent ){
-			this.processCode( result.content );
-			this.afterScan();
+			this.processCode( content );
 			this.studyCheck();
-		}
+		} );
+
+		await BarcodeScanner.startScan( { formats: [ BarcodeFormat.QrCode ] } );
 	}
 
 

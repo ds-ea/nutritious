@@ -7,6 +7,14 @@ def getBuildVersion() {
 }
 def versionData = getBuildVersion()
 
+// Fail loudly rather than emitting an APK with an empty versionName. This silently shipped
+// for years because versionbump.ts read a `version` field that did not exist.
+if( !versionData.build || !versionData.version ) {
+    throw new GradleException(
+        "apps/app/.buildversion.json is missing build or version - run `nx run app:version-bump`"
+    )
+}
+
 ext {
     // Capacitor 8's floor is 24; we deliberately stay at 29, which is what this app has
     // always shipped. Everything else tracks the Capacitor 8 template.

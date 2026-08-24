@@ -75,10 +75,14 @@ a silently broken study.
 nx run app:version-bump
 ```
 
-Writes `apps/app/.buildversion.json` (`build` + `version`), which `android/variables.gradle` feeds to
-`android/app/build.gradle`. Then update the iOS side by hand in `apps/app/ios/App/App.xcodeproj`:
-`CURRENT_PROJECT_VERSION` = `build`, `MARKETING_VERSION` = `version`, in **both** Debug and Release
-configurations.
+Writes `apps/app/.buildversion.json` (`build` + `version`), which `android/variables.gradle` feeds
+to `android/app/build.gradle` as `versionCode` / `versionName`. If either field is missing the
+Android build now fails with a clear message rather than emitting an APK with an empty
+`versionName`, which is what used to happen.
+
+The iOS side is still manual: in `apps/app/ios/App/App.xcodeproj` set `CURRENT_PROJECT_VERSION` =
+`build` and `MARKETING_VERSION` = `version`, in **both** Debug and Release configurations. Check
+them against `.buildversion.json` before archiving.
 
 ### 3. Build the web payload
 

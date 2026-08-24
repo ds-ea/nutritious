@@ -75,9 +75,14 @@ it that way, and extend `process-schedule.spec.ts` alongside any change.
   "Specs satisfying the dependency were found, but they required a higher minimum deployment
   target". `cap sync` does not rewrite the `platform` line, but re-check it and the four
   `IPHONEOS_DEPLOYMENT_TARGET` entries in the Xcode project after any Capacitor migration.
-- `pod install` needs `cdn.jsdelivr.net` reachable — that is where the CocoaPods trunk CDN
-  serves podspecs from, not `cdn.cocoapods.org`. CocoaPods also refuses to start unless `LANG`
-  is set to a UTF-8 locale.
+- `pod install` needs `cdn.jsdelivr.net` and `raw.githubusercontent.com` reachable — the
+  CocoaPods trunk CDN serves podspecs from there, not `cdn.cocoapods.org`. CocoaPods also
+  refuses to start unless `LANG` is set to a UTF-8 locale.
+- **Two CocoaPods versions are installed on this machine** and they write different spec
+  checksums into `Podfile.lock`: `pod` resolves to 1.12.1 via the rbenv shim, while Homebrew
+  has 1.17.0. Whichever runs `pod install` stamps its version into the lock, so the file churns
+  depending on PATH order. Pick one and stick to it — a `Gemfile` pinning cocoapods is the
+  usual fix if this becomes annoying.
 - After any dependency change run `nx run app:sync` — this rewrites `capacitor.settings.gradle` and
   the Podfile with new pnpm-hashed paths.
 - CocoaPods emits `${DT_TOOLCHAIN_DIR}` in `LIBRARY_SEARCH_PATHS`, which Xcode 15+ rejects with

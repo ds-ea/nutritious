@@ -14,6 +14,16 @@ const processConfigXML = false;
 		return;
 	}
 
+	// Runs automatically before app:build via dependsOn. Set NX_SKIP_VERSION_BUMP to a truthy
+	// value to build without minting a new build number - useful for local iteration, where a
+	// fresh number on every build defeats the Nx cache.
+	const skip = process.env['NX_SKIP_VERSION_BUMP'];
+	if( skip !== undefined && !['', '0', 'false', 'no', 'off'].includes(String(skip).toLowerCase()) ){
+		const current = require(path.join(__dirname, '.buildversion.json'));
+		console.log(`version bump skipped (NX_SKIP_VERSION_BUMP) - keeping ${ current.version } (${ current.build })`);
+		return;
+	}
+
 	const projectKey = path.normalize(process.argv[2]);
 	const projectDir = path.join(__dirname, projectKey);
 

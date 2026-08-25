@@ -109,6 +109,10 @@
 				"production",
 				"^production",
 				"{projectRoot}/.buildversion.json"
+			],
+			"dependsOn": [
+				"^build",
+				"version-bump"
 			]
 		},
 		"serve": {

@@ -75,6 +75,11 @@ a silently broken study.
 nx run app:version-bump
 ```
 
+This also runs automatically before `app:build`, so a release build always carries a fresh build
+number. Set `NX_SKIP_VERSION_BUMP=1` to build without minting one — worth doing during local
+iteration, since a new number on every build changes `.buildversion.json` and so misses the Nx
+build cache every time.
+
 Writes `apps/app/.buildversion.json` (`build` + `version`) and updates **both** platforms:
 
 - Android reads it through `android/variables.gradle` into `versionCode` / `versionName`. If

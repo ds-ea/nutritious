@@ -159,7 +159,7 @@ export class FoodListComponent implements OnInit, OnDestroy{
 			} ) ) );
 
 		if( !data ){
-			console.error( 'no food library data' );
+			console.error( '[study] food library loaded but contained no data' );
 			return;
 		}
 

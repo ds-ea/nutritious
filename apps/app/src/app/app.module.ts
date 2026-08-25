@@ -25,6 +25,7 @@ import { catchError, tap } from 'rxjs/operators';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ApiService } from './core/api.service';
+import { describeError } from './core/log-format';
 import { ConfigService } from './core/config.service';
 import { CoreService } from './core/core.service';
 import { StudyModule } from './study/study.module';
@@ -40,9 +41,11 @@ export function appInitializerFactory( injector:Injector, translate:TranslateSer
 		// waiting for the platform to be rrrready first
 		await platform.ready();
 
-		const config = await configService.loadConfig().catch( e => null );
-		if( !config )
-			console.error( 'configuration not available' );
+		const config = await configService.loadConfig().catch( e => {
+			// without config the app has no API URL and cannot do anything useful, so say why
+			console.error( `[app] configuration not available: ${ describeError( e ) }` );
+			return null;
+		} );
 
 		const locationInitialized = await injector.get( LOCATION_INITIALIZED, Promise.resolve( null ) );
 		const selectedLang = await Preferences.get( { key: 'lang' } );
@@ -50,16 +53,16 @@ export function appInitializerFactory( injector:Injector, translate:TranslateSer
 		translate.setDefaultLang( 'en' );
 		const langToSet = selectedLang.value || translate.getBrowserLang();
 		if( !langToSet ){
-			console.warn( 'no language to initialize' );
+			console.warn( '[app] no language to initialize - falling back to the default' );
 		}else{
 			await lastValueFrom( translate.use( langToSet ).pipe(
 				tap( () => {
 					dateAdapter.setLocale( langToSet );
 					dateFNSConfiguration.setLocale( langToSet === 'de' ? de : enGB );
-					console.info( `Successfully initialized '${ langToSet }' language.'` );
+					console.info( `[app] initialized language '${ langToSet }'` );
 				} ),
 				catchError( err => {
-					console.error( `Problem with '${ langToSet }' language initialization.'` );
+					console.error( `[app] could not initialize language '${ langToSet }': ${ describeError( err ) }` );
 					return EMPTY;
 				} ),
 			) );

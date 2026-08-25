@@ -84,7 +84,7 @@ export abstract class AbstractStepComponent<RefType = unknown, ResponseDataType 
 
 	public complete(){
 		if( !this.onComplete )
-			console.warn( 'step complete called, but no complete output present' );
+			console.warn( '[slot] step reported completion but has no complete output bound' );
 		else
 			this.onComplete.next( {
 				stepId: this.step.id,

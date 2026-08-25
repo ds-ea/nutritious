@@ -222,7 +222,7 @@ export class SlotView implements OnInit, OnDestroy{
 		const step = event.stepId ? this.steps.find( s => s.id == event.stepId ) : undefined;
 		if( !step || !this.slot?.prepared ){
 			// TODO: escalate
-			console.error( 'slot step completed, but no matching step found: ', { event, knownSteps: this.steps, slot: this.slot } );
+			console.error( `[slot] step ${ event.stepId } completed but is not in this slot (${ this.slot?.prepared?.id ?? 'unknown slot' }, known steps: ${ this.steps?.map( s => s.id ).join( ', ' ) || 'none' })` );
 		}
 
 		const nowDay = this.entryDate || dayjs();

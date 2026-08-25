@@ -96,8 +96,9 @@ console.warn( `[study] flush failed: ${ describeError( err ) }` );   // HTTP 401
 console.warn( '[study] flush failed', err );                         // [object Object]
 ```
 
-Diagnostic lines are prefixed with the area (`[core]`, `[study]`, `[slot]`, `[app]`) so they can
-be filtered in logcat.
+Every diagnostic line is prefixed with its area — `[app]`, `[core]`, `[storage]`, `[study]`,
+`[slot]`, `[log]` — so logcat can be filtered to the part you care about. Keep it that way when
+adding logs, and never pass an error as a second argument.
 
 ## Rebuilding after a web change
 

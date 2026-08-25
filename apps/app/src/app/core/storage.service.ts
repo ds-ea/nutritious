@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Storage } from '@ionic/storage-angular';
 import { ReplaySubject } from 'rxjs';
+import { describeError } from './log-format';
 
 
 export type KeyableArgument = string | string[];
@@ -15,12 +16,16 @@ export class StorageService{
 	private _storage?:Storage;
 
 	constructor( private storage:Storage ){
-		console.log( 'storage construct' );
 		this.ready = this.init();
+
+		// init() is kicked off from the constructor, so without this a failure surfaces only as
+		// an unhandled rejection - and local storage is where unsent responses live.
+		this.ready.catch( err =>
+			console.error( `[storage] initialization failed, offline data will not persist: ${ describeError( err ) }` ),
+		);
 	}
 
 	private async init(){
-		console.log( 'storage init' );
 		// If using, define drivers here: await this.storage.defineDriver(/*...*/);
 		this._storage = await this.storage.create();
 		if( !this._storage )

@@ -148,7 +148,7 @@ export class FoodListComponent implements OnInit, OnDestroy{
 			.toPromise();
 
 		if( !data ){
-			console.error( 'no food library data' );
+			console.error( '[log] food library loaded but contained no data' );
 			return;
 		}
 

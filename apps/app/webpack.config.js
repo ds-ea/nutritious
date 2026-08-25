@@ -32,6 +32,12 @@ function getBuildVersion(){
 	}
 }
 
+/** an explicit, deliberate opt-in to versioning a build from the environment */
+function allowEnvVersion(){
+	const flag = process.env.NX_APP_ALLOW_ENV_VERSION;
+	return flag !== undefined && ![ '', '0', 'false', 'no', 'off' ].includes(String(flag).toLowerCase());
+}
+
 function getClientEnvironment(){
 	// Grab NX_* environment variables and prepare them to be injected
 	// into the application via DefinePlugin in webpack configuration.
@@ -44,23 +50,35 @@ function getClientEnvironment(){
 			return env;
 		}, {});
 
-	// .buildversion.json is the source of truth for the version and wins over the environment.
-	// Nx auto-loads .env into the task environment, so a stale NX_APP_VERSION there would
-	// otherwise silently override the file and ship a build labelled with the wrong version.
-	for( const [ key, value ] of Object.entries(getBuildVersion()) ){
-		if( value === undefined )
-			continue;
+	// .buildversion.json is the single source of truth for the version. Nx auto-loads .env into
+	// the task environment, so a stale NX_APP_VERSION there can silently label a build with a
+	// version that never corresponded to the code in it. Refuse to guess which one was meant.
+	const VERSION_KEYS = [ 'NX_APP_VERSION', 'NX_APP_BUILD' ];
+	const fromEnv = VERSION_KEYS.filter(( key ) => raw[key] !== undefined);
 
-		if( raw[key] !== undefined && raw[key] !== value )
-			console.warn(`[app] ignoring ${ key }=${ raw[key] } from the environment; .buildversion.json says ${ value }. Remove it from .env to silence this.`);
+	if( fromEnv.length && !allowEnvVersion() ){
+		const found = fromEnv.map(( key ) => `${ key }=${ raw[key] }`).join(', ');
 
-		raw[key] = value;
+		console.error(`[app] ${ found } is set in the environment (Nx also loads .env), but apps/app/.buildversion.json is the source of truth for the app version.`);
+
+		throw new Error(
+			`Refusing to build: ${ fromEnv.join(' and ') } set in the environment. `
+			+ `Remove ${ fromEnv.length > 1 ? 'them' : 'it' } from .env, or set NX_APP_ALLOW_ENV_VERSION=1 to build with the environment value deliberately.`,
+		);
+	}
+
+	if( fromEnv.length ){
+		console.warn(`[app] NX_APP_ALLOW_ENV_VERSION is set - taking ${ fromEnv.join(' and ') } from the environment instead of .buildversion.json.`);
+	}else{
+		for( const [ key, value ] of Object.entries(getBuildVersion()) )
+			if( value !== undefined )
+				raw[key] = value;
 	}
 
 	if( !raw['NX_API_URL'] )
 		console.warn('[app] NX_API_URL is not set - this build will not be able to reach the API.');
 
-	console.log(`[app] building version ${ raw['NX_APP_VERSION'] ?? '?' } (${ raw['NX_APP_BUILD'] ?? '?' }) from .buildversion.json`);
+	console.log(`[app] building version ${ raw['NX_APP_VERSION'] ?? '?' } (${ raw['NX_APP_BUILD'] ?? '?' }) from ${ fromEnv.length ? 'the environment' : '.buildversion.json' }`);
 
 	// Stringify all values so we can feed into webpack DefinePlugin
 	return {

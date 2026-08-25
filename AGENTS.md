@@ -138,10 +138,19 @@ If `NX_API_URL` is unset at build time the build still succeeds and ships an app
 the API — the build warns about this, but does not fail. Always verify the injected values in the
 emitted bundle before releasing.
 
-`NX_APP_VERSION` and `NX_APP_BUILD` are the exception: `webpack.config.js` reads them from
-`apps/app/.buildversion.json`, which **overrides** anything in the environment. Nx auto-loads
-`.env` into the task environment, so a stale `NX_APP_VERSION` there would otherwise silently
-label a build with the wrong version; the build warns when it ignores such a value. The value is fixed at **web build** time, so bumping the build afterwards for a
+`NX_APP_VERSION` and `NX_APP_BUILD` are the exception — they come from
+`apps/app/.buildversion.json`, never from the environment. Setting either as an env var **fails
+the build**:
+
+```
+Refusing to build: NX_APP_VERSION set in the environment. Remove it from .env, or set
+NX_APP_ALLOW_ENV_VERSION=1 to build with the environment value deliberately.
+```
+
+Nx auto-loads `.env` into the task environment, so a stale `NX_APP_VERSION` there would otherwise
+silently label a build with a version that never corresponded to the code in it. Set
+`NX_APP_ALLOW_ENV_VERSION` to a truthy value to override on purpose; `''`, `0`, `false`, `no` and
+`off` all count as not set. The value is fixed at **web build** time, so bumping the build afterwards for a
 native-only change deliberately leaves the in-app version showing what the JS was built from.
 
 **The iOS bundle id differs from the Capacitor appId on purpose.**

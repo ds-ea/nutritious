@@ -84,6 +84,13 @@ To check an APK rather than trust the emulator warning — which reports "Unknow
 libraries it cannot parse and makes compliant ones look broken — read the ELF program headers and
 confirm every `PT_LOAD` segment has `p_align >= 16384`.
 
+## capacitor.config.ts
+
+Keep it typed — do **not** reintroduce an `as any` cast. It was hiding two dead settings for
+years: `bundledWebRuntime`, removed from Capacitor's config type in v5, and a top-level
+`launchAutoHide`, which is a `plugins.SplashScreen` option and so was silently ignored. Without
+the cast, TypeScript rejects both.
+
 ## Logging on device
 
 Capacitor's Android bridge calls `String()` on every `console.*` argument, so anything passed as a
@@ -114,8 +121,8 @@ Two things bite here:
   copies and installs in one step.
 - **`app:build` never bumps the version.** Minting a build number on every build would change
   `.buildversion.json`, which is a cache input, so the app build would never hit the cache. Use
-  `nx run app:build-release` for a shippable build: it runs `version-bump` and then
-  `build:production-mobile` in sequence (`parallel: false` — `dependsOn` would let Nx run them
+  `nx run app:build-release` for a shippable build: it runs `version-bump`,
+  `build:production-mobile` and `sync` in sequence (`parallel: false` — `dependsOn` would let Nx run them
   concurrently and the build would read the previous number). `NX_SKIP_VERSION_BUMP=1` turns the
   bump into a no-op if you need to rebuild the same version.
 - **`.buildversion.json` must invalidate the Nx build cache.** It is listed explicitly in the

@@ -41,8 +41,12 @@ export class CoreService{
 		this.account$.subscribe( account => this.account = account );
 
 		this.online$ = new BehaviorSubject<boolean>( navigator.onLine );
-		fromEvent( window, 'online' ).pipe( map( () => this.online$.next( true ) ) );
-		fromEvent( window, 'offline' ).pipe( map( () => this.online$.next( false ) ) );
+
+		// These were previously piped but never subscribed, so online$ kept whatever
+		// navigator.onLine reported when the service was constructed and never changed again -
+		// which meant responses recorded offline were never retried once the device reconnected.
+		fromEvent( window, 'online' ).subscribe( () => this.setOnline( true ) );
+		fromEvent( window, 'offline' ).subscribe( () => this.setOnline( false ) );
 
 		this.translate.onLangChange.subscribe( change => {
 			Preferences.set( { key: 'lang', value: change.lang } );
@@ -61,6 +65,19 @@ export class CoreService{
 		// Get the time zone set on the user's device
 		//		const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 		//		this.currentLocale = 'de-DE';
+	}
+
+
+	/**
+	 * Publishes a connectivity change, but only when it actually changes - subscribers use this
+	 * to flush queued work, and duplicate `true`s would re-trigger that needlessly.
+	 */
+	public setOnline( online:boolean ):void{
+		if( this.online$.value === online )
+			return;
+
+		console.info( `[core] connectivity: ${ online ? 'online' : 'offline' }` );
+		this.online$.next( online );
 	}
 
 

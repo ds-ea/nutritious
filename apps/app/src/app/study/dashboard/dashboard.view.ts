@@ -357,6 +357,9 @@ export class DashboardView implements OnInit, OnDestroy{
 
 		// force refresh when returning from outside the app
 		App.addListener( 'resume', () => {
+			// anything recorded while offline is retried here too, not just on reconnect -
+			// the device may have regained connectivity while the app was backgrounded
+			this.studyService.flushPendingResponses();
 			this.forceRefresh();
 		} );
 	}

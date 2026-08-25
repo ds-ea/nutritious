@@ -284,6 +284,118 @@ describe( 'StudyService', () => {
 	} );
 
 
+	describe( 'flushPendingResponses', () => {
+
+		/** puts the service in the state it reaches after refreshStudies() */
+		function withStudy( id = 'study1' ){
+			service.studies$.next( [ { study: { id, name: 'S' }, badge: null } as never ] );
+		}
+
+		it( 'sends a response that was recorded while offline, once back online', async () => {
+			core.online$.next( false );
+			withStudy();
+
+			await lastValueFrom( service.submitResponses( payload( response() ) ), { defaultValue: null } );
+			expect( api.post ).not.toHaveBeenCalled();
+
+			core.online$.next( true );
+			api.post.mockReturnValue( of( { success: [ 'uid1' ] } ) );
+
+			expect( await service.flushPendingResponses() ).toBe( 1 );
+
+			const log = await service.getStudyLog( 'study1' );
+			expect( log.entries[0].state ).toBe( ResponseLogState.Done );
+			expect( log.entries[0].response ).toBeUndefined();
+		} );
+
+		it( 'does not resend once acknowledged', async () => {
+			core.online$.next( false );
+			withStudy();
+			await lastValueFrom( service.submitResponses( payload( response() ) ), { defaultValue: null } );
+
+			core.online$.next( true );
+			api.post.mockReturnValue( of( { success: [ 'uid1' ] } ) );
+
+			await service.flushPendingResponses();
+			api.post.mockClear();
+
+			expect( await service.flushPendingResponses() ).toBe( 0 );
+			expect( api.post ).not.toHaveBeenCalled();
+		} );
+
+		it( 'keeps the response queued when the flush request fails', async () => {
+			core.online$.next( false );
+			withStudy();
+			await lastValueFrom( service.submitResponses( payload( response() ) ), { defaultValue: null } );
+
+			core.online$.next( true );
+			api.post.mockReturnValue( throwError( () => new Error( 'still offline really' ) ) );
+
+			expect( await service.flushPendingResponses() ).toBe( 0 );
+
+			const log = await service.getStudyLog( 'study1' );
+			expect( log.entries[0].state ).toBe( ResponseLogState.Pending );
+			expect( log.entries[0].response ).toBeDefined();
+		} );
+
+		it( 'keeps the response queued when the server acknowledges nothing', async () => {
+			core.online$.next( false );
+			withStudy();
+			await lastValueFrom( service.submitResponses( payload( response() ) ), { defaultValue: null } );
+
+			core.online$.next( true );
+			api.post.mockReturnValue( of( { success: [] } ) );
+
+			expect( await service.flushPendingResponses() ).toBe( 0 );
+			expect( ( await service.getStudyLog( 'study1' ) ).entries[0].response ).toBeDefined();
+		} );
+
+		it( 'does nothing while still offline', async () => {
+			core.online$.next( false );
+			withStudy();
+			await lastValueFrom( service.submitResponses( payload( response() ) ), { defaultValue: null } );
+
+			expect( await service.flushPendingResponses() ).toBe( 0 );
+			expect( api.post ).not.toHaveBeenCalled();
+		} );
+
+		it( 'does nothing when not logged in', async () => {
+			withStudy();
+			core.account$.next( undefined );
+
+			expect( await service.flushPendingResponses() ).toBe( 0 );
+			expect( api.post ).not.toHaveBeenCalled();
+		} );
+
+		it( 'flushes automatically when connectivity returns', async () => {
+			core.online$.next( false );
+			withStudy();
+			await lastValueFrom( service.submitResponses( payload( response() ) ), { defaultValue: null } );
+
+			api.post.mockReturnValue( of( { success: [ 'uid1' ] } ) );
+
+			// this is what the subscription in the constructor reacts to
+			core.online$.next( true );
+			await new Promise( r => setTimeout( r, 0 ) );
+
+			expect( api.post ).toHaveBeenCalledWith( 'study/responses', { responses: [ expect.objectContaining( { uid: 'uid1' } ) ] } );
+		} );
+
+		it( 'counts what is still queued', async () => {
+			core.online$.next( false );
+			withStudy();
+
+			await lastValueFrom( service.submitResponses( payload(
+				response( { uid: 'a', suid: 's1' } ),
+				response( { uid: 'b', suid: 's2' } ),
+			) ), { defaultValue: null } );
+
+			expect( await service.countPendingResponses() ).toBe( 2 );
+		} );
+
+	} );
+
+
 	describe( 'markResponsesAsSent', () => {
 
 		it( 'sets state to done and removes the stored payload', async () => {

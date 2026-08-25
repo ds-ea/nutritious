@@ -1,11 +1,13 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Type } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { LoadingController } from '@ionic/angular';
+import { LoadingController, ToastController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 import dayjs, { Dayjs } from 'dayjs';
 import { nanoid } from 'nanoid';
 import { BehaviorSubject, ReplaySubject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { containsOnlyContentSteps, MatchedSlot, PreparedSlot, PublicStudy, SafeSlot, SafeStep, StepResponse, StudyStepType } from '../../../../../../libs/core/src';
+import { CoreService } from '../../core/core.service';
 import { StudyService } from '../study.service';
 import { AbstractStepComponent, StepCompleteEvent, StepProgress } from './steps/abstract-step.component';
 import { StepContentComponent } from './steps/step-content.component';
@@ -136,6 +138,9 @@ export class SlotView implements OnInit, OnDestroy{
 		private router:Router,
 		private cdr:ChangeDetectorRef,
 		private studyService:StudyService,
+		private toaster:ToastController,
+		private core:CoreService,
+		private translate:TranslateService,
 	){ }
 
 	ngOnInit(){
@@ -262,18 +267,44 @@ export class SlotView implements OnInit, OnDestroy{
 			response => ( { ...response, _study: this.study!.id } ),
 		);
 
+		const offline = !this.core.online$.value;
+
 		await this.loader.present();
 		this.studyService.submitResponses( { responses } )
 			.pipe( takeUntil( this._destroyed$ ) )
 			.subscribe( {
+				error: err => {
+					// The responses are already written to the local log, so this is not data
+					// loss - they stay queued and the next flush retries them. Previously there
+					// was no error handler at all, so a failed request left the spinner running
+					// forever with no way out.
+					console.warn( '[slot] submit failed, responses stay queued for retry', err );
+
+					this.loader.dismiss();
+					this.notifyQueued();
+					this.router.navigateByUrl( '/study' );
+				},
 				complete: () => {
 					this.loader.dismiss();
+
+					if( offline )
+						this.notifyQueued();
+
 					this.router.navigateByUrl( '/study' );
 				},
 			} );
+	}
 
 
+	/** tells the participant their answers are safe but not yet delivered */
+	private async notifyQueued(){
+		const toast = await this.toaster.create( {
+			color: 'medium',
+			message: this.translate.instant( 'STUDY.MSG_RESPONSES_QUEUED' ),
+			duration: 4000,
+		} );
 
+		await toast.present();
 	}
 
 

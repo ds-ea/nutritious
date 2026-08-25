@@ -1,7 +1,7 @@
 import { EventEmitter, Injectable } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
-import { BehaviorSubject, concat, EMPTY, forkJoin, from, Observable, of } from 'rxjs';
-import { map, switchMap, tap } from 'rxjs/operators';
+import { BehaviorSubject, concat, EMPTY, forkJoin, from, lastValueFrom, Observable, of } from 'rxjs';
+import { filter, map, switchMap, tap } from 'rxjs/operators';
 import { MatchedSlot, ParticipantAccount, PreparedSlot, PreparedStudy, PublicStudy, ResponseLog, ResponseLogEntry, ResponseLogState, SafeSlot, SubmitResponsesPayload } from '../../../../../libs/core/src';
 import { ApiService } from '../core/api.service';
 import { CoreService } from '../core/core.service';
@@ -32,12 +32,21 @@ export class StudyService{
 		this.studies$.subscribe( studies => this.studies = studies );
 		this.preferences$.subscribe( preferences => this.preferences = preferences );
 
+		// Drain anything queued as soon as the device reconnects, and once more whenever an
+		// account becomes active (app start, account switch).
+		this.core.online$
+			.pipe( filter( online => online ) )
+			.subscribe( () => this.flushPendingResponses() );
+
 		this.core.account$.subscribe( account => {
 			// act when active account has changed
 			//			if( account?.participant.id == this.currentAccount?.participant.id && account?.host == this.currentAccount?.host ){}
 
 			this.currentAccount = account;
 			this.currentAccountId = account?.participant.id || 'default';
+
+			if( account )
+				this.flushPendingResponses();
 		} );
 
 		this.core.logout$.subscribe( () => {
@@ -125,6 +134,93 @@ export class StudyService{
 			return undefined;
 
 		this.studies$.next( studies );
+	}
+
+
+	/**
+	 * Responses recorded while offline sit in the local log as Pending with their payload still
+	 * attached. Nothing used to drain that queue, so they were stored and then never sent - the
+	 * data was on the device but never reached the study.
+	 *
+	 * Re-sends every Pending response that still carries a payload. Safe to call repeatedly: a
+	 * response is only cleared once the server acknowledges its uid, and the server keys on uid,
+	 * so a response that was actually received but whose acknowledgement was lost is deduplicated
+	 * rather than double-counted.
+	 */
+	public async flushPendingResponses():Promise<number>{
+		if( !this.currentAccount ){
+			console.info( '[study] flush skipped: not logged in' );
+			return 0;
+		}
+
+		if( !this.core.online$.value ){
+			console.info( '[study] flush skipped: offline' );
+			return 0;
+		}
+
+		const studyIds = this.studies?.map( prepared => prepared.study.id ) ?? [];
+		if( !studyIds.length )
+			return 0;
+
+		let sent = 0;
+
+		for( const studyId of studyIds ){
+			const log = await this.getStudyLog( studyId );
+
+			const pending = log.entries.filter(
+				entry => entry.state === ResponseLogState.Pending && !!entry.response?.data,
+			);
+
+			if( !pending.length )
+				continue;
+
+			console.info( `[study] flushing ${ pending.length } pending response(s) for study ${ studyId }` );
+
+			const responses = pending.map( entry => entry.response! );
+
+			try{
+				const result = await lastValueFrom(
+					this.api.post<{ success:ResponseLogEntry['uid'][] } | undefined>(
+						'study/responses', { responses },
+					),
+				);
+
+				if( !result?.success?.length ){
+					console.warn( `[study] flush for study ${ studyId } acknowledged nothing - keeping ${ pending.length } queued` );
+					continue;
+				}
+
+				await lastValueFrom( this.markResponsesAsSent( studyId, result.success ) );
+				sent += result.success.length;
+
+				console.info( `[study] flush sent ${ result.success.length } response(s) for study ${ studyId }` );
+
+			}catch( err ){
+				// stays Pending, so the next flush retries it
+				console.warn( `[study] flush failed for study ${ studyId }, ${ pending.length } still queued`, err );
+			}
+		}
+
+		if( sent )
+			this.newResponses$.next( studyIds.map( study => ( { study } ) ) );
+
+		return sent;
+	}
+
+
+	/** number of responses recorded but not yet accepted by the server */
+	public async countPendingResponses():Promise<number>{
+		const studyIds = this.studies?.map( prepared => prepared.study.id ) ?? [];
+
+		let pending = 0;
+		for( const studyId of studyIds ){
+			const log = await this.getStudyLog( studyId );
+			pending += log.entries.filter(
+				entry => entry.state === ResponseLogState.Pending && !!entry.response?.data,
+			).length;
+		}
+
+		return pending;
 	}
 
 

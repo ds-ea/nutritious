@@ -111,10 +111,12 @@ Two things bite here:
   app without a rebuild and you still see the old bundle, you used Apply Changes (the lightning
   bolt) rather than Run. *Build → Clean Project* clears it, or use `nx run app:run:android`, which
   copies and installs in one step.
-- **The build bumps the version first.** `app:build` has `dependsOn: ["^build", "version-bump"]`,
-  so every build mints a new build number and writes it to `.buildversion.json` and the Xcode
-  project. That deliberately misses the Nx build cache each time — set `NX_SKIP_VERSION_BUMP=1`
-  for local iteration.
+- **`app:build` never bumps the version.** Minting a build number on every build would change
+  `.buildversion.json`, which is a cache input, so the app build would never hit the cache. Use
+  `nx run app:build-release` for a shippable build: it runs `version-bump` and then
+  `build:production-mobile` in sequence (`parallel: false` — `dependsOn` would let Nx run them
+  concurrently and the build would read the previous number). `NX_SKIP_VERSION_BUMP=1` turns the
+  bump into a no-op if you need to rebuild the same version.
 - **`.buildversion.json` must invalidate the Nx build cache.** It is listed explicitly in the
   `build` target's `inputs` in `apps/app/project.json`, because Nx's `{projectRoot}/**/*` default
   does not pick up dotfiles. Without it Nx replays a cached bundle - and its cached stdout, so the

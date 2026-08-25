@@ -10,6 +10,7 @@
 		"prisma:generate": "nx run core:prisma:generate",
 		"build:app": "nx build app",
 		"build:app:mobile": "nx run app:build:production-mobile",
+		"build:app:release": "nx run app:build-release",
 		"build:server": "nx build server",
 		"app:sync": "nx run app:sync",
 		"app:version-bump": "nx run app:version-bump"

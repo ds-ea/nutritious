@@ -111,9 +111,18 @@
 				"{projectRoot}/.buildversion.json"
 			],
 			"dependsOn": [
-				"^build",
-				"version-bump"
+				"^build"
 			]
+		},
+		"build-release": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"nx run app:version-bump",
+					"nx run app:build:production-mobile"
+				],
+				"parallel": false
+			}
 		},
 		"serve": {
 			"executor": "@nx/angular:dev-server",

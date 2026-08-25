@@ -119,7 +119,8 @@
 			"options": {
 				"commands": [
 					"nx run app:version-bump",
-					"nx run app:build:production-mobile"
+					"nx run app:build:production-mobile",
+					"nx run app:sync"
 				],
 				"parallel": false
 			}

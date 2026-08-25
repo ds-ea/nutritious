@@ -115,16 +115,16 @@ EXTERNAL SOURCES:
     :path: "../capacitor-cordova-ios-plugins"
 
 SPEC CHECKSUMS:
-  Capacitor: 34ed46c7364734d8d92feb1949ba731013acc93e
-  CapacitorApp: 9fd99482b6536ddf1a54721ce678145fc7fa3418
+  Capacitor: 00b87168591cc006ea6f5c0de681ec5c39a2c8eb
+  CapacitorApp: 305bd13c44f6f9d164e2ee66a4faa956ed8c0e06
   CapacitorCordova: 9d3acbb574048e7167d2af127a0af2123e619f2f
-  CapacitorHaptics: 4e1e84c2b74fb5918e403fb8f0e73a07d05937df
-  CapacitorKeyboard: b7df6f45f1072c292d7de8688aa98b9b266b37fe
-  CapacitorMlkitBarcodeScanning: 1c052457db2c79a763580ca59ee108627ae87f95
-  CapacitorPreferences: 0fa33b3affebf12d96358b491ed7c2b39bec3270
-  CapacitorSplashScreen: 120117d1b2264bba31a6e6f998f51e510144dd12
-  CapacitorStatusBar: 40bdc21352ecc617ec71c45ea06d669cdd2da8df
-  CordovaPlugins: c113d8c41881dd0254e7169f888bcf69e2fbb12a
+  CapacitorHaptics: 296f771ecd89c7a1bd92a7b6826a7d268e2e70f5
+  CapacitorKeyboard: b6b0744890cdb1d9a96e2cafcc9253fdcc55de3b
+  CapacitorMlkitBarcodeScanning: 31c6af9f39873ff69e16ed5b39ebe2e1915f16fe
+  CapacitorPreferences: cca2021f386efb75947c850334447d9ff22b14f1
+  CapacitorSplashScreen: 7bf61c2001557ff9e195e601c6b87344480d3c65
+  CapacitorStatusBar: eca7bc2b58d9f886f1ef9edb66e57a9b29c121af
+  CordovaPlugins: 10262e3b44e59a35042f69709cb08a0ac268e88b
   GoogleDataTransport: a24e58982ab3ba2f64d79613e027fe7f57e88539
   GoogleMLKit: ddd51d7dff36ff28defa69afedd9cdce684fd857
   GoogleToolboxForMac: d1a2cbf009c453f4d6ded37c105e2f67a32206d8
@@ -139,4 +139,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 410302414619d56d00232e66859a6f73ceaaa607
 
-COCOAPODS: 1.12.1
+COCOAPODS: 1.17.0

@@ -75,10 +75,13 @@ a silently broken study.
 nx run app:build-release
 ```
 
-This is steps 2 and 3 in one: it mints a new build number and then builds the mobile payload with
-it, in that order. Run it instead of `app:version-bump` and `app:build:production-mobile`
-separately — doing them by hand is how the app once shipped with a menu reporting a version two
-builds behind the one Android reported.
+This is steps 2 to 4 in one: it mints a new build number, builds the mobile payload with it, and
+syncs both native projects — in that order. Run it instead of doing those by hand; separating them
+is how the app once shipped with a menu reporting a version two builds behind the one Android
+reported, and how a native project ends up carrying a stale bundle.
+
+It syncs **both** platforms, so it needs Xcode and CocoaPods available. Use
+`nx run app:sync:android` separately if you ever need Android alone.
 
 `app:build` on its own never bumps, so ordinary builds stay cacheable. `NX_SKIP_VERSION_BUMP=1`
 makes the bump a no-op if you need to rebuild the same version.

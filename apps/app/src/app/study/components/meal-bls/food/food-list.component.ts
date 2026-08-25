@@ -9,6 +9,7 @@ import { lastValueFrom, ReplaySubject, Subject } from 'rxjs';
 import { catchError, debounceTime, takeUntil } from 'rxjs/operators';
 import { BLSMealItem } from '../../../../../../../../libs/core/src';
 import { FoodListMealItemEditorComponent } from './food-list-meal-item-editor.component';
+import { describeError } from '../../../../core/log-format';
 
 
 interface FoodLibraryItem{
@@ -153,7 +154,7 @@ export class FoodListComponent implements OnInit, OnDestroy{
 
 		const data = await lastValueFrom( this.http.get<FoodLibraryItem[]>( 'assets/data/food.json' )
 			.pipe( catchError( err => {
-				console.error( 'unable to load food library', err );
+				console.error( `[study] unable to load food library: ${ describeError( err ) }` );
 				return [];
 			} ) ) );
 

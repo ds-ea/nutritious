@@ -84,6 +84,21 @@ To check an APK rather than trust the emulator warning — which reports "Unknow
 libraries it cannot parse and makes compliant ones look broken — read the ELF program headers and
 confirm every `PT_LOAD` segment has `p_align >= 16384`.
 
+## Logging on device
+
+Capacitor's Android bridge calls `String()` on every `console.*` argument, so anything passed as a
+separate argument reaches logcat as `[object Object]`. Fold detail into the message string, and
+run errors through `describeError()` (`src/app/core/log-format.ts`), which turns `Error`s,
+`HttpErrorResponse`es and plain objects into something readable:
+
+```ts
+console.warn( `[study] flush failed: ${ describeError( err ) }` );   // HTTP 401 Unauthorized
+console.warn( '[study] flush failed', err );                         // [object Object]
+```
+
+Diagnostic lines are prefixed with the area (`[core]`, `[study]`, `[slot]`, `[app]`) so they can
+be filtered in logcat.
+
 ## Rebuilding after a web change
 
 The web payload lives in `android/app/src/main/assets/public` and `ios/App/App/public`, copied

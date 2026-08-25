@@ -5,6 +5,7 @@ import { filter, map, switchMap, tap } from 'rxjs/operators';
 import { MatchedSlot, ParticipantAccount, PreparedSlot, PreparedStudy, PublicStudy, ResponseLog, ResponseLogEntry, ResponseLogState, SafeSlot, SubmitResponsesPayload } from '../../../../../libs/core/src';
 import { ApiService } from '../core/api.service';
 import { CoreService } from '../core/core.service';
+import { describeError } from '../core/log-format';
 import { StorageService } from '../core/storage.service';
 
 
@@ -125,7 +126,7 @@ export class StudyService{
 			preferences = preferencesRaw ? JSON.parse( preferencesRaw ) : undefined;
 
 		}catch( e ){
-			console.error( 'error parsing stored study data', e );
+			console.error( `[study] error parsing stored study data: ${ describeError( e ) }` );
 		}
 
 		const studies:PreparedStudy[] | undefined = await this.storage.get<PreparedStudy[]>( [ 'studies', this.currentAccountId ] );
@@ -197,7 +198,7 @@ export class StudyService{
 
 			}catch( err ){
 				// stays Pending, so the next flush retries it
-				console.warn( `[study] flush failed for study ${ studyId }, ${ pending.length } still queued`, err );
+				console.warn( `[study] flush failed for study ${ studyId }, ${ pending.length } still queued: ${ describeError( err ) }` );
 			}
 		}
 

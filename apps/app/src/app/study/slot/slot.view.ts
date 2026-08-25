@@ -8,6 +8,7 @@ import { BehaviorSubject, ReplaySubject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { containsOnlyContentSteps, MatchedSlot, PreparedSlot, PublicStudy, SafeSlot, SafeStep, StepResponse, StudyStepType } from '../../../../../../libs/core/src';
 import { CoreService } from '../../core/core.service';
+import { describeError } from '../../core/log-format';
 import { StudyService } from '../study.service';
 import { AbstractStepComponent, StepCompleteEvent, StepProgress } from './steps/abstract-step.component';
 import { StepContentComponent } from './steps/step-content.component';
@@ -278,7 +279,7 @@ export class SlotView implements OnInit, OnDestroy{
 					// loss - they stay queued and the next flush retries them. Previously there
 					// was no error handler at all, so a failed request left the spinner running
 					// forever with no way out.
-					console.warn( '[slot] submit failed, responses stay queued for retry', err );
+					console.warn( `[slot] submit failed, responses stay queued for retry: ${ describeError( err ) }` );
 
 					this.loader.dismiss();
 					this.notifyQueued();

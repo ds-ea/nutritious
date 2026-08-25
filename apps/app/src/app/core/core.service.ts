@@ -8,6 +8,7 @@ import { BehaviorSubject, fromEvent, Observable, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { AuthLoginResponse, ParticipantAccount, SignupCheckResponse, SignupResponse } from '../../../../../libs/core/src';
 import { ApiService } from './api.service';
+import { describeError } from './log-format';
 import { CoreState } from './types';
 
 
@@ -91,7 +92,7 @@ export class CoreService{
 			accounts = accountsRaw ? JSON.parse( accountsRaw ) : undefined;
 			state = stateRaw ? JSON.parse( stateRaw ) : undefined;
 		}catch( e ){
-			console.error( 'error parsing stored account', e );
+			console.error( `[core] error parsing stored account: ${ describeError( e ) }` );
 		}
 
 		if( !accounts?.length )

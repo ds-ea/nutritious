@@ -96,11 +96,20 @@ export NX_DEPLOYMENT_ENV=production
 export NX_PROJECT_NAME=Nutritious
 export NX_PRIVACY_URL=…
 export NX_SUPPORT_URL=…
-export NX_APP_VERSION=$(node -p "require('./apps/app/.buildversion.json').version")
-export NX_APP_BUILD=$(node -p "require('./apps/app/.buildversion.json').build")
 
 nx run app:build:production-mobile
 ```
+
+`NX_APP_VERSION` and `NX_APP_BUILD` do not need exporting — `webpack.config.js` reads them from
+`.buildversion.json`, and the build prints what it baked in:
+
+```
+[app] building version 3.0.3 (260824613)
+```
+
+That value is fixed at web-build time on purpose. If you bump the build afterwards for a
+native-only change, the in-app menu keeps showing the version the JS was actually built from,
+which is the honest answer — rebuild the web assets if you want them to match.
 
 **Verify before continuing** — a missing value produces a working build that cannot reach the API:
 

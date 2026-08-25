@@ -135,7 +135,13 @@ NX_PRIVACY_URL  NX_SUPPORT_URL  NX_APP_VERSION  NX_APP_BUILD
 ```
 
 If `NX_API_URL` is unset at build time the build still succeeds and ships an app that cannot reach
-the API. Always verify the injected values in the emitted bundle before releasing.
+the API — the build warns about this, but does not fail. Always verify the injected values in the
+emitted bundle before releasing.
+
+`NX_APP_VERSION` and `NX_APP_BUILD` are the exception: `webpack.config.js` reads them from
+`apps/app/.buildversion.json` rather than the environment, so they cannot drift out of order with
+the build. The value is fixed at **web build** time, so bumping the build afterwards for a
+native-only change deliberately leaves the in-app version showing what the JS was built from.
 
 **The iOS bundle id differs from the Capacitor appId on purpose.**
 

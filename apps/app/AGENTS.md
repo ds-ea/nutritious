@@ -106,10 +106,23 @@ The second is the one to be suspicious of: `navigator.onLine` reports the WebVie
 OS's, so it can claim to be online on a connected-but-no-internet network. If that path misbehaves,
 `@capacitor/network` reports the real state and is the fix.
 
-**Test on Android.** The emulator has real airplane mode and separate Wi-Fi and cellular toggles.
-The **iOS Simulator has no network controls at all** — it shares the Mac's stack. There, switching
-off the Mac's Wi-Fi drives the first path, and Network Link Conditioner ("Additional Tools for
-Xcode") at *100% Loss* drives the second, since the interface stays up.
+The queue logic is shared TypeScript, but **the storage underneath it is not** — it is a Cordova
+plugin, present in each native project separately, so persistence has to be verified on both
+platforms. `StorageService` logs which driver actually registered:
+
+```
+[storage] driver: cordovaSQLiteDriver (SQLite)                      <- expected
+[storage] driver: asyncStorage - the SQLite driver did not register  <- fell back to IndexedDB
+```
+
+The fallback is silent otherwise: new data keeps working, so nothing looks wrong, while anything
+previously written to SQLite is stranded. Check that line on both platforms after any Capacitor or
+plugin change.
+
+The network side is easiest on Android — the emulator has real airplane mode and separate Wi-Fi
+and cellular toggles. The **iOS Simulator has no network controls at all**; it shares the Mac's
+stack. There, switching off the Mac's Wi-Fi drives the first path, and Network Link Conditioner
+("Additional Tools for Xcode") at *100% Loss* drives the second, since the interface stays up.
 
 Watch `[study]` and `[core]` in the log: `[core] connectivity: offline`, then
 `[study] flushing N pending response(s)` and `[study] flush sent N` on reconnect.

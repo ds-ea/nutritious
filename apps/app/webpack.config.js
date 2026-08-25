@@ -44,16 +44,23 @@ function getClientEnvironment(){
 			return env;
 		}, {});
 
-	// .buildversion.json is the source of truth for the version, so the shell no longer has to
-	// export it in the right order relative to the build. An explicit env var still overrides.
-	for( const [ key, value ] of Object.entries(getBuildVersion()) )
-		if( value !== undefined && raw[key] === undefined )
-			raw[key] = value;
+	// .buildversion.json is the source of truth for the version and wins over the environment.
+	// Nx auto-loads .env into the task environment, so a stale NX_APP_VERSION there would
+	// otherwise silently override the file and ship a build labelled with the wrong version.
+	for( const [ key, value ] of Object.entries(getBuildVersion()) ){
+		if( value === undefined )
+			continue;
+
+		if( raw[key] !== undefined && raw[key] !== value )
+			console.warn(`[app] ignoring ${ key }=${ raw[key] } from the environment; .buildversion.json says ${ value }. Remove it from .env to silence this.`);
+
+		raw[key] = value;
+	}
 
 	if( !raw['NX_API_URL'] )
 		console.warn('[app] NX_API_URL is not set - this build will not be able to reach the API.');
 
-	console.log(`[app] building version ${ raw['NX_APP_VERSION'] ?? '?' } (${ raw['NX_APP_BUILD'] ?? '?' })`);
+	console.log(`[app] building version ${ raw['NX_APP_VERSION'] ?? '?' } (${ raw['NX_APP_BUILD'] ?? '?' }) from .buildversion.json`);
 
 	// Stringify all values so we can feed into webpack DefinePlugin
 	return {

@@ -139,8 +139,9 @@ the API — the build warns about this, but does not fail. Always verify the inj
 emitted bundle before releasing.
 
 `NX_APP_VERSION` and `NX_APP_BUILD` are the exception: `webpack.config.js` reads them from
-`apps/app/.buildversion.json` rather than the environment, so they cannot drift out of order with
-the build. The value is fixed at **web build** time, so bumping the build afterwards for a
+`apps/app/.buildversion.json`, which **overrides** anything in the environment. Nx auto-loads
+`.env` into the task environment, so a stale `NX_APP_VERSION` there would otherwise silently
+label a build with the wrong version; the build warns when it ignores such a value. The value is fixed at **web build** time, so bumping the build afterwards for a
 native-only change deliberately leaves the in-app version showing what the JS was built from.
 
 **The iOS bundle id differs from the Capacitor appId on purpose.**

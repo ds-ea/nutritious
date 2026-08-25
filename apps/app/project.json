@@ -104,7 +104,12 @@
 					]
 				}
 			},
-			"defaultConfiguration": "production"
+			"defaultConfiguration": "production",
+			"inputs": [
+				"production",
+				"^production",
+				"{projectRoot}/.buildversion.json"
+			]
 		},
 		"serve": {
 			"executor": "@nx/angular:dev-server",

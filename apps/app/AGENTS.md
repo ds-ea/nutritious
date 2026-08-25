@@ -84,6 +84,24 @@ To check an APK rather than trust the emulator warning — which reports "Unknow
 libraries it cannot parse and makes compliant ones look broken — read the ELF program headers and
 confirm every `PT_LOAD` segment has `p_align >= 16384`.
 
+## Rebuilding after a web change
+
+The web payload lives in `android/app/src/main/assets/public` and `ios/App/App/public`, copied
+there by `cap copy` / `cap sync`. Rebuilding `dist/apps/app` alone changes nothing the native
+build can see, so the order is always **build → sync → run**.
+
+Two things bite here:
+
+- **Android Studio's *Apply Changes* does not repackage assets.** If the simulator relaunches the
+  app without a rebuild and you still see the old bundle, you used Apply Changes (the lightning
+  bolt) rather than Run. *Build → Clean Project* clears it, or use `nx run app:run:android`, which
+  copies and installs in one step.
+- **`.buildversion.json` must invalidate the Nx build cache.** It is listed explicitly in the
+  `build` target's `inputs` in `apps/app/project.json`, because Nx's `{projectRoot}/**/*` default
+  does not pick up dotfiles. Without it Nx replays a cached bundle - and its cached stdout, so the
+  `[app] building version …` line reports the version of whatever build was cached, not the
+  current one.
+
 ## Native work
 
 - Change SDK levels and androidx versions in `android/variables.gradle`, AGP in

@@ -91,6 +91,29 @@ years: `bundledWebRuntime`, removed from Capacitor's config type in v5, and a to
 `launchAutoHide`, which is a `plugins.SplashScreen` option and so was silently ignored. Without
 the cast, TypeScript rejects both.
 
+## Testing the offline queue
+
+Responses recorded without a connection are held locally and flushed by
+`StudyService.flushPendingResponses()` on reconnect, on app resume, and when an account becomes
+active. Two distinct paths matter, and they fail differently:
+
+| Condition | Path |
+|---|---|
+| `navigator.onLine` false | The POST is skipped, the response is stored `Pending`, and the next flush sends it. |
+| Online but unreachable | The POST is attempted and fails. The response stays `Pending` and is retried. |
+
+The second is the one to be suspicious of: `navigator.onLine` reports the WebView's guess, not the
+OS's, so it can claim to be online on a connected-but-no-internet network. If that path misbehaves,
+`@capacitor/network` reports the real state and is the fix.
+
+**Test on Android.** The emulator has real airplane mode and separate Wi-Fi and cellular toggles.
+The **iOS Simulator has no network controls at all** — it shares the Mac's stack. There, switching
+off the Mac's Wi-Fi drives the first path, and Network Link Conditioner ("Additional Tools for
+Xcode") at *100% Loss* drives the second, since the interface stays up.
+
+Watch `[study]` and `[core]` in the log: `[core] connectivity: offline`, then
+`[study] flushing N pending response(s)` and `[study] flush sent N` on reconnect.
+
 ## Logging on device
 
 Capacitor's Android bridge calls `String()` on every `console.*` argument, so anything passed as a

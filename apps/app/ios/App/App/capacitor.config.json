@@ -2,6 +2,19 @@
 	"appId": "de.dife.foodapp",
 	"appName": "FoodApp",
 	"webDir": "../../dist/apps/app",
-	"bundledWebRuntime": false,
-	"launchAutoHide": false
+	"plugins": {
+		"SplashScreen": {
+			"launchAutoHide": false
+		}
+	},
+	"packageClassList": [
+		"BarcodeScannerPlugin",
+		"AppPlugin",
+		"HapticsPlugin",
+		"KeyboardPlugin",
+		"PreferencesPlugin",
+		"SplashScreenPlugin",
+		"StatusBarPlugin",
+		"CDVPlugin"
+	]
 }

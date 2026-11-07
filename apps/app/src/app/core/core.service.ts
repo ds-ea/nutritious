@@ -8,6 +8,7 @@ import { BehaviorSubject, fromEvent, Observable, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { AuthLoginResponse, ParticipantAccount, SignupCheckResponse, SignupResponse } from '../../../../../libs/core/src';
 import { ApiService } from './api.service';
+import { describeError } from './log-format';
 import { CoreState } from './types';
 
 
@@ -41,8 +42,12 @@ export class CoreService{
 		this.account$.subscribe( account => this.account = account );
 
 		this.online$ = new BehaviorSubject<boolean>( navigator.onLine );
-		fromEvent( window, 'online' ).pipe( map( () => this.online$.next( true ) ) );
-		fromEvent( window, 'offline' ).pipe( map( () => this.online$.next( false ) ) );
+
+		// These were previously piped but never subscribed, so online$ kept whatever
+		// navigator.onLine reported when the service was constructed and never changed again -
+		// which meant responses recorded offline were never retried once the device reconnected.
+		fromEvent( window, 'online' ).subscribe( () => this.setOnline( true ) );
+		fromEvent( window, 'offline' ).subscribe( () => this.setOnline( false ) );
 
 		this.translate.onLangChange.subscribe( change => {
 			Preferences.set( { key: 'lang', value: change.lang } );
@@ -64,6 +69,19 @@ export class CoreService{
 	}
 
 
+	/**
+	 * Publishes a connectivity change, but only when it actually changes - subscribers use this
+	 * to flush queued work, and duplicate `true`s would re-trigger that needlessly.
+	 */
+	public setOnline( online:boolean ):void{
+		if( this.online$.value === online )
+			return;
+
+		console.info( `[core] connectivity: ${ online ? 'online' : 'offline' }` );
+		this.online$.next( online );
+	}
+
+
 	public async restoreAuth():Promise<any>{
 		const { value: accountsRaw } = await Preferences.get( { key: 'accounts' } );
 		const { value: stateRaw } = await Preferences.get( { key: 'state' } );
@@ -74,7 +92,7 @@ export class CoreService{
 			accounts = accountsRaw ? JSON.parse( accountsRaw ) : undefined;
 			state = stateRaw ? JSON.parse( stateRaw ) : undefined;
 		}catch( e ){
-			console.error( 'error parsing stored account', e );
+			console.error( `[core] error parsing stored account: ${ describeError( e ) }` );
 		}
 
 		if( !accounts?.length )

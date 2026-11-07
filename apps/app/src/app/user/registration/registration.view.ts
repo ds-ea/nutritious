@@ -3,14 +3,16 @@ import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
+import { PluginListenerHandle } from '@capacitor/core';
+import { BarcodeFormat, BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import { LoadingController, Platform, ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ParticipantCredentials, SignupCheckResponse, SignupResponse, xorEncryptDecrypt } from '../../../../../../libs/core/src';
+import { ParticipantCredentials, SignupCheckResponse, SignupResponse } from '../../../../../../libs/core/src';
 import { ConfigService } from '../../core/config.service';
 import { CoreService } from '../../core/core.service';
+import { parseSignupCode } from './signup-code';
 
 
 enum SignupStep{
@@ -20,8 +22,8 @@ enum SignupStep{
 }
 
 @Component( {
-	selector: 'app-registration',
-	template: `
+    selector: 'app-registration',
+    template: `
 		<ion-content class="content-centered" [ngClass]="['step-'+step]">
 			<div class="">
 				<mat-card>
@@ -170,8 +172,9 @@ enum SignupStep{
 			</ng-template>
 		</ion-content>
 	`,
-	styles: [],
-	changeDetection: ChangeDetectionStrategy.OnPush,
+    styles: [],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 } )
 export class RegistrationView implements OnInit, OnDestroy{
 	public SignupStep = SignupStep;
@@ -219,9 +222,6 @@ export class RegistrationView implements OnInit, OnDestroy{
 		private readonly config:ConfigService,
 	){
 		this.canScan = platform.is( 'hybrid' );
-
-		if( this.canScan )
-			BarcodeScanner.prepare();
 	}
 
 	ngOnInit():void{
@@ -238,46 +238,73 @@ export class RegistrationView implements OnInit, OnDestroy{
 		if( 'nutriManualQRCode' in window )
 			delete window['nutriManualQRCode'];
 
-		if( this.canScan ){
-			BarcodeScanner.showBackground();
-			this.document.querySelector( 'html' )?.classList.remove( 'scanner-running' );
-			BarcodeScanner.stopScan();
-		}
+		if( this.canScan )
+			this.stopScan();
 
 	}
 
+	/** live scan listener, held so it can be detached again */
+	private scanListener:PluginListenerHandle | undefined;
+
+
+	/** tears down the transparent-webview overlay, whether the scan succeeded or was cancelled */
 	public async afterScan(){
 		this.core.scannerUIPortal = undefined;
-		BarcodeScanner.showBackground();
 		this.document.querySelector( 'html' )?.classList.remove( 'scanner-running' );
+		this.cdr.markForCheck();
 	}
 
 	public async stopScan(){
-		BarcodeScanner.stopScan();
-		this.afterScan();
+		await this.scanListener?.remove();
+		this.scanListener = undefined;
+
+		await BarcodeScanner.stopScan().catch( () => undefined );
+		await this.afterScan();
 	}
 
 	public async startScan(){
-		if( !this.canScan )
+		if( !this.canScan || this.scanListener )
 			return;
 
-		const status = await BarcodeScanner.checkPermission( { force: true } );
+		const { camera } = await BarcodeScanner.requestPermissions();
+		if( camera !== 'granted' && camera !== 'limited' ){
+			this.toaster.create( {
+				color: 'danger',
+				message: this.translate.instant( 'USER.AUTH.SCAN_SIGNUP_QRCODE_NO_CAMERA_ERR' ),
+				duration: 3000,
+			} ).then( toast => toast.present() );
+			return;
+		}
+
+		// On Android the scanner lives in a Play Services module that is not bundled; without it
+		// startScan never reports anything. It is a no-op on iOS.
+		try{
+			const { available } = await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
+			if( !available )
+				await BarcodeScanner.installGoogleBarcodeScannerModule();
+		}catch{
+			// not Android, or the module is already present
+		}
 
 		if( this.scannerUI )
 			this.core.scannerUIPortal = new TemplatePortal( this.scannerUI, this._viewContainerRef );
 
-		await BarcodeScanner.hideBackground(); // make background of WebView transparent
+		// the camera preview renders *behind* the webview, so the page has to become transparent
 		this.document.querySelector( 'html' )?.classList.add( 'scanner-running' );
 
-		const result = await BarcodeScanner.startScan(); // start scanning and wait for a result
+		// ML Kit streams results rather than resolving once, so take the first usable barcode
+		this.scanListener = await BarcodeScanner.addListener( 'barcodesScanned', async ( { barcodes } ) => {
+			const content = barcodes.find( barcode => !!barcode.rawValue )?.rawValue;
+			if( !content )
+				return;
 
+			await this.stopScan();
 
-		// if the result has content
-		if( result.hasContent ){
-			this.processCode( result.content );
-			this.afterScan();
+			this.processCode( content );
 			this.studyCheck();
-		}
+		} );
+
+		await BarcodeScanner.startScan( { formats: [ BarcodeFormat.QrCode ] } );
 	}
 
 
@@ -403,42 +430,35 @@ export class RegistrationView implements OnInit, OnDestroy{
 
 	private processCode( content:string ){
 
-		if( content.indexOf( '█' ) !== -1 ){ // new nutritious processing
-			const [ version, ...rawParts ] = content.split( '█' );
-
-			if( version === '0x' ){ // decrypt when necessary
-				const qrKey = this.config.get( 'QR_CODE_HASH' );
-				const qrSalt = 'asdoufawejasdifya0w3y-r8werfwe7gbR&#_(*&H#Q0u';
-
-				rawParts.forEach( ( value, key, parts ) =>
-					parts[key] = xorEncryptDecrypt( value, qrKey!, qrSalt ) );
-			}
-
-			const [ key, code, shortenedDomain, ...parts ] = rawParts;
-			const url = 'http' + ( shortenedDomain.charAt( 0 ) == '1' ? 's' : '' ) + '://' + shortenedDomain.slice( 1 );
-			this.apiURLBase = url;
-
-			const domain = new URL( url )?.hostname;
-
-			const data = { key, code, domain };
-			this.registrationForm.patchValue( data );
-			this.registrationForm.markAllAsTouched();
-
-
-			for( const k of Object.keys( data ) ){
-				const ctrl = this.registrationForm.get( k );
-				if( ctrl ){
-					ctrl.markAsDirty();
-					ctrl.markAsTouched();
-				}
-			}
-
-			this.cdr.markForCheck();
-
-		}else{
-			const [ key, code ] = content?.split( ':', 2 ) || [];
-			this.registrationForm.patchValue( { key, code } );
+		const parsed = parseSignupCode( content, this.config.get( 'QR_CODE_HASH' ) );
+		if( !parsed ){
+			this.toaster.create( {
+				color: 'danger',
+				message: this.translate.instant( 'USER.AUTH.SCAN_SIGNUP_QRCODE_INVALID_ERR' ),
+				duration: 3000,
+			} ).then( toast => toast.present() );
+			return;
 		}
 
+		const { key, code, domain, url } = parsed;
+
+		if( url )
+			this.apiURLBase = url;
+
+		// the legacy 'key:code' format carries no host, so leave whatever is already in the form
+		const data = domain ? { key, code, domain } : { key, code };
+
+		this.registrationForm.patchValue( data );
+		this.registrationForm.markAllAsTouched();
+
+		for( const k of Object.keys( data ) ){
+			const ctrl = this.registrationForm.get( k );
+			if( ctrl ){
+				ctrl.markAsDirty();
+				ctrl.markAsTouched();
+			}
+		}
+
+		this.cdr.markForCheck();
 	}
 }

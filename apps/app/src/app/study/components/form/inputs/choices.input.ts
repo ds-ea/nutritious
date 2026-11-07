@@ -5,9 +5,9 @@ import { AbstractInput } from './abstract-input';
 
 
 @Component( {
-	selector: 'nutri-choices-input',
-	changeDetection: ChangeDetectionStrategy.OnPush,
-	template: `
+    selector: 'nutri-choices-input',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `
 		<div [formGroup]="formGroup" *ngIf="item" class="form-control">
 			@if (item && config) {
 
@@ -53,6 +53,7 @@ import { AbstractInput } from './abstract-input';
 
 		</div>
 	`,
+    standalone: false
 } )
 export class ChoicesInput extends AbstractInput<FormInputType.Choices>{
 	@ViewChildren( 'valueWrapCheck', { read: MatCheckbox } ) checkboxes:QueryList<MatCheckbox> | undefined;

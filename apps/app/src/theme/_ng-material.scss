@@ -18,17 +18,18 @@
 // TODO: check whether and how
 // @include mat.all-legacy-component-typographies();
 // @include mat.legacy-core();
-@include mat.core;
+@include mat.elevation-classes();
+@include mat.app-background();
 
 // Define the palettes for your theme using the Material Design palettes available in palette.scss
 // (imported above). For each palette, you can optionally specify a default, lighter, and darker
 // hue. Available color palettes: https://material.io/design/color/
-$app-primary: mat.define-palette(mat.$indigo-palette);
-$app-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
-$app-warn: mat.define-palette(mat.$red-palette);
+$app-primary: mat.m2-define-palette(mat.$m2-indigo-palette);
+$app-accent: mat.m2-define-palette(mat.$m2-pink-palette, A200, A100, A400);
+$app-warn: mat.m2-define-palette(mat.$m2-red-palette);
 // Create the theme object. A theme consists of configurations for individual
 // theming systems such as "color" or "typography".
-$light-theme: mat.define-light-theme((
+$light-theme: mat.m2-define-light-theme((
 	color: (
 		primary: $app-primary,
 		accent: $app-accent,
@@ -40,9 +41,9 @@ $light-theme: mat.define-light-theme((
 
 
 @if ($dark-mode) {
-	$dark-primary: mat.define-palette(mat.$pink-palette);
-	$dark-accent: mat.define-palette(mat.$blue-gray-palette);
-	$dark-theme: mat.define-dark-theme((
+	$dark-primary: mat.m2-define-palette(mat.$m2-pink-palette);
+	$dark-accent: mat.m2-define-palette(mat.$m2-blue-gray-palette);
+	$dark-theme: mat.m2-define-dark-theme((
 		color: (
 			primary: $dark-primary,
 			accent: $dark-accent,
@@ -50,7 +51,8 @@ $light-theme: mat.define-light-theme((
 	));
 
 	@media (prefers-color-scheme: dark) {
-		@include mat.core-color($dark-theme);
+		@include mat.elevation-classes();
+		@include mat.app-background();
 		@include mat.button-color($dark-theme);
 	}
 }

@@ -4,9 +4,9 @@ import { AbstractInput } from './abstract-input';
 
 
 @Component( {
-	selector: 'nutri-rating-input',
-	changeDetection: ChangeDetectionStrategy.OnPush,
-	template: `
+    selector: 'nutri-rating-input',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `
 		<div [formGroup]="formGroup" *ngIf="item" class="form-control">
 			@if (item && config) {
 
@@ -69,6 +69,7 @@ import { AbstractInput } from './abstract-input';
 
 		</div>
 	`,
+    standalone: false
 } )
 export class RatingInput extends AbstractInput<FormInputType.Rating>{
 

@@ -43,6 +43,11 @@ import { StudyService } from './study/study.service';
 								{{ 'NAV.LOGOUT' | translate }}
 							</a>
 						</ion-item>
+						@if (buildString && buildString.length > 4) {
+							<ion-item class="version-number">
+								<span>{{ buildString }}</span>
+							</ion-item>
+						}
 					</ion-list>
 				</ion-content>
 			</ion-menu>
@@ -71,10 +76,12 @@ import { StudyService } from './study/study.service';
 			<ng-template [cdkPortalOutlet]="$any(core.scannerUIPortal)"></ng-template>
 		</div>
 	`,
+	standalone: false,
 } )
 export class AppComponent implements OnInit{
 
 	public deployENV = 'unknown';
+	public buildString?:string;
 
 	constructor(
 		public core:CoreService,
@@ -88,6 +95,7 @@ export class AppComponent implements OnInit{
 		private dateFNSConfiguration:DateFnsConfigurationService,
 	){
 		this.deployENV = config.get( 'DEPLOYMENT_ENV' ) || 'unknown';
+		this.buildString = `${ config.get( 'APP_VERSION' ) } (${ config.get( 'APP_BUILD' ) })`;
 
 		this.translate.onLangChange.subscribe( change => {
 			this.dateAdapter.setLocale( change.lang );

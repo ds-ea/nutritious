@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Storage } from '@ionic/storage-angular';
+import CordovaSQLiteDriver from 'localforage-cordovasqlitedriver';
 import { ReplaySubject } from 'rxjs';
+import { describeError } from './log-format';
 
 
 export type KeyableArgument = string | string[];
@@ -15,16 +17,32 @@ export class StorageService{
 	private _storage?:Storage;
 
 	constructor( private storage:Storage ){
-		console.log( 'storage construct' );
 		this.ready = this.init();
+
+		// init() is kicked off from the constructor, so without this a failure surfaces only as
+		// an unhandled rejection - and local storage is where unsent responses live.
+		this.ready.catch( err =>
+			console.error( `[storage] initialization failed, offline data will not persist: ${ describeError( err ) }` ),
+		);
 	}
 
 	private async init(){
-		console.log( 'storage init' );
 		// If using, define drivers here: await this.storage.defineDriver(/*...*/);
 		this._storage = await this.storage.create();
 		if( !this._storage )
 			throw new Error( 'storage not available' );
+
+		// app.module asks for [ CordovaSQLiteDriver, IndexedDB ]. If the SQLite driver did not
+		// register - it is a Cordova plugin, so it has to be present in the *native* project,
+		// which differs per platform - localforage silently falls back to IndexedDB. New data
+		// keeps working, so nothing looks wrong, while anything previously written to SQLite is
+		// left behind. Say which one actually won.
+		const driver = this._storage.driver;
+
+		if( driver === CordovaSQLiteDriver._driver )
+			console.info( `[storage] driver: ${ driver } (SQLite)` );
+		else
+			console.warn( `[storage] driver: ${ driver ?? 'unknown' } - the SQLite driver did not register, so this platform is NOT using SQLite` );
 
 		this.ready$.next( this._storage );
 

@@ -6,9 +6,9 @@ import { AbstractStepComponent, StepProgress } from './abstract-step.component';
 // TODO: improve config typing and use
 
 @Component( {
-	changeDetection: ChangeDetectionStrategy.OnPush,
-	selector: 'nutri-step-meal-bls',
-	template: `
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'nutri-step-meal-bls',
+    template: `
 		<meal-bls
 			[data]="data"
 			[meal]="slot.prepared.key"
@@ -20,6 +20,7 @@ import { AbstractStepComponent, StepProgress } from './abstract-step.component';
 			(state)="updateState($event)"
 		></meal-bls>
 	`,
+    standalone: false
 } )
 export class StepMealBlsComponent extends AbstractStepComponent<never, MealBLSResponseData>{
 

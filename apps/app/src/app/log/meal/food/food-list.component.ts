@@ -9,6 +9,7 @@ import { ReplaySubject, Subject } from 'rxjs';
 import { catchError, debounceTime, takeUntil } from 'rxjs/operators';
 import { FoodLibraryItem, MealItem } from '../../../../interfaces/log.interface';
 import { FoodListMealItemEditorComponent } from './food-list-meal-item-editor.component';
+import { describeError } from '../../../core/log-format';
 
 
 
@@ -141,13 +142,13 @@ export class FoodListComponent implements OnInit, OnDestroy{
 		this.cdr.markForCheck();
 		const data = await this.http.get<FoodLibraryItem[]>( 'assets/data/food.json' )
 			.pipe( catchError( err => {
-				console.error( 'unable to load food library', err );
+				console.error( `[log] unable to load food library: ${ describeError( err ) }` );
 				return [];
 			} ) )
 			.toPromise();
 
 		if( !data ){
-			console.error( 'no food library data' );
+			console.error( '[log] food library loaded but contained no data' );
 			return;
 		}
 

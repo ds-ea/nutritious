@@ -3,8 +3,8 @@ import { MealItem } from '../../../../../interfaces/log.interface';
 
 
 @Component( {
-	selector: 'nutri-food-list-meal-item-editor',
-	template: `
+    selector: 'nutri-food-list-meal-item-editor',
+    template: `
 		<form (ngSubmit)="done()">
 			<mat-card class="meal-item-editor" *ngIf="mealItem">
 				<mat-card-header>
@@ -40,8 +40,9 @@ import { MealItem } from '../../../../../interfaces/log.interface';
 			</mat-card>
 		</form>
 	`,
-	styles: [],
-	changeDetection: ChangeDetectionStrategy.OnPush,
+    styles: [],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 } )
 export class FoodListMealItemEditorComponent implements AfterViewInit{
 	public popover:HTMLIonPopoverElement | any | undefined;

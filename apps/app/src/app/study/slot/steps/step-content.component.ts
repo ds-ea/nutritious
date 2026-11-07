@@ -4,15 +4,16 @@ import { AbstractStepComponent } from './abstract-step.component';
 
 
 @Component( {
-	changeDetection: ChangeDetectionStrategy.OnPush,
-	selector: 'nutri-step-content',
-	template: `
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'nutri-step-content',
+    template: `
 		<mat-card>
 			<mat-card-content>
 				<markdown [data]="markdown || ''"></markdown>
 			</mat-card-content>
 		</mat-card>
 	`,
+    standalone: false
 } )
 export class StepContentComponent extends AbstractStepComponent<SafeStudyContent, unknown> implements OnChanges{
 

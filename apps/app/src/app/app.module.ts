@@ -2,7 +2,7 @@ import { PlatformModule } from '@angular/cdk/platform';
 import { PortalModule } from '@angular/cdk/portal';
 import { LOCATION_INITIALIZED } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { APP_INITIALIZER, Injector, NgModule } from '@angular/core';
+import { Injector, NgModule, inject, provideAppInitializer } from '@angular/core';
 import { DateAdapter, MAT_DATE_LOCALE, NativeDateModule } from '@angular/material/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -25,6 +25,7 @@ import { catchError, tap } from 'rxjs/operators';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ApiService } from './core/api.service';
+import { describeError } from './core/log-format';
 import { ConfigService } from './core/config.service';
 import { CoreService } from './core/core.service';
 import { StudyModule } from './study/study.module';
@@ -40,9 +41,11 @@ export function appInitializerFactory( injector:Injector, translate:TranslateSer
 		// waiting for the platform to be rrrready first
 		await platform.ready();
 
-		const config = await configService.loadConfig().catch( e => null );
-		if( !config )
-			console.error( 'configuration not available' );
+		const config = await configService.loadConfig().catch( e => {
+			// without config the app has no API URL and cannot do anything useful, so say why
+			console.error( `[app] configuration not available: ${ describeError( e ) }` );
+			return null;
+		} );
 
 		const locationInitialized = await injector.get( LOCATION_INITIALIZED, Promise.resolve( null ) );
 		const selectedLang = await Preferences.get( { key: 'lang' } );
@@ -50,16 +53,16 @@ export function appInitializerFactory( injector:Injector, translate:TranslateSer
 		translate.setDefaultLang( 'en' );
 		const langToSet = selectedLang.value || translate.getBrowserLang();
 		if( !langToSet ){
-			console.warn( 'no language to initialize' );
+			console.warn( '[app] no language to initialize - falling back to the default' );
 		}else{
 			await lastValueFrom( translate.use( langToSet ).pipe(
 				tap( () => {
 					dateAdapter.setLocale( langToSet );
 					dateFNSConfiguration.setLocale( langToSet === 'de' ? de : enGB );
-					console.info( `Successfully initialized '${ langToSet }' language.'` );
+					console.info( `[app] initialized language '${ langToSet }'` );
 				} ),
 				catchError( err => {
-					console.error( `Problem with '${ langToSet }' language initialization.'` );
+					console.error( `[app] could not initialize language '${ langToSet }': ${ describeError( err ) }` );
 					return EMPTY;
 				} ),
 			) );
@@ -104,12 +107,10 @@ export function appInitializerFactory( injector:Injector, translate:TranslateSer
 		CoreService,
 		ApiService,
 		{ provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
-		{
-			provide: APP_INITIALIZER,
-			useFactory: appInitializerFactory,
-			deps: [ Injector, TranslateService, Platform, ConfigService, DateAdapter, DateFnsConfigurationService ],
-			multi: true,
-		},
+		provideAppInitializer(() => {
+        const initializerFn = (appInitializerFactory)(inject(Injector), inject(TranslateService), inject(Platform), inject(ConfigService), inject(DateAdapter), inject(DateFnsConfigurationService));
+        return initializerFn();
+      }),
 		{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
 	],
 	bootstrap: [ AppComponent ],

@@ -9,6 +9,7 @@ import { lastValueFrom, ReplaySubject, Subject } from 'rxjs';
 import { catchError, debounceTime, takeUntil } from 'rxjs/operators';
 import { BLSMealItem } from '../../../../../../../../libs/core/src';
 import { FoodListMealItemEditorComponent } from './food-list-meal-item-editor.component';
+import { describeError } from '../../../../core/log-format';
 
 
 interface FoodLibraryItem{
@@ -22,9 +23,9 @@ interface FoodLibraryItem{
 }
 
 @Component( {
-	selector: 'app-food-list',
-	changeDetection: ChangeDetectionStrategy.OnPush,
-	template: `
+    selector: 'app-food-list',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `
 		<ion-list class="meal-items">
 			<ion-item-sliding *ngFor="let item of mealItems" (click)="editFood(item, $event)">
 				<div class="meal-item">
@@ -71,6 +72,7 @@ interface FoodLibraryItem{
 		</div>
 
 	`,
+    standalone: false
 } )
 export class FoodListComponent implements OnInit, OnDestroy{
 	private _destroyed$ = new ReplaySubject<boolean>( 1 );
@@ -152,12 +154,12 @@ export class FoodListComponent implements OnInit, OnDestroy{
 
 		const data = await lastValueFrom( this.http.get<FoodLibraryItem[]>( 'assets/data/food.json' )
 			.pipe( catchError( err => {
-				console.error( 'unable to load food library', err );
+				console.error( `[study] unable to load food library: ${ describeError( err ) }` );
 				return [];
 			} ) ) );
 
 		if( !data ){
-			console.error( 'no food library data' );
+			console.error( '[study] food library loaded but contained no data' );
 			return;
 		}
 

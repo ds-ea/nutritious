@@ -63,4 +63,12 @@ ion-app.env-staging {
 		border-top-left-radius: 10px;
 		border-bottom-left-radius: 10px;
 	}
+
+	.version-number {
+		--min-height: 0;
+		--inner-padding-bottom: 0;
+		--inner-padding-top: 20px;
+		font-size: 10px;
+		opacity: .5;
+	}
 }

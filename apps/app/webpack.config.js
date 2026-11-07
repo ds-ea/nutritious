@@ -1,4 +1,42 @@
 const webpack = require('webpack');
+const fs = require('fs');
+const path = require('path');
+
+/**
+ * Reads the version and build number the app should report about itself.
+ *
+ * These are baked into the bundle at build time, so what the app shows in its menu is always the
+ * version the JS was actually built from - not whatever .buildversion.json happens to say later.
+ * Bumping the build for a native-only change therefore leaves the in-app version alone until the
+ * web assets are rebuilt, which is the honest answer.
+ *
+ * An explicit NX_APP_VERSION / NX_APP_BUILD in the environment still wins, for CI.
+ */
+function getBuildVersion(){
+	const buildVersionPath = path.join(__dirname, '.buildversion.json');
+
+	if( !fs.existsSync(buildVersionPath) ){
+		console.warn(`[app] ${ buildVersionPath } not found - the app will report no version. Run \`nx run app:version-bump\`.`);
+		return {};
+	}
+
+	try{
+		const { version, build } = JSON.parse(fs.readFileSync(buildVersionPath, 'utf8'));
+		return {
+			NX_APP_VERSION: version == null ? undefined : String(version),
+			NX_APP_BUILD: build == null ? undefined : String(build),
+		};
+	}catch( err ){
+		console.warn(`[app] could not read ${ buildVersionPath }: ${ err.message }`);
+		return {};
+	}
+}
+
+/** an explicit, deliberate opt-in to versioning a build from the environment */
+function allowEnvVersion(){
+	const flag = process.env.NX_APP_ALLOW_ENV_VERSION;
+	return flag !== undefined && ![ '', '0', 'false', 'no', 'off' ].includes(String(flag).toLowerCase());
+}
 
 function getClientEnvironment(){
 	// Grab NX_* environment variables and prepare them to be injected
@@ -11,6 +49,36 @@ function getClientEnvironment(){
 			env[key] = process.env[key];
 			return env;
 		}, {});
+
+	// .buildversion.json is the single source of truth for the version. Nx auto-loads .env into
+	// the task environment, so a stale NX_APP_VERSION there can silently label a build with a
+	// version that never corresponded to the code in it. Refuse to guess which one was meant.
+	const VERSION_KEYS = [ 'NX_APP_VERSION', 'NX_APP_BUILD' ];
+	const fromEnv = VERSION_KEYS.filter(( key ) => raw[key] !== undefined);
+
+	if( fromEnv.length && !allowEnvVersion() ){
+		const found = fromEnv.map(( key ) => `${ key }=${ raw[key] }`).join(', ');
+
+		console.error(`[app] ${ found } is set in the environment (Nx also loads .env), but apps/app/.buildversion.json is the source of truth for the app version.`);
+
+		throw new Error(
+			`Refusing to build: ${ fromEnv.join(' and ') } set in the environment. `
+			+ `Remove ${ fromEnv.length > 1 ? 'them' : 'it' } from .env, or set NX_APP_ALLOW_ENV_VERSION=1 to build with the environment value deliberately.`,
+		);
+	}
+
+	if( fromEnv.length ){
+		console.warn(`[app] NX_APP_ALLOW_ENV_VERSION is set - taking ${ fromEnv.join(' and ') } from the environment instead of .buildversion.json.`);
+	}else{
+		for( const [ key, value ] of Object.entries(getBuildVersion()) )
+			if( value !== undefined )
+				raw[key] = value;
+	}
+
+	if( !raw['NX_API_URL'] )
+		console.warn('[app] NX_API_URL is not set - this build will not be able to reach the API.');
+
+	console.log(`[app] building version ${ raw['NX_APP_VERSION'] ?? '?' } (${ raw['NX_APP_BUILD'] ?? '?' }) from ${ fromEnv.length ? 'the environment' : '.buildversion.json' }`);
 
 	// Stringify all values so we can feed into webpack DefinePlugin
 	return {

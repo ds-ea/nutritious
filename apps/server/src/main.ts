@@ -62,6 +62,7 @@ async function bootstrap(){
 		origin: true,
 		credentials: true,
 		preflightContinue: true,
+		methods: [ 'GET', 'POST', 'PUT', 'PATCH', 'DELETE' ],
 	} );
 
 	await app.register( fastifyHelmet, {

@@ -4,9 +4,9 @@ import dayjs from 'dayjs';
 
 
 @Component( {
-	selector: 'day-selector-component',
-	changeDetection: ChangeDetectionStrategy.OnPush,
-	template: `
+    selector: 'day-selector-component',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `
 		<div class="ion-padding">
 
 			<h1>{{ 'STUDY.MSG_SELECT_DAY_FOR_ENTRY'|translate }}</h1>
@@ -25,6 +25,7 @@ import dayjs from 'dayjs';
 			</ion-list>
 		</div>
 	`,
+    standalone: false
 } )
 
 export class DaySelectorComponentComponent{

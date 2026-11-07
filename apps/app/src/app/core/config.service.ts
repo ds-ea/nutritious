@@ -8,6 +8,8 @@ export type AppConfig = {
 	PRIVACY_URL?:string;
 	SUPPORT_URL?:string;
 	QR_CODE_HASH?:string;
+	APP_BUILD?:string;
+	APP_VERSION?:string;
 }
 type AppConfigKeys = keyof AppConfig;
 const appConfigKeys:AppConfigKeys[] = [ 'DEPLOYMENT_ENV', 'PROJECT_NAME', 'API_URL', 'PRIVACY_URL', 'SUPPORT_URL', 'QR_CODE_HASH' ];
@@ -33,6 +35,8 @@ export class ConfigService{
 			PRIVACY_URL: process.env['NX_PRIVACY_URL'],
 			SUPPORT_URL: process.env['NX_SUPPORT_URL'],
 			QR_CODE_HASH: process.env['NX_QR_CODE_HASH'],
+			APP_BUILD: process.env['NX_APP_BUILD'],
+			APP_VERSION: process.env['NX_APP_VERSION'],
 		};
 
 		this.config = config;

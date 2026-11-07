@@ -4,9 +4,9 @@ import { AbstractInput } from './abstract-input';
 
 
 @Component( {
-	selector: 'nutri-text-input',
-	changeDetection: ChangeDetectionStrategy.OnPush,
-	template: `
+    selector: 'nutri-text-input',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `
 		<div [formGroup]="formGroup" *ngIf="item" class="form-control">
 			<mat-form-field>
 				@if (config?.variant === 'string') {
@@ -35,6 +35,7 @@ import { AbstractInput } from './abstract-input';
 			</mat-form-field>
 		</div>
 	`,
+    standalone: false
 } )
 export class TextInput extends AbstractInput<FormInputType.Text>{
 }

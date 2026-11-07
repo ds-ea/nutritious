@@ -71,21 +71,27 @@ html {
 		display: none;
 	}
 
+	// The ML Kit scanner renders the camera preview *behind* the webview. Unlike the old
+	// community plugin there is no native hideBackground() call, so every layer from <html>
+	// down has to be made transparent here or the preview is simply not visible.
 	&.scanner-running {
+		background: transparent;
+		--background: transparent;
+		--ion-background-color: transparent;
+
 		.scanner-ui {
 			display: flex;
 		}
 
 		body {
 			background: transparent;
+			--background: transparent;
+			--ion-background-color: transparent;
 		}
 
+		// the whole Ionic app is hidden while scanning; .scanner-ui lives outside <ion-app>
 		ion-app {
 			display: none;
-		}
-
-		::part(background) {
-			//background: transparent;
 		}
 	}
 }

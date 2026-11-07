@@ -137,7 +137,7 @@ export class LogView implements OnInit, OnDestroy{
 
 
 		if( !this.steps?.[nextStepNum] ){
-			console.warn( 'step missing!', nextStepNum, this.steps );
+			console.warn( `[log] no step ${ nextStepNum } - only ${ this.steps?.length ?? 0 } step(s) available` );
 			return;
 		}
 

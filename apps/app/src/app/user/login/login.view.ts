@@ -7,8 +7,8 @@ import { CoreService } from '../../core/core.service';
 
 
 @Component( {
-	selector: 'app-login',
-	template: `
+    selector: 'app-login',
+    template: `
 		<ion-content class="content-centered">
 
 			<div class="view-content">
@@ -57,6 +57,7 @@ import { CoreService } from '../../core/core.service';
 
 		</ion-content>
 	`,
+    standalone: false
 } )
 export class LoginView implements OnInit{
 	public loginForm:UntypedFormGroup = new UntypedFormGroup( {

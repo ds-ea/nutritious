@@ -2,9 +2,9 @@
 	"name": "@nutritious/core",
 	"version": "0.0.1",
 	"dependencies": {
-		"@nestjs/common": "*",
-		"@prisma/client": "^5.9.1",
-		"prisma": "^5.9.1"
+		"@nestjs/common": "^11.1.2",
+		"@prisma/client": "5.22.0",
+		"prisma": "5.22.0"
 	},
 	"types": "./index.cjs.d.ts"
 }
